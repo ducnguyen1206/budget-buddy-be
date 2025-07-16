@@ -1,0 +1,64 @@
+databaseChangeLog:
+  - changeSet:
+      id: alter-transaction-filter-filters-to-jsonb
+      author: admin
+      changes:
+        - modifyDataType:
+            tableName: transaction_filter
+            columnName: filters
+            newDataType: jsonb
+      rollback:
+        - modifyDataType:
+            tableName: transaction_filter
+            columnName: filters
+            newDataType: json
+  - changeSet:
+      id: add-transaction-indexes
+      author: admin
+      changes:
+        - createIndex:
+            tableName: transaction
+            indexName: idx_transaction_name
+            columns:
+              - column:
+                  name: name
+        - createIndex:
+            tableName: transaction
+            indexName: idx_transaction_amount
+            columns:
+              - column:
+                  name: amount
+        - createIndex:
+            tableName: transaction
+            indexName: idx_transaction_category_id
+            columns:
+              - column:
+                  name: category_id
+        - createIndex:
+            tableName: transaction
+            indexName: idx_transaction_account_id
+            columns:
+              - column:
+                  name: account_id
+        - createIndex:
+            tableName: transaction
+            indexName: idx_transaction_transfer_info
+            columns:
+              - column:
+                  name: transfer_info
+      rollback:
+        - dropIndex:
+            tableName: transaction
+            indexName: idx_transaction_name
+        - dropIndex:
+            tableName: transaction
+            indexName: idx_transaction_amount
+        - dropIndex:
+            tableName: transaction
+            indexName: idx_transaction_category_id
+        - dropIndex:
+            tableName: transaction
+            indexName: idx_transaction_account_id
+        - dropIndex:
+            tableName: transaction
+            indexName: idx_transaction_transfer_info
