@@ -1,6 +1,7 @@
 package com.budget.buddy.user.domain.service.impl;
 
 import com.budget.buddy.BaseIntegrationTest;
+import com.budget.buddy.user.application.constant.UserApplicationConstant;
 import com.budget.buddy.user.domain.model.User;
 import com.budget.buddy.user.domain.model.UserVerification;
 import com.budget.buddy.user.domain.vo.EmailAddressVO;
@@ -12,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 class UserDataImplIntegrationTest extends BaseIntegrationTest {
@@ -86,5 +88,46 @@ class UserDataImplIntegrationTest extends BaseIntegrationTest {
         Assertions.assertEquals(result.getVerificationToken().getValue(), verificationToken.getValue());
         Assertions.assertEquals(verificationToken.getExpiresAt(), result.getVerificationToken().getExpiresAt());
         Assertions.assertEquals(user, result.getUser());
+    }
+
+    @Test
+    void findUserVerificationWithDateTest() {
+        // Arrange
+        EmailAddressVO email = new EmailAddressVO("findUserVerificationWithDateTest@test.com", false);
+        User user = new User(email, null, 0, false);
+        userRepository.save(user);
+
+        LocalDateTime expiresTime = LocalDateTime.now().plusSeconds(UserApplicationConstant.VERIFICATION_EXPIRES_TIME);
+        String token = UUID.randomUUID().toString();
+        VerificationTokenVO verificationToken = new VerificationTokenVO(token, expiresTime);
+        UserVerification verification = new UserVerification(user, verificationToken, false);
+
+        userVerificationRepository.save(verification);
+
+        // Act
+        Optional<UserVerification> userVerification = userData.findUserVerificationWithDate(token, LocalDateTime.now());
+
+        // Assert
+        Assertions.assertTrue(userVerification.isPresent());
+    }
+
+    @Test
+    void saveUserVerificationTest() {
+        // Arrange
+        EmailAddressVO email = new EmailAddressVO("saveUserVerificationTest@test.com", false);
+        User user = new User(email, null, 0, false);
+        userRepository.save(user);
+
+        LocalDateTime expiresTime = LocalDateTime.now().plusSeconds(UserApplicationConstant.VERIFICATION_EXPIRES_TIME);
+        String token = UUID.randomUUID().toString();
+        VerificationTokenVO verificationToken = new VerificationTokenVO(token, expiresTime);
+        UserVerification verification = new UserVerification(user, verificationToken, false);
+
+        // Act
+        UserVerification userVerification = userData.saveUserVerification(verification);
+
+        // Assert
+        Assertions.assertNotNull(userVerification);
+        Assertions.assertEquals(token, userVerification.getVerificationToken().getValue());
     }
 }

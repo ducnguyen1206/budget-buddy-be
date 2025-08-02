@@ -10,6 +10,9 @@ import com.budget.buddy.user.infrastructure.repository.UserVerificationRepositor
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class UserDataImpl implements UserData {
@@ -36,5 +39,15 @@ public class UserDataImpl implements UserData {
     public UserVerification saveNewUserVerificationToken(User user, VerificationTokenVO token) {
         UserVerification verification = new UserVerification(user, token, false);
         return userVerificationRepository.save(verification);
+    }
+
+    @Override
+    public Optional<UserVerification> findUserVerificationWithDate(String token, LocalDateTime time) {
+        return userVerificationRepository.findByVerificationToken_valueAndVerificationToken_ExpiresAtAfter(token, time);
+    }
+
+    @Override
+    public UserVerification saveUserVerification(UserVerification userVerification) {
+        return userVerificationRepository.save(userVerification);
     }
 }

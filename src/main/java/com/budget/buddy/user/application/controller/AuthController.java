@@ -1,7 +1,8 @@
 package com.budget.buddy.user.application.controller;
 
-import com.budget.buddy.user.application.service.AuthenticationService;
+import com.budget.buddy.user.application.dto.RefreshTokenRequest;
 import com.budget.buddy.user.application.dto.RegisterRequest;
+import com.budget.buddy.user.application.service.AuthenticationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -29,5 +30,16 @@ public class AuthController {
     public ResponseEntity<Void> register(@Valid @RequestBody RegisterRequest request) {
         authenticationService.registerUser(request.email());
         return ResponseEntity.status(201).build();
+    }
+
+    @Operation(summary = "Verify user email", responses = {
+            @ApiResponse(responseCode = "200", description = "AccountPayload verified"),
+            @ApiResponse(responseCode = "400", description = "Invalid request data"),
+            @ApiResponse(responseCode = "401", description = "Token invalid")
+    })
+    @PostMapping("/verify")
+    public ResponseEntity<String> verify(@Valid @RequestBody RefreshTokenRequest tokenRequest) {
+        authenticationService.verifyUser(tokenRequest.refreshToken());
+        return ResponseEntity.ok("AccountPayload verified");
     }
 }

@@ -1,11 +1,13 @@
 package com.budget.buddy.user.application.service.impl;
 
 import com.budget.buddy.core.event.SendVerificationEmailEvent;
+import com.budget.buddy.user.application.dto.ResetPasswordRequest;
 import com.budget.buddy.user.application.service.AuthenticationService;
 import com.budget.buddy.user.application.constant.UserApplicationConstant;
 import com.budget.buddy.user.application.exception.AuthException;
 import com.budget.buddy.user.application.exception.UserErrorCode;
 import com.budget.buddy.user.domain.model.User;
+import com.budget.buddy.user.domain.model.UserVerification;
 import com.budget.buddy.user.domain.service.UserData;
 import com.budget.buddy.user.domain.vo.EmailAddressVO;
 import com.budget.buddy.user.domain.vo.VerificationTokenVO;
@@ -63,5 +65,34 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 )
         );
         logger.info("Verification email event published for user: {}", user.getEmailAddress().getValue());
+    }
+
+    @Override
+    public void verifyUser(String token) {
+        LocalDateTime now = LocalDateTime.now();
+
+        UserVerification verification = userData.findUserVerificationWithDate(token, now)
+                .orElseThrow(() -> {
+                    logger.warn("Verification failed: Invalid accessToken {}", token);
+                    return new AuthException(UserErrorCode.TOKEN_INVALID);
+                });
+
+        LocalDateTime newExpiresAt = verification
+                .getVerificationToken()
+                .getExpiresAt()
+                .plusSeconds(UserApplicationConstant.VERIFICATION_EXPIRES_TIME);
+
+        VerificationTokenVO verificationToken = new VerificationTokenVO(token, newExpiresAt);
+
+        verification.setVerificationToken(verificationToken);
+        verification.setVerified(true);
+        userData.saveUserVerification(verification);
+
+        logger.info("User verified successfully for accessToken: {}", token);
+    }
+
+    @Override
+    public void resetPassword(ResetPasswordRequest request) {
+
     }
 }

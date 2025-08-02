@@ -203,6 +203,7 @@
                                 <exclude>**/mapper/**</exclude>
                                 <exclude>**/core/**</exclude>
                                 <exclude>**/model/**</exclude>
+                                <exclude>**/controller/**</exclude>
                             </excludes>
                         </configuration>
                     </execution>
