@@ -2,19 +2,24 @@ package com.budget.buddy.user.domain.vo;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.regex.Pattern;
 
 
-@Embeddable
 @Getter
-@EqualsAndHashCode
-public class EmailAddressVO {
+@Embeddable
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@EqualsAndHashCode(callSuper = false)
+public class EmailAddressVO implements Serializable {
 
-    private static final Pattern EMAIL_REGEX =
-            Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
+    @Serial
+    private static final long serialVersionUID = 1L;
 
     @Column(name = "email", nullable = false, unique = true)
     private String value;
@@ -23,24 +28,15 @@ public class EmailAddressVO {
     @Column(name = "is_active", nullable = false)
     private boolean active = false;
 
-    protected EmailAddressVO() {
-        // for JPA
-    }
-
     public EmailAddressVO(String value, boolean active) {
-        if (value == null || !EMAIL_REGEX.matcher(value).matches()) {
+        final Pattern emailPattern =
+                Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
+
+        if (value == null || !emailPattern.matcher(value).matches()) {
             throw new IllegalArgumentException("Invalid email format");
         }
         this.value = value.toLowerCase();
         this.active = active;
-    }
-
-    public static EmailAddressVO inactive(String email) {
-        return new EmailAddressVO(email, false);
-    }
-
-    public static EmailAddressVO active(String email) {
-        return new EmailAddressVO(email, true);
     }
 
     public EmailAddressVO activate() {

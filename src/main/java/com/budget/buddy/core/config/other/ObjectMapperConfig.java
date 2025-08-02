@@ -1,4 +1,4 @@
-package com.budget.buddy.core.config;
+package com.budget.buddy.core.config.other;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;

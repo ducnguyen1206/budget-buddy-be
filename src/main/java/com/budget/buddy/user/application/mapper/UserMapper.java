@@ -4,10 +4,11 @@ import com.budget.buddy.user.application.dto.UserDTO;
 import com.budget.buddy.user.domain.model.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingConstants;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface UserMapper {
-    @Mapping(source = "emailAddress.value", target = "email")
-    @Mapping(source = "emailAddress.active", target = "active")
+    @Mapping(target = "email", expression = "java(user.getEmailAddress().getValue())")
+    @Mapping(target = "active", expression = "java(user.getEmailAddress().isActive())")
     UserDTO toDto(User user);
 }

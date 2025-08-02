@@ -1,4 +1,4 @@
-package com.budget.buddy.core.config;
+package com.budget.buddy.core.config.audit;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

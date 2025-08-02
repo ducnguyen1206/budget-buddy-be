@@ -1,4 +1,4 @@
-package com.budget.buddy.core.config;
+package com.budget.buddy.core.config.swagger;
 
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;

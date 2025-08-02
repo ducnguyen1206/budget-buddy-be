@@ -7,16 +7,19 @@ import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import lombok.*;
+import lombok.experimental.Accessors;
 
 @Entity
 @Table(name = "\"user\"")
 @Getter
 @Setter
+@Accessors(fluent = false)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
 public class User extends BaseEntity {
 
+    @SuppressWarnings("java:S1948")
     @Embedded
     private EmailAddressVO emailAddress;
 
@@ -24,8 +27,8 @@ public class User extends BaseEntity {
     private String password;
 
     @Column(name = "failed_attempts", nullable = false)
-    private int failedAttempts = 0;
+    private int failedAttempts;
 
     @Column(name = "is_locked", nullable = false)
-    private boolean locked = false;
+    private boolean locked;
 }
