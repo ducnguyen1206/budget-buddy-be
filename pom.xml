@@ -202,6 +202,7 @@
                                 <exclude>**/exception/**</exclude>
                                 <exclude>**/mapper/**</exclude>
                                 <exclude>**/core/**</exclude>
+                                <exclude>**/model/**</exclude>
                             </excludes>
                         </configuration>
                     </execution>

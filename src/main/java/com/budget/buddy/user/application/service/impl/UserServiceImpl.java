@@ -1,6 +1,6 @@
 package com.budget.buddy.user.application.service.impl;
 
-import com.budget.buddy.user.UserService;
+import com.budget.buddy.user.application.service.UserService;
 import com.budget.buddy.user.application.dto.UserDTO;
 import com.budget.buddy.user.application.mapper.UserMapper;
 import com.budget.buddy.user.domain.model.User;

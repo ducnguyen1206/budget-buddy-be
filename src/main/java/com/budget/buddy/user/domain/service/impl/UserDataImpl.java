@@ -6,6 +6,7 @@ import com.budget.buddy.user.domain.service.UserData;
 import com.budget.buddy.user.domain.vo.EmailAddressVO;
 import com.budget.buddy.user.domain.vo.VerificationTokenVO;
 import com.budget.buddy.user.infrastructure.repository.UserRepository;
+import com.budget.buddy.user.infrastructure.repository.UserVerificationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -13,25 +14,27 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class UserDataImpl implements UserData {
     private final UserRepository userRepository;
+    private final UserVerificationRepository userVerificationRepository;
 
     @Override
     public User findUserByEmail(String email) {
-        return userRepository.findByEmailAddress_Value(email).orElse(null);
+        return userRepository.findByEmailAddress_Value(email.toLowerCase()).orElse(null);
     }
 
     @Override
     public boolean existsByEmail(String email) {
-        return userRepository.existsByEmailAddress_Value(email);
+        return userRepository.existsByEmailAddress_Value(email.toLowerCase());
     }
 
     @Override
-    public User saveUser(EmailAddressVO email) {
+    public User saveNewUser(EmailAddressVO email) {
         User user = new User(email, null, 0, false);
         return userRepository.save(user);
     }
 
     @Override
-    public UserVerification saveUserVerification(User user, VerificationTokenVO token) {
-        return null;
+    public UserVerification saveNewUserVerificationToken(User user, VerificationTokenVO token) {
+        UserVerification verification = new UserVerification(user, token, false);
+        return userVerificationRepository.save(verification);
     }
 }

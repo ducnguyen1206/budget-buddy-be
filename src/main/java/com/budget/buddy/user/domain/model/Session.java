@@ -1,6 +1,5 @@
 package com.budget.buddy.user.domain.model;
 
-import com.budget.buddy.core.BaseEntity;
 import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

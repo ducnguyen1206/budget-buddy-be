@@ -1,6 +1,5 @@
 package com.budget.buddy.user.domain.model;
 
-import com.budget.buddy.core.BaseEntity;
 import com.budget.buddy.user.domain.vo.EmailAddressVO;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;

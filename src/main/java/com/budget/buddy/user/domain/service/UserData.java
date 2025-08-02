@@ -10,7 +10,7 @@ public interface UserData {
 
     boolean existsByEmail(String email);
 
-    User saveUser(EmailAddressVO email);
+    User saveNewUser(EmailAddressVO email);
 
-    UserVerification saveUserVerification(User user, VerificationTokenVO token);
+    UserVerification saveNewUserVerificationToken(User user, VerificationTokenVO token);
 }

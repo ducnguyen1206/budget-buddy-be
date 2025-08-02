@@ -1,6 +1,5 @@
 package com.budget.buddy.core.config.security;
 
-import com.budget.buddy.core.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

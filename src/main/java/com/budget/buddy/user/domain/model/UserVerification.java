@@ -1,6 +1,5 @@
 package com.budget.buddy.user.domain.model;
 
-import com.budget.buddy.core.BaseEntity;
 import com.budget.buddy.user.domain.vo.VerificationTokenVO;
 import jakarta.persistence.*;
 import lombok.*;
@@ -19,7 +18,7 @@ public class UserVerification extends BaseEntity {
 
     @SuppressWarnings("java:S1948")
     @Embedded
-    private VerificationTokenVO emailAddress;
+    private VerificationTokenVO verificationToken;
 
     @Column(name = "is_verified", nullable = false)
     private boolean verified = false;

@@ -1,4 +1,4 @@
-package com.budget.buddy.core;
+package com.budget.buddy.core.config.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;

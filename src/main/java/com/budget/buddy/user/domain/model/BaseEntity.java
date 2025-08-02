@@ -1,4 +1,4 @@
-package com.budget.buddy.core;
+package com.budget.buddy.user.domain.model;
 
 import jakarta.persistence.*;
 import lombok.Getter;
