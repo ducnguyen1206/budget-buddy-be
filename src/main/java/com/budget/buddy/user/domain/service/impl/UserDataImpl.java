@@ -1,0 +1,74 @@
+package com.budget.buddy.user.domain.service.impl;
+
+import com.budget.buddy.user.domain.model.Session;
+import com.budget.buddy.user.domain.model.User;
+import com.budget.buddy.user.domain.model.UserVerification;
+import com.budget.buddy.user.domain.service.UserData;
+import com.budget.buddy.user.domain.vo.EmailAddressVO;
+import com.budget.buddy.user.domain.vo.VerificationTokenVO;
+import com.budget.buddy.user.infrastructure.repository.UserRepository;
+import com.budget.buddy.user.infrastructure.repository.UserVerificationRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.Optional;
+
+@Service
+@RequiredArgsConstructor
+public class UserDataImpl implements UserData {
+    private final UserRepository userRepository;
+    private final UserVerificationRepository userVerificationRepository;
+
+    @Override
+    public Optional<User> findUserByEmail(String email) {
+        return userRepository.findByEmailAddress_Value(email.toLowerCase());
+    }
+
+    @Override
+    public boolean existsByEmail(String email) {
+        return userRepository.existsByEmailAddress_Value(email.toLowerCase());
+    }
+
+    @Override
+    public User saveNewUser(EmailAddressVO email) {
+        User user = new User(email, null, 0, false);
+        return userRepository.save(user);
+    }
+
+    @Override
+    public UserVerification saveNewUserVerificationToken(User user, VerificationTokenVO token) {
+        UserVerification verification = new UserVerification(user, token, false);
+        return userVerificationRepository.save(verification);
+    }
+
+    @Override
+    public Optional<UserVerification> findUserVerificationWithDate(String token, LocalDateTime time) {
+        return userVerificationRepository.findByVerificationToken_valueAndVerificationToken_ExpiresAtAfter(token, time);
+    }
+
+    @Override
+    public UserVerification saveUserVerification(UserVerification userVerification) {
+        return userVerificationRepository.save(userVerification);
+    }
+
+    @Override
+    public User saveUser(User user) {
+        return userRepository.save(user);
+    }
+
+    @Override
+    public void deleteUserVerification(UserVerification userVerification) {
+        userVerificationRepository.delete(userVerification);
+    }
+
+    @Override
+    public Optional<UserVerification> findUserVerificationByUserId(Long userId) {
+        return userVerificationRepository.findByUserId(userId);
+    }
+
+    @Override
+    public Session findSession() {
+        return null;
+    }
+}

@@ -1,0 +1,199 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-init-data
+      author: ducnguyen
+      changes:
+        - createTable:
+            tableName: user
+            preConditions:
+              - onFail: CONTINUE
+              - not:
+                  tableExists:
+                    tableName: user
+            columns:
+              - column: { name: id, type: bigint, autoIncrement: true, constraints: { primaryKey: true } }
+              - column: { name: email, type: varchar(255), constraints: { unique: true, nullable: false } }
+              - column: { name: password, type: varchar(255) }
+              - column: { name: is_active, type: boolean, defaultValue: false, constraints: { nullable: false } }
+              - column: { name: failed_attempts, type: integer, constraints: { nullable: false } }
+              - column: { name: is_locked, type: boolean, defaultValue: false, constraints: { nullable: false } }
+              - column: { name: created_date, type: timestamp, defaultValue: now(), constraints: { nullable: false } }
+              - column: { name: created_by, type: varchar(255), constraints: { nullable: false } }
+              - column: { name: last_modified_date, type: timestamp, defaultValue: now() }
+              - column: { name: last_modified_by, type: varchar(255) }
+        - createTable:
+            tableName: auth_provider
+            preConditions:
+              - onFail: CONTINUE
+              - not:
+                  tableExists:
+                    tableName: auth_provider
+            columns:
+              - column: { name: id, type: bigint, autoIncrement: true, constraints: { primaryKey: true } }
+              - column: { name: user_id, type: bigint, constraints: { nullable: false, foreignKeyName: fk_auth_provider_user, references: user(id) } }
+              - column: { name: provider_name, type: varchar(255), constraints: { nullable: false } }
+              - column: { name: provider_id, type: varchar(255), constraints: { nullable: false, unique: true } }
+              - column: { name: created_date, type: timestamp, defaultValue: now(), constraints: { nullable: false } }
+              - column: { name: created_by, type: varchar(255), constraints: { nullable: false } }
+              - column: { name: last_modified_date, type: timestamp, defaultValue: now() }
+              - column: { name: last_modified_by, type: varchar(255) }
+        - createTable:
+            tableName: session
+            preConditions:
+              - onFail: CONTINUE
+              - not:
+                  tableExists:
+                    tableName: session
+            columns:
+              - column: { name: id, type: bigint, autoIncrement: true, constraints: { primaryKey: true } }
+              - column: { name: user_id, type: bigint, constraints: { nullable: false, foreignKeyName: fk_session_user, references: user(id) } }
+              - column: { name: token, type: text, constraints: { nullable: false, unique: true } }
+              - column: { name: refresh_token, type: text, constraints: { nullable: false, unique: true } }
+              - column: { name: expires_at, type: timestamp, constraints: { nullable: false } }
+              - column: { name: created_date, type: timestamp, defaultValue: now(), constraints: { nullable: false } }
+              - column: { name: created_by, type: varchar(255), constraints: { nullable: false } }
+              - column: { name: last_modified_date, type: timestamp, defaultValue: now() }
+              - column: { name: last_modified_by, type: varchar(255) }
+
+        - createTable:
+            tableName: account_type_group
+            preConditions:
+              - onFail: CONTINUE
+              - not:
+                  tableExists:
+                    tableName: account_type_group
+            columns:
+              - column: { name: id, type: bigint, autoIncrement: true, constraints: { primaryKey: true } }
+              - column: { name: user_id, type: integer, constraints: { nullable: false, foreignKeyName: fk_account_type_group_user, references: user(id) } }
+              - column: { name: name, type: varchar(255), constraints: { nullable: false } }
+              - column: { name: created_date, type: timestamp, defaultValue: now(), constraints: { nullable: false } }
+              - column: { name: created_by, type: varchar(255), constraints: { nullable: false } }
+              - column: { name: last_modified_date, type: timestamp, defaultValue: now() }
+              - column: { name: last_modified_by, type: varchar(255) }
+
+        - createTable:
+            tableName: account
+            preConditions:
+              - onFail: CONTINUE
+              - not:
+                  tableExists:
+                    tableName: account
+            columns:
+              - column: { name: id, type: bigint, autoIncrement: true, constraints: { primaryKey: true } }
+              - column: { name: account_type_group_id, type: integer, constraints: { nullable: false, foreignKeyName: fk_account_account_type_group, references: account_type_group(id) } }
+              - column: { name: name, type: varchar(255), constraints: { nullable: false } }
+              - column: { name: available_balance, type: decimal, defaultValue: 0.00, constraints: { nullable: false } }
+              - column: { name: currency, type: varchar(5), constraints: { nullable: false } }
+              - column: { name: created_date, type: timestamp, defaultValue: now(), constraints: { nullable: false } }
+              - column: { name: created_by, type: varchar(255), constraints: { nullable: false } }
+              - column: { name: last_modified_date, type: timestamp, defaultValue: now() }
+              - column: { name: last_modified_by, type: varchar(255) }
+
+        - createTable:
+            tableName: category
+            preConditions:
+              - onFail: CONTINUE
+              - not:
+                  tableExists:
+                    tableName: category
+            columns:
+              - column: { name: id, type: bigint, autoIncrement: true, constraints: { primaryKey: true } }
+              - column: { name: name, type: varchar(255), constraints: { nullable: false } }
+              - column: { name: type, type: varchar(255), constraints: { nullable: false } }
+              - column: { name: user_id, type: integer, constraints: { nullable: false, foreignKeyName: fk_category_user, references: user(id) } }
+              - column: { name: created_date, type: timestamp, defaultValue: now(), constraints: { nullable: false } }
+              - column: { name: created_by, type: varchar(255), constraints: { nullable: false } }
+              - column: { name: last_modified_date, type: timestamp, defaultValue: now() }
+              - column: { name: last_modified_by, type: varchar(255) }
+
+        - createTable:
+            tableName: transaction
+            preConditions:
+              - onFail: CONTINUE
+              - not:
+                  tableExists:
+                    tableName: transaction
+            columns:
+              - column: { name: id, type: bigint, autoIncrement: true, constraints: { primaryKey: true } }
+              - column: { name: user_id, type: integer, constraints: { nullable: false, foreignKeyName: fk_transaction_user, references: user(id) } }
+              - column: { name: account_id, type: integer, constraints: { nullable: false, foreignKeyName: fk_transaction_account, references: account(id) } }
+              - column: { name: category_id, type: integer, constraints: { nullable: false, foreignKeyName: fk_transaction_category, references: category(id) } }
+              - column: { name: name, type: varchar(255), constraints: { nullable: false } }
+              - column: { name: amount, type: decimal, defaultValue: 0.00, constraints: { nullable: false } }
+              - column: { name: date, type: date, constraints: { nullable: false } }
+              - column: { name: type, type: varchar(255), constraints: { nullable: false } }
+              - column: { name: transfer_info, type: varchar(255), defaultValue: 'N/A', constraints: { nullable: false } }
+              - column: { name: created_date, type: timestamp, defaultValue: now(), constraints: { nullable: false } }
+              - column: { name: created_by, type: varchar(255), constraints: { nullable: false } }
+              - column: { name: last_modified_date, type: timestamp, defaultValue: now() }
+              - column: { name: last_modified_by, type: varchar(255) }
+
+        - createTable:
+            tableName: budget
+            preConditions:
+              - onFail: CONTINUE
+              - not:
+                  tableExists:
+                    tableName: budget
+            columns:
+              - column: { name: id, type: bigint, autoIncrement: true, constraints: { primaryKey: true } }
+              - column: { name: category_id, type: integer, constraints: { nullable: false, foreignKeyName: fk_budget_category, references: category(id) } }
+              - column: { name: amount, type: decimal, defaultValue: 0.00, constraints: { nullable: false } }
+              - column: { name: dispensed, type: decimal, defaultValue: 0.00, constraints: { nullable: false } }
+              - column: { name: remaining, type: decimal, defaultValue: 0.00, constraints: { nullable: false } }
+              - column: { name: created_date, type: timestamp, defaultValue: now(), constraints: { nullable: false } }
+              - column: { name: created_by, type: varchar(255), constraints: { nullable: false } }
+              - column: { name: last_modified_date, type: timestamp, defaultValue: now() }
+              - column: { name: last_modified_by, type: varchar(255) }
+
+        - createTable:
+            tableName: transaction_filter
+            preConditions:
+              - onFail: CONTINUE
+              - not:
+                  tableExists:
+                    tableName: transaction_filter
+            columns:
+              - column: { name: id, type: integer, autoIncrement: true, constraints: { primaryKey: true } }
+              - column: { name: user_id, type: integer, constraints: { nullable: false, foreignKeyName: fk_transaction_filter_user, references: user(id) } }
+              - column: { name: name, type: varchar(255), constraints: { nullable: false } }
+              - column: { name: filters, type: json, constraints: { nullable: false } }
+              - column: { name: sort, type: varchar(255) }
+              - column: { name: is_default, type: boolean, defaultValue: false }
+              - column: { name: created_date, type: timestamp, defaultValue: now(), constraints: { nullable: false } }
+              - column: { name: created_by, type: varchar(255), constraints: { nullable: false } }
+              - column: { name: last_modified_date, type: timestamp, defaultValue: now() }
+              - column: { name: last_modified_by, type: varchar(255) }
+        - createTable:
+            tableName: user_verification
+            preConditions:
+              - onFail: CONTINUE
+              - not:
+                  tableExists:
+                    tableName: user_verification
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: user_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_user_verification_user
+                    references: "user(id)"
+                    unique: true
+              - column:
+                  name: verification_token
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column: { name: is_verified, type: boolean, defaultValue: false, constraints: { nullable: false } }
+              - column: { name: expires_at, type: timestamp, constraints: { nullable: false } }
+              - column: { name: created_date, type: timestamp, defaultValue: now(), constraints: { nullable: false } }
+              - column: { name: created_by, type: varchar(255), constraints: { nullable: false } }
+              - column: { name: last_modified_date, type: timestamp, defaultValue: now() }
+              - column: { name: last_modified_by, type: varchar(255) }
