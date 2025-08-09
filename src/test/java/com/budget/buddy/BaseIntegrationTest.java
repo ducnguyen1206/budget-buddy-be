@@ -7,7 +7,7 @@ import org.springframework.test.context.TestPropertySource;
 @ActiveProfiles("test")
 @SpringBootTest
 @TestPropertySource(properties = {
-        "jwt.secret=test-secret",
+        "jwt.secret=kP/UI9gVKCL682ACTLaEmSUzg8omKbRHGtz7AZO7flEbXx4ZJY0G/5ycUoCfJQwkrCbQkZIQbw6K/6dHWDZSYg==",
         "feature.enabled=true",
         "spring.liquibase.enabled=false",
         "spring.email.username=nmd12061999@gmail.com",
