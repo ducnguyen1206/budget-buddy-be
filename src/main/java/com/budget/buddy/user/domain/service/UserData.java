@@ -1,5 +1,6 @@
 package com.budget.buddy.user.domain.service;
 
+import com.budget.buddy.user.domain.model.Session;
 import com.budget.buddy.user.domain.model.User;
 import com.budget.buddy.user.domain.model.UserVerification;
 import com.budget.buddy.user.domain.vo.EmailAddressVO;
@@ -9,7 +10,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 public interface UserData {
-    User findUserByEmail(String email);
+    Optional<User> findUserByEmail(String email);
 
     boolean existsByEmail(String email);
 
@@ -20,4 +21,12 @@ public interface UserData {
     Optional<UserVerification> findUserVerificationWithDate(String token, LocalDateTime time);
 
     UserVerification saveUserVerification(UserVerification userVerification);
+
+    User saveUser(User user);
+
+    void deleteUserVerification(UserVerification userVerification);
+
+    Optional<UserVerification> findUserVerificationByUserId(Long userId);
+
+    Session findSession();
 }

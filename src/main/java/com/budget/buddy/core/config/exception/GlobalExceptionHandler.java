@@ -11,6 +11,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 @RestControllerAdvice
@@ -53,5 +55,24 @@ public class GlobalExceptionHandler {
         logger.error("Unexpected error occurred", ex);
         ErrorResponse error = new ErrorResponse(ErrorCode.SERVER_ERROR.getCode(), ErrorCode.SERVER_ERROR.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+    }
+
+    @ExceptionHandler(AuthException.class)
+    public ResponseEntity<ErrorResponse> handleAuthException(AuthException ex) {
+        logger.warn("Authentication error: {} - {}", ex.getErrorCode(), ex.getMessage());
+        ErrorResponse error = new ErrorResponse(ex.getErrorCode(), ex.getMessage());
+        Map<String, HttpStatus> statusCode = new HashMap<>();
+        statusCode.put(ErrorCode.ACCOUNT_LOCKED.getCode(), HttpStatus.FORBIDDEN);
+        statusCode.put(ErrorCode.EMAIL_EXISTS.getCode(), HttpStatus.CONFLICT);
+
+        HttpStatus status = statusCode.getOrDefault(ex.getErrorCode(), HttpStatus.UNAUTHORIZED);
+        return ResponseEntity.status(status).body(error);
+    }
+
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNotFoundException(NotFoundException ex) {
+        logger.warn("Not found error: {} - {}", ex.getErrorCode(), ex.getMessage());
+        ErrorResponse error = new ErrorResponse(ex.getErrorCode(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 }

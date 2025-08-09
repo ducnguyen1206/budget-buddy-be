@@ -1,5 +1,6 @@
 package com.budget.buddy.user.domain.service.impl;
 
+import com.budget.buddy.user.domain.model.Session;
 import com.budget.buddy.user.domain.model.User;
 import com.budget.buddy.user.domain.model.UserVerification;
 import com.budget.buddy.user.domain.service.UserData;
@@ -20,8 +21,8 @@ public class UserDataImpl implements UserData {
     private final UserVerificationRepository userVerificationRepository;
 
     @Override
-    public User findUserByEmail(String email) {
-        return userRepository.findByEmailAddress_Value(email.toLowerCase()).orElse(null);
+    public Optional<User> findUserByEmail(String email) {
+        return userRepository.findByEmailAddress_Value(email.toLowerCase());
     }
 
     @Override
@@ -49,5 +50,25 @@ public class UserDataImpl implements UserData {
     @Override
     public UserVerification saveUserVerification(UserVerification userVerification) {
         return userVerificationRepository.save(userVerification);
+    }
+
+    @Override
+    public User saveUser(User user) {
+        return userRepository.save(user);
+    }
+
+    @Override
+    public void deleteUserVerification(UserVerification userVerification) {
+        userVerificationRepository.delete(userVerification);
+    }
+
+    @Override
+    public Optional<UserVerification> findUserVerificationByUserId(Long userId) {
+        return userVerificationRepository.findByUserId(userId);
+    }
+
+    @Override
+    public Session findSession() {
+        return null;
     }
 }

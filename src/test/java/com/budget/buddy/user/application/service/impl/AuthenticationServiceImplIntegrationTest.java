@@ -1,9 +1,10 @@
 package com.budget.buddy.user.application.service.impl;
 
 import com.budget.buddy.BaseIntegrationTest;
+import com.budget.buddy.core.config.exception.AuthException;
+import com.budget.buddy.core.config.exception.ErrorCode;
 import com.budget.buddy.user.application.constant.UserApplicationConstant;
-import com.budget.buddy.user.application.exception.AuthException;
-import com.budget.buddy.user.application.exception.UserErrorCode;
+import com.budget.buddy.user.application.dto.ResetPasswordRequest;
 import com.budget.buddy.user.domain.model.User;
 import com.budget.buddy.user.domain.model.UserVerification;
 import com.budget.buddy.user.domain.vo.EmailAddressVO;
@@ -28,6 +29,7 @@ class AuthenticationServiceImplIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private UserVerificationRepository userVerificationRepository;
+
 
     @Test
     void registerUserHappyCase() {
@@ -68,7 +70,7 @@ class AuthenticationServiceImplIntegrationTest extends BaseIntegrationTest {
 
         // Assert
         Assertions.assertNotNull(authException);
-        Assertions.assertEquals(UserErrorCode.EMAIL_EXISTS.getCode(), authException.getErrorCode());
+        Assertions.assertEquals(ErrorCode.EMAIL_EXISTS.getCode(), authException.getErrorCode());
     }
 
     @Test
@@ -117,7 +119,7 @@ class AuthenticationServiceImplIntegrationTest extends BaseIntegrationTest {
 
         // Assert
         Assertions.assertNotNull(authException);
-        Assertions.assertEquals(UserErrorCode.TOKEN_INVALID.getCode(), authException.getErrorCode());
+        Assertions.assertEquals(ErrorCode.TOKEN_INVALID.getCode(), authException.getErrorCode());
     }
 
     @Test
@@ -141,6 +143,40 @@ class AuthenticationServiceImplIntegrationTest extends BaseIntegrationTest {
 
         // Assert
         Assertions.assertNotNull(authException);
-        Assertions.assertEquals(UserErrorCode.TOKEN_INVALID.getCode(), authException.getErrorCode());
+        Assertions.assertEquals(ErrorCode.TOKEN_INVALID.getCode(), authException.getErrorCode());
+    }
+
+    @Test
+    void resetPasswordTest() {
+        // Arrange
+        String email = "resetPasswordTest@gmail.com";
+        User user = saveUser(email);
+        saveUserVerification(user);
+
+        ResetPasswordRequest request = new ResetPasswordRequest(email, "1234", "1234");
+
+        // Act
+        authenticationService.resetPassword(request);
+
+        // Assert
+        Assertions.assertTrue(userVerificationRepository.findByUserId(user.getId()).isEmpty());
+        Optional<User> savedUser = userRepository.findById(user.getId());
+        Assertions.assertTrue(savedUser.isPresent());
+        Assertions.assertTrue(savedUser.get().getEmailAddress().isActive());
+    }
+
+    private User saveUser(String email) {
+        EmailAddressVO emailAddress = new EmailAddressVO(email, false);
+        User user = new User(emailAddress, null, 0, false);
+        return userRepository.save(user);
+    }
+
+    private void saveUserVerification(User user) {
+        LocalDateTime expiresTime = LocalDateTime.now().plusSeconds(UserApplicationConstant.VERIFICATION_EXPIRES_TIME);
+        String token = UUID.randomUUID().toString();
+        VerificationTokenVO verificationToken = new VerificationTokenVO(token, expiresTime);
+
+        UserVerification verification = new UserVerification(user, verificationToken, false);
+        userVerificationRepository.save(verification);
     }
 }

@@ -1,11 +1,14 @@
 package com.budget.buddy.user.application.service.impl;
 
+import com.budget.buddy.core.config.exception.AuthException;
+import com.budget.buddy.core.config.exception.BadRequestException;
+import com.budget.buddy.core.config.exception.ErrorCode;
+import com.budget.buddy.core.config.exception.NotFoundException;
 import com.budget.buddy.core.event.SendVerificationEmailEvent;
+import com.budget.buddy.user.application.constant.UserApplicationConstant;
+import com.budget.buddy.user.application.dto.LoginResponse;
 import com.budget.buddy.user.application.dto.ResetPasswordRequest;
 import com.budget.buddy.user.application.service.AuthenticationService;
-import com.budget.buddy.user.application.constant.UserApplicationConstant;
-import com.budget.buddy.user.application.exception.AuthException;
-import com.budget.buddy.user.application.exception.UserErrorCode;
 import com.budget.buddy.user.domain.model.User;
 import com.budget.buddy.user.domain.model.UserVerification;
 import com.budget.buddy.user.domain.service.UserData;
@@ -15,7 +18,9 @@ import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -28,15 +33,17 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     private final UserData userData;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Override
+    @Transactional
     public void registerUser(String email) {
         logger.debug("Register attempt initiated for email: {}", email);
 
         // Check user
         if (userData.existsByEmail(email)) {
             logger.warn("Registration failed: Email '{}' already exists", email);
-            throw new AuthException(UserErrorCode.EMAIL_EXISTS);
+            throw new AuthException(ErrorCode.EMAIL_EXISTS);
         }
 
         EmailAddressVO emailAddress = new EmailAddressVO(email, false);
@@ -74,7 +81,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         UserVerification verification = userData.findUserVerificationWithDate(token, now)
                 .orElseThrow(() -> {
                     logger.warn("Verification failed: Invalid accessToken {}", token);
-                    return new AuthException(UserErrorCode.TOKEN_INVALID);
+                    return new AuthException(ErrorCode.TOKEN_INVALID);
                 });
 
         LocalDateTime newExpiresAt = verification
@@ -92,7 +99,74 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
+    @Transactional
     public void resetPassword(ResetPasswordRequest request) {
+        String email = request.email();
 
+        if (!request.password().equals(request.reenterPassword())) {
+            logger.warn("Password reset failed: Re-entered password does not match for user {}", email);
+            throw new BadRequestException(ErrorCode.REENTER_PASSWORD_NOT_THE_SAME);
+        }
+
+        User user = userData.findUserByEmail(email).orElseThrow(() -> {
+            logger.warn("Password reset failed: Email not found for {}", email);
+            return new NotFoundException(ErrorCode.EMAIL_NOT_FOUND);
+        });
+
+        UserVerification verification = userData.findUserVerificationByUserId(user.getId()).orElseThrow(() -> {
+            logger.warn("Password reset failed: User has not been verified yet {}", email);
+            return new AuthException(ErrorCode.USER_HAS_NOT_BEEN_VERIFIED);
+        });
+
+        EmailAddressVO newEmailVO = new EmailAddressVO(email, true);
+
+        // After reset password, activate user (for new user) and unlocked user (for locked account)
+        user.setFailedAttempts(0);
+        user.setLocked(false);
+        user.setEmailAddress(newEmailVO);
+        user.setPassword(passwordEncoder.encode(request.password()));
+
+        userData.saveUser(user);
+        userData.deleteUserVerification(verification);
+        logger.info("Password updated successfully for {}", email);
+    }
+
+    @Override
+    public LoginResponse login(String email, String password) {
+        User user = userData.findUserByEmail(email)
+                .orElseThrow(() -> {
+                    logger.warn("Login failed: Email {} not found", email);
+                    return new AuthException(ErrorCode.LOGIN_FAILED);
+                });
+        EmailAddressVO emailAddress = user.getEmailAddress();
+        if (emailAddress.isActive()) {
+            logger.warn("Login failed: Email {} is not active", email);
+            throw new AuthException(ErrorCode.LOGIN_FAILED);
+        }
+
+        if (user.isLocked()) {
+            logger.warn("Login failed: AccountPayload is locked for email {}", email);
+            throw new AuthException(ErrorCode.ACCOUNT_LOCKED);
+        }
+
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            logger.warn("Login failed: Invalid password for email {}", email);
+
+            // Increment failed attempts
+            user.setFailedAttempts(user.getFailedAttempts() + 1);
+            if (user.getFailedAttempts() >= 5) {
+                user.setLocked(true);
+                logger.warn("AccountPayload locked due to multiple failed attempts: {}", email);
+            }
+
+            userData.saveUser(user);
+
+            throw new AuthException(ErrorCode.LOGIN_FAILED);
+        }
+
+        // Reset failed attempts on successful login
+        user.setFailedAttempts(0);
+        userData.saveUser(user);
+        return null;
     }
 }

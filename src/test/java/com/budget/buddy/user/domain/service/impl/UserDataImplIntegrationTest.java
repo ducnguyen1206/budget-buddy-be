@@ -35,12 +35,12 @@ class UserDataImplIntegrationTest extends BaseIntegrationTest {
         userRepository.save(user);
 
         // Act
-        User result = userData.findUserByEmail(email.getValue());
+        Optional<User> result = userData.findUserByEmail(email.getValue());
 
         // Assert
-        Assertions.assertNotNull(result);
-        Assertions.assertTrue(result.getEmailAddress().isActive());
-        Assertions.assertEquals(email.getValue(), result.getEmailAddress().getValue());
+        Assertions.assertTrue(result.isPresent());
+        Assertions.assertTrue(result.get().getEmailAddress().isActive());
+        Assertions.assertEquals(email.getValue(), result.get().getEmailAddress().getValue());
     }
 
     @Test
