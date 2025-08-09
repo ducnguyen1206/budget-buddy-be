@@ -11,4 +11,8 @@ public interface AuthenticationService {
     void resetPassword(ResetPasswordRequest request);
 
     LoginResponse login(String email, String password);
+
+    LoginResponse refreshToken(String refreshToken);
+
+    void logout(String email);
 }

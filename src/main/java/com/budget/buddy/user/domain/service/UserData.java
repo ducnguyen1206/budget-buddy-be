@@ -28,5 +28,9 @@ public interface UserData {
 
     Optional<UserVerification> findUserVerificationByUserId(Long userId);
 
-    Session findSession();
+    Optional<Session> findSessionByUserId(Long userId);
+
+    void deleteSession(Session session);
+
+    void saveSession(Session session);
 }

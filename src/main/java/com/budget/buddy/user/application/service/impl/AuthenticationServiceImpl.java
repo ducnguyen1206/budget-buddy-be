@@ -4,11 +4,13 @@ import com.budget.buddy.core.config.exception.AuthException;
 import com.budget.buddy.core.config.exception.BadRequestException;
 import com.budget.buddy.core.config.exception.ErrorCode;
 import com.budget.buddy.core.config.exception.NotFoundException;
+import com.budget.buddy.core.config.utils.JwtUtil;
 import com.budget.buddy.core.event.SendVerificationEmailEvent;
 import com.budget.buddy.user.application.constant.UserApplicationConstant;
 import com.budget.buddy.user.application.dto.LoginResponse;
 import com.budget.buddy.user.application.dto.ResetPasswordRequest;
 import com.budget.buddy.user.application.service.AuthenticationService;
+import com.budget.buddy.user.domain.model.Session;
 import com.budget.buddy.user.domain.model.User;
 import com.budget.buddy.user.domain.model.UserVerification;
 import com.budget.buddy.user.domain.service.UserData;
@@ -23,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.UUID;
 
 @Service
@@ -34,6 +37,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final UserData userData;
     private final ApplicationEventPublisher applicationEventPublisher;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final JwtUtil jwtUtil;
 
     @Override
     @Transactional
@@ -139,7 +143,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                     return new AuthException(ErrorCode.LOGIN_FAILED);
                 });
         EmailAddressVO emailAddress = user.getEmailAddress();
-        if (emailAddress.isActive()) {
+        if (!emailAddress.isActive()) {
             logger.warn("Login failed: Email {} is not active", email);
             throw new AuthException(ErrorCode.LOGIN_FAILED);
         }
@@ -167,6 +171,89 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         // Reset failed attempts on successful login
         user.setFailedAttempts(0);
         userData.saveUser(user);
-        return null;
+
+        userData.findSessionByUserId(user.getId()).ifPresent(userData::deleteSession);
+
+        // Generate JWT with roles (default to "USER" for now)
+        String token = jwtUtil.generateToken(email, Collections.singletonList("USER"));
+        String refreshToken = jwtUtil.generateRefreshToken(email);
+
+        // Create and save session
+        Session session = new Session();
+        session.setUser(user);
+        session.setToken(token);
+        session.setRefreshToken(refreshToken);
+        // 3) expiry (JwtUtil.REFRESH_TOKEN_EXPIRATION is in ms; LocalDateTime has no plusMillis)
+        session.setExpiresAt(LocalDateTime.now()
+                .plusSeconds(JwtUtil.REFRESH_TOKEN_EXPIRATION / 1000));
+        userData.saveSession(session);
+
+        LoginResponse loginResponse = new LoginResponse(token, refreshToken);
+        logger.info("Login successful for email: {}, accessToken generated", email);
+        return loginResponse;
+    }
+
+    @Override
+    public LoginResponse refreshToken(String refreshToken) {
+        // Extract email from the refresh token
+        String email;
+        try {
+            email = jwtUtil.extractEmail(refreshToken);
+        } catch (Exception e) {
+            logger.warn("Refresh failed: unable to parse refresh token");
+            throw new AuthException(ErrorCode.INVALID_REFRESH_TOKEN);
+        }
+
+        // Validate refresh token with the extracted email
+        if (!jwtUtil.validateToken(refreshToken, email)) {
+            logger.warn("Refresh failed: invalid refresh token for {}", email);
+            throw new AuthException(ErrorCode.INVALID_REFRESH_TOKEN);
+        }
+
+        // Get user
+        User user = userData.findUserByEmail(email)
+                .orElseThrow(() -> {
+                    logger.warn("Refresh failed: Email {} not found", email);
+                    return new AuthException(ErrorCode.LOGIN_FAILED);
+                });
+
+        // Ensure refresh token matches stored session
+        Session session = userData.findSessionByUserId(user.getId())
+                .orElseThrow(() -> {
+                    logger.warn("Refresh failed: No active session for email {}", email);
+                    return new AuthException(ErrorCode.INVALID_REFRESH_TOKEN);
+                });
+
+        if (!session.getRefreshToken().equals(refreshToken)) {
+            logger.warn("Refresh failed: Refresh token mismatch for email {}", email);
+            throw new AuthException(ErrorCode.INVALID_REFRESH_TOKEN);
+        }
+
+        // Generate new tokens
+        String newAccessToken = jwtUtil.generateToken(email, Collections.singletonList("USER"));
+        String newRefreshToken = jwtUtil.generateRefreshToken(email);
+
+        // Update session
+        session.setToken(newAccessToken);
+        session.setRefreshToken(newRefreshToken);
+        session.setExpiresAt(LocalDateTime.now()
+                .plusSeconds(JwtUtil.REFRESH_TOKEN_EXPIRATION / 1000));
+        userData.saveSession(session);
+
+        logger.info("Refresh successful for email: {}", email);
+        return new LoginResponse(newAccessToken, newRefreshToken);
+    }
+
+    @Override
+    public void logout(String email) {
+        // Find the user
+        User user = userData.findUserByEmail(email)
+                .orElseThrow(() -> new AuthException(ErrorCode.EMAIL_NOT_FOUND));
+
+        // Find and delete the active session if exists
+        userData.findSessionByUserId(user.getId())
+                .ifPresent(userData::deleteSession);
+
+        logger.info("Logout successful for email: {}", email);
     }
 }
