@@ -50,6 +50,11 @@ public class UserDataImpl implements UserData {
     }
 
     @Override
+    public Optional<UserVerification> findUserVerification(String token) {
+        return userVerificationRepository.findByVerificationToken_value(token);
+    }
+
+    @Override
     public UserVerification saveUserVerification(UserVerification userVerification) {
         return userVerificationRepository.save(userVerification);
     }

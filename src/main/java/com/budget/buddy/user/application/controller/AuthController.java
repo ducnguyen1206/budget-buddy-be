@@ -20,8 +20,8 @@ public class AuthController {
 
     @Operation(summary = "Register a new user", responses = {
             @ApiResponse(responseCode = "201", description = "User registered and logged in, email is sent to user"),
-            @ApiResponse(responseCode = "409", description = "Email already exists"),
-            @ApiResponse(responseCode = "400", description = "Invalid input data", content = @Content)
+            @ApiResponse(responseCode = "409", description = "Email already exists", content = @Content()),
+            @ApiResponse(responseCode = "400", description = "Invalid input data", content = @Content())
     })
     @PostMapping("/register")
     public ResponseEntity<Void> register(@Valid @RequestBody RegisterRequest request) {
@@ -31,8 +31,8 @@ public class AuthController {
 
     @Operation(summary = "Verify user email", responses = {
             @ApiResponse(responseCode = "200", description = "AccountPayload verified"),
-            @ApiResponse(responseCode = "400", description = "Invalid request data"),
-            @ApiResponse(responseCode = "401", description = "Token invalid", content = @Content)
+            @ApiResponse(responseCode = "400", description = "Invalid request data", content = @Content()),
+            @ApiResponse(responseCode = "401", description = "Token invalid", content = @Content())
     })
     @PostMapping("/verify")
     public ResponseEntity<String> verify(@Valid @RequestBody RefreshTokenRequest tokenRequest) {
@@ -60,7 +60,7 @@ public class AuthController {
             description = "Generates a new access token and refresh token using a valid refresh token.",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Token refreshed successfully"),
-                    @ApiResponse(responseCode = "401", description = "Invalid or expired refresh token", content = @Content)
+                    @ApiResponse(responseCode = "401", description = "Invalid or expired refresh token", content = @Content())
             }
     )
     @PostMapping("/refresh-token")

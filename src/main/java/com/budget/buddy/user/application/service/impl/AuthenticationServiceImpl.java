@@ -3,7 +3,6 @@ package com.budget.buddy.user.application.service.impl;
 import com.budget.buddy.core.config.exception.AuthException;
 import com.budget.buddy.core.config.exception.BadRequestException;
 import com.budget.buddy.core.config.exception.ErrorCode;
-import com.budget.buddy.core.config.exception.NotFoundException;
 import com.budget.buddy.core.config.utils.JwtUtil;
 import com.budget.buddy.core.event.SendVerificationEmailEvent;
 import com.budget.buddy.user.application.constant.UserApplicationConstant;
@@ -105,22 +104,21 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     @Transactional
     public void resetPassword(ResetPasswordRequest request) {
-        String email = request.email();
+        String token = request.token();
 
         if (!request.password().equals(request.reenterPassword())) {
-            logger.warn("Password reset failed: Re-entered password does not match for user {}", email);
+            logger.warn("Password reset failed: Re-entered password does not match for token {}", token);
             throw new BadRequestException(ErrorCode.REENTER_PASSWORD_NOT_THE_SAME);
         }
 
-        User user = userData.findUserByEmail(email).orElseThrow(() -> {
-            logger.warn("Password reset failed: Email not found for {}", email);
-            return new NotFoundException(ErrorCode.EMAIL_NOT_FOUND);
-        });
+        UserVerification verification = userData.findUserVerification(token)
+                .orElseThrow(() -> {
+                    logger.warn("Reset password failed failed: Invalid accessToken {}", token);
+                    return new AuthException(ErrorCode.TOKEN_INVALID);
+                });
 
-        UserVerification verification = userData.findUserVerificationByUserId(user.getId()).orElseThrow(() -> {
-            logger.warn("Password reset failed: User has not been verified yet {}", email);
-            return new AuthException(ErrorCode.USER_HAS_NOT_BEEN_VERIFIED);
-        });
+        User user = verification.getUser();
+        String email = user.getEmailAddress().getValue();
 
         EmailAddressVO newEmailVO = new EmailAddressVO(email, true);
 
