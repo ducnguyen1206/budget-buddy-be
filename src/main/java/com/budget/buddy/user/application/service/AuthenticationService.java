@@ -4,7 +4,7 @@ import com.budget.buddy.user.application.dto.LoginResponse;
 import com.budget.buddy.user.application.dto.ResetPasswordRequest;
 
 public interface AuthenticationService {
-    void registerUser(String email);
+    void generateToken(String email);
 
     void verifyUser(String token);
 

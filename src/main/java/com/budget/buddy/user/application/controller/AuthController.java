@@ -18,14 +18,14 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
     private final AuthenticationService authenticationService;
 
-    @Operation(summary = "Register a new user", responses = {
+    @Operation(summary = "Send token to user email", responses = {
             @ApiResponse(responseCode = "201", description = "User registered and logged in, email is sent to user"),
             @ApiResponse(responseCode = "409", description = "Email already exists", content = @Content()),
             @ApiResponse(responseCode = "400", description = "Invalid input data", content = @Content())
     })
-    @PostMapping("/register")
+    @PostMapping("/token")
     public ResponseEntity<Void> register(@Valid @RequestBody RegisterRequest request) {
-        authenticationService.registerUser(request.email());
+        authenticationService.generateToken(request.email());
         return ResponseEntity.status(201).build();
     }
 

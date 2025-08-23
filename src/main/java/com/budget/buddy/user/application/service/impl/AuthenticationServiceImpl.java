@@ -27,6 +27,19 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.UUID;
 
+/**
+ * Implementation of the {@link AuthenticationService} interface providing methods for authentication,
+ * user verification, password reset, and session management.
+ * This service includes functionalities such as:
+ * - Generating and verifying user tokens
+ * - Managing user authentication and authorization processes
+ * - Handling password reset requests
+ * - Managing user sessions, including login, logout, and token refresh mechanisms
+ *
+ * Uses {@link UserData} for data access and persistence operations.
+ * Leverages {@link JwtUtil} for generating and validating JSON Web Tokens (JWT).
+ * Utilizes {@link BCryptPasswordEncoder} for password encoding.
+ */
 @Service
 @RequiredArgsConstructor
 public class AuthenticationServiceImpl implements AuthenticationService {
@@ -38,23 +51,29 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     private final JwtUtil jwtUtil;
 
+    /**
+     * Generates a verification token for a given user email. If the user does not exist,
+     * a new user is created with an inactive email. Once the token is generated, it is saved
+     * and a verification email event is published for the user.
+     *
+     * @param email the email address of the user for which the token should be generated
+     */
     @Override
     @Transactional
-    public void registerUser(String email) {
+    public void generateToken(String email) {
         logger.debug("Register attempt initiated for email: {}", email);
 
         // Check user
-        if (userData.existsByEmail(email)) {
-            logger.warn("Registration failed: Email '{}' already exists", email);
-            throw new AuthException(ErrorCode.EMAIL_EXISTS);
-        }
+        User user = userData.findUserByEmail(email)
+                .orElseGet(() -> {
+                    EmailAddressVO emailAddress = new EmailAddressVO(email, false);
+                    logger.debug("Creating new user with inactive email: {}", email);
 
-        EmailAddressVO emailAddress = new EmailAddressVO(email, false);
-        logger.debug("Creating new user with inactive email: {}", email);
-
-        // Save new user
-        User user = userData.saveNewUser(emailAddress);
-        logger.info("User successfully registered with email: {}", user.getEmailAddress().getValue());
+                    // Save new user
+                    User savedUser = userData.saveNewUser(emailAddress);
+                    logger.info("User successfully registered with email: {}", savedUser.getEmailAddress().getValue());
+                    return savedUser;
+                });
 
         // Generate verification toke for register
         LocalDateTime expiresTime = LocalDateTime.now().plusSeconds(UserApplicationConstant.VERIFICATION_EXPIRES_TIME);
@@ -77,6 +96,15 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         logger.info("Verification email event published for user: {}", user.getEmailAddress().getValue());
     }
 
+    /**
+     * Verifies the user based on the provided access token. If the token is valid and
+     * not expired, the associated user record is updated to indicate successful verification.
+     * The verification token's expiration time is extended, and the verification record
+     * is saved to the database.
+     *
+     * @param token the access token used to verify the user
+     * @throws AuthException if the token is invalid or expired
+     */
     @Override
     public void verifyUser(String token) {
         LocalDateTime now = LocalDateTime.now();
@@ -101,6 +129,18 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         logger.info("User verified successfully for accessToken: {}", token);
     }
 
+    /**
+     * Resets the password for a user based on the provided request. This operation checks if the
+     * re-entered password matches the new password and validates the provided token. Upon success,
+     * resets the password, unlocks the user's account (if locked), activates the email (if inactive),
+     * and updates the user record in the database. Deletes the associated verification record after
+     * successful password reset.
+     *
+     * @param request the password reset request containing the new password, re-entered password,
+     *                and verification token
+     * @throws BadRequestException if the new password and re-entered password do not match
+     * @throws AuthException if the provided token is invalid or does not exist
+     */
     @Override
     @Transactional
     public void resetPassword(ResetPasswordRequest request) {
@@ -133,6 +173,16 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         logger.info("Password updated successfully for {}", email);
     }
 
+    /**
+     * Authenticates a user based on the provided email and password.
+     * If the authentication is successful, a new session is created along with JWT access and refresh tokens.
+     * If the authentication fails, appropriate errors are logged and exceptions are thrown.
+     *
+     * @param email the email address of the user attempting to log in
+     * @param password the password associated with the user's account
+     * @return a {@code LoginResponse} containing the access token and refresh token for the authenticated user
+     * @throws AuthException if the email is not found, the email is inactive, the account is locked, or the password is incorrect
+     */
     @Override
     public LoginResponse login(String email, String password) {
         User user = userData.findUserByEmail(email)
@@ -191,6 +241,15 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         return loginResponse;
     }
 
+    /**
+     * Refreshes the authentication tokens for a user based on the provided refresh token.
+     * This method validates the provided refresh token, ensures it matches the active session,
+     * and generates new access and refresh tokens. The user's session is updated with the latest tokens.
+     *
+     * @param refreshToken the refresh token provided by the client for token renewal
+     * @return a {@code LoginResponse} containing the newly generated access token and refresh token
+     * @throws AuthException if the refresh token is invalid, expired, mismatched, or if the user information cannot be found
+     */
     @Override
     public LoginResponse refreshToken(String refreshToken) {
         // Extract email from the refresh token
@@ -242,6 +301,14 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         return new LoginResponse(newAccessToken, newRefreshToken);
     }
 
+    /**
+     * Logs out a user by invalidating their active session, if it exists. If the user is not found,
+     * an exception is thrown. This operation ensures that any active session associated with the
+     * user is properly removed to prevent further access.
+     *
+     * @param email the email address of the user to log out
+     * @throws AuthException if the user associated with the given email does not exist
+     */
     @Override
     public void logout(String email) {
         // Find the user

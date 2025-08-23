@@ -56,13 +56,13 @@ class AuthenticationServiceImplIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    void registerUserHappyCase() {
+    void generateTokenUserNotExists() {
         // Arrange
         String email = "registerUserHappyCase@gmail.com";
         EmailAddressVO emailAddress = new EmailAddressVO(email, false);
 
         // Act
-        authenticationService.registerUser(email);
+        authenticationService.generateToken(email);
 
         Optional<User> registeredUserOptional = userRepository.findByEmailAddress_Value(emailAddress.getValue());
 
@@ -82,19 +82,21 @@ class AuthenticationServiceImplIntegrationTest extends BaseIntegrationTest {
 
 
     @Test
-    void registerUserExists() {
+    void generateTokenUserExists() {
         // Arrange
         String email = "registerUserExists@gmail.com";
-        EmailAddressVO emailAddress = new EmailAddressVO(email, false);
+        EmailAddressVO emailAddress = new EmailAddressVO(email, true);
         User user = new User(emailAddress, null, 0, false);
         userRepository.save(user);
 
         // Act
-        AuthException authException = Assertions.assertThrows(AuthException.class, () -> authenticationService.registerUser(email));
+        authenticationService.generateToken(email);
+
+        Optional<User> registeredUserOptional = userRepository.findByEmailAddress_Value(emailAddress.getValue());
 
         // Assert
-        Assertions.assertNotNull(authException);
-        Assertions.assertEquals(ErrorCode.EMAIL_EXISTS.getCode(), authException.getErrorCode());
+        Assertions.assertTrue(registeredUserOptional.isPresent());
+        Assertions.assertTrue(registeredUserOptional.get().getEmailAddress().isActive());
     }
 
     @Test
