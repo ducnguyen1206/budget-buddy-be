@@ -1,7 +1,7 @@
 package com.budget.buddy.user.application.controller;
 
 import com.budget.buddy.user.application.dto.*;
-import com.budget.buddy.user.application.service.AuthenticationService;
+import com.budget.buddy.user.application.service.auth.AuthenticationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -79,8 +79,8 @@ public class AuthController {
             }
     )
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(@RequestParam String email) {
-        authenticationService.logout(email);
+    public ResponseEntity<Void> logout() {
+        authenticationService.logout();
         return ResponseEntity.noContent().build();
     }
 

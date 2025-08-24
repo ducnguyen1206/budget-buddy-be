@@ -12,6 +12,8 @@ import java.util.Optional;
 public interface UserData {
     Optional<User> findUserByEmail(String email);
 
+    Optional<User> findActiveUser(String email);
+
     boolean existsByEmail(String email);
 
     User saveNewUser(EmailAddressVO email);

@@ -3,6 +3,7 @@ package com.budget.buddy.user.application.service.impl;
 import com.budget.buddy.core.config.exception.AuthException;
 import com.budget.buddy.core.config.utils.JwtUtil;
 import com.budget.buddy.user.application.dto.LoginResponse;
+import com.budget.buddy.user.application.service.auth.impl.AuthenticationServiceImpl;
 import com.budget.buddy.user.domain.model.Session;
 import com.budget.buddy.user.domain.model.User;
 import com.budget.buddy.user.domain.service.UserData;
@@ -22,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class AuthenticationServiceImplUnitTest {
+class AuthenticationServiceImplTest {
 
     @InjectMocks
     private AuthenticationServiceImpl service;

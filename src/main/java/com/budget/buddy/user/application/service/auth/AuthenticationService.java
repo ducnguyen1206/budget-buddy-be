@@ -1,4 +1,4 @@
-package com.budget.buddy.user.application.service;
+package com.budget.buddy.user.application.service.auth;
 
 import com.budget.buddy.user.application.dto.LoginResponse;
 import com.budget.buddy.user.application.dto.ResetPasswordRequest;
@@ -14,5 +14,5 @@ public interface AuthenticationService {
 
     LoginResponse refreshToken(String refreshToken);
 
-    void logout(String email);
+    void logout();
 }

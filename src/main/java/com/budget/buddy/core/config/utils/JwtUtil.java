@@ -5,6 +5,8 @@ import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -13,10 +15,13 @@ import java.util.Date;
 import java.util.List;
 
 @Component
+@RequiredArgsConstructor
 public class JwtUtil {
 
     @Value("${jwt.secret}")
     private String secretKey; // Should be Base64-encoded or 256-bit min
+
+    private final HttpServletRequest httpServletRequest;
 
     public static final long REFRESH_TOKEN_EXPIRATION = 7 * 24 * 60 * 60 * 1000L;
     private static final long EXPIRATION_TIME = 60 * 60 * 1000;
@@ -64,5 +69,10 @@ public class JwtUtil {
                 .verifyWith(getSigningKey())
                 .build()
                 .parseSignedClaims(token);
+    }
+
+    public String getEmailFromToken() {
+        String token = httpServletRequest.getHeader("Authorization").substring(7);
+        return extractEmail(token);
     }
 }

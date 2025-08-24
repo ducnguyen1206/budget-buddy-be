@@ -4,6 +4,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Optional;
 
@@ -12,6 +14,14 @@ import java.util.Optional;
 public class AuditConfig {
     @Bean
     public AuditorAware<String> auditorProvider() {
-        return () -> Optional.of("System"); // Default to "System" for now
+        return () -> {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null || !authentication.isAuthenticated()) {
+                return Optional.of("System");
+            }
+            String email = authentication.getName();
+            return Optional.of(email);
+        };
     }
+
 }

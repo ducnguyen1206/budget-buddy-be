@@ -1,4 +1,4 @@
-package com.budget.buddy.user.application.service.impl;
+package com.budget.buddy.user.application.service.auth.impl;
 
 import com.budget.buddy.core.config.exception.AuthException;
 import com.budget.buddy.core.config.exception.BadRequestException;
@@ -8,7 +8,7 @@ import com.budget.buddy.core.event.SendVerificationEmailEvent;
 import com.budget.buddy.user.application.constant.UserApplicationConstant;
 import com.budget.buddy.user.application.dto.LoginResponse;
 import com.budget.buddy.user.application.dto.ResetPasswordRequest;
-import com.budget.buddy.user.application.service.AuthenticationService;
+import com.budget.buddy.user.application.service.auth.AuthenticationService;
 import com.budget.buddy.user.domain.model.Session;
 import com.budget.buddy.user.domain.model.User;
 import com.budget.buddy.user.domain.model.UserVerification;
@@ -35,7 +35,7 @@ import java.util.UUID;
  * - Managing user authentication and authorization processes
  * - Handling password reset requests
  * - Managing user sessions, including login, logout, and token refresh mechanisms
- *
+ * <p>
  * Uses {@link UserData} for data access and persistence operations.
  * Leverages {@link JwtUtil} for generating and validating JSON Web Tokens (JWT).
  * Utilizes {@link BCryptPasswordEncoder} for password encoding.
@@ -139,7 +139,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
      * @param request the password reset request containing the new password, re-entered password,
      *                and verification token
      * @throws BadRequestException if the new password and re-entered password do not match
-     * @throws AuthException if the provided token is invalid or does not exist
+     * @throws AuthException       if the provided token is invalid or does not exist
      */
     @Override
     @Transactional
@@ -178,7 +178,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
      * If the authentication is successful, a new session is created along with JWT access and refresh tokens.
      * If the authentication fails, appropriate errors are logged and exceptions are thrown.
      *
-     * @param email the email address of the user attempting to log in
+     * @param email    the email address of the user attempting to log in
      * @param password the password associated with the user's account
      * @return a {@code LoginResponse} containing the access token and refresh token for the authenticated user
      * @throws AuthException if the email is not found, the email is inactive, the account is locked, or the password is incorrect
@@ -306,19 +306,32 @@ public class AuthenticationServiceImpl implements AuthenticationService {
      * an exception is thrown. This operation ensures that any active session associated with the
      * user is properly removed to prevent further access.
      *
-     * @param email the email address of the user to log out
      * @throws AuthException if the user associated with the given email does not exist
      */
     @Override
-    public void logout(String email) {
+    public void logout() {
         // Find the user
-        User user = userData.findUserByEmail(email)
-                .orElseThrow(() -> new AuthException(ErrorCode.EMAIL_NOT_FOUND));
+        User user = retrieveUser();
 
         // Find and delete the active session if exists
         userData.findSessionByUserId(user.getId())
                 .ifPresent(userData::deleteSession);
 
-        logger.info("Logout successful for email: {}", email);
+        logger.info("Logout successful for email: {}", user.getEmailAddress().getValue());
+    }
+
+    private User retrieveUser() {
+        String email = jwtUtil.getEmailFromToken();
+        logger.debug("Extracted email from JWT: '{}'", email);
+
+        return userData.findUserByEmail(email)
+                .map(user -> {
+                    logger.debug("User found in repository: id={}, email='{}'", user.getId(), user.getEmailAddress().getValue());
+                    return user;
+                })
+                .orElseThrow(() -> {
+                    logger.error("User not found for email='{}'", email);
+                    return new AuthException(ErrorCode.USER_NOT_FOUND);
+                });
     }
 }

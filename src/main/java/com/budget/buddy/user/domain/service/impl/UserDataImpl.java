@@ -28,6 +28,11 @@ public class UserDataImpl implements UserData {
     }
 
     @Override
+    public Optional<User> findActiveUser(String email) {
+        return userRepository.findByEmailAddress_ValueAndEmailAddress_ActiveAndLocked(email.toLowerCase(), true, false);
+    }
+
+    @Override
     public boolean existsByEmail(String email) {
         return userRepository.existsByEmailAddress_Value(email.toLowerCase());
     }
