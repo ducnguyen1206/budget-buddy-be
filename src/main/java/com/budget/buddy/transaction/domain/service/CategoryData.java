@@ -12,9 +12,7 @@ public interface CategoryData {
 
     List<CategoryDTO> getCategories();
 
-    @Transactional
     void deleteCategory(Long categoryId);
 
-    @Transactional
     CategoryDTO updateCategory(Long categoryId, CategoryDTO categoryRequest);
 }

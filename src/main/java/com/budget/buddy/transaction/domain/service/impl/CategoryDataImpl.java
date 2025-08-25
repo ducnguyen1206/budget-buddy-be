@@ -135,6 +135,13 @@ public class CategoryDataImpl implements CategoryData {
         String email = jwtUtil.getEmailFromToken();
         Long userId = userService.findUserIdByEmail(email);
 
+        var existingOpt = categoryRepository.findByUserIdAndIdentity_NameAndIdentity_Type(userId, categoryRequest.name(), categoryRequest.type());
+        if (existingOpt.isPresent()) {
+            var existing = existingOpt.get();
+            logger.info("Category already exists with id={} for userId={}, skipping update", existing.getId(), userId);
+            return categoryMapper.toDto(existing);
+        }
+
         Category category = categoryRepository.findByIdAndUserId(categoryId, userId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.CATEGORY_NOT_FOUND));
         logger.info("Updating category id={} for userId={}", categoryId, userId);
