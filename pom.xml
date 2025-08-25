@@ -109,6 +109,11 @@
             <artifactId>postgresql</artifactId>
             <version>42.7.7</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.18.0</version>
+        </dependency>
         <!-- https://mvnrepository.com/artifact/org.mapstruct/mapstruct -->
         <dependency>
             <groupId>org.mapstruct</groupId>
@@ -146,6 +151,13 @@
                 <groupId>org.springframework.modulith</groupId>
                 <artifactId>spring-modulith-bom</artifactId>
                 <version>${spring-modulith.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-framework-bom</artifactId>
+                <version>6.2.10</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -204,6 +216,7 @@
                                 <exclude>**/core/**</exclude>
                                 <exclude>**/model/**</exclude>
                                 <exclude>**/controller/**</exclude>
+                                <exclude>**/enums/**</exclude>
                             </excludes>
                         </configuration>
                     </execution>

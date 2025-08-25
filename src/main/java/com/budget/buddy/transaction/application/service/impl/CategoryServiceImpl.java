@@ -45,11 +45,23 @@ public class CategoryServiceImpl implements CategoryService {
         return categoryData.getCategories();
     }
 
+    /**
+     * Deletes the category identified by the given unique identifier.
+     *
+     * @param categoryId the unique identifier of the category to delete
+     */
     @Override
     public void deleteCategory(Long categoryId) {
         categoryData.deleteCategory(categoryId);
     }
 
+    /**
+     * Updates an existing category with the specified unique identifier using the provided updated data.
+     *
+     * @param categoryId the unique identifier of the category to be updated
+     * @param categoryRequest the data transfer object containing updated details of the category
+     * @return the updated CategoryDTO object reflecting the changes made
+     */
     @Override
     public CategoryDTO updateCategory(Long categoryId, CategoryDTO categoryRequest) {
         return categoryData.updateCategory(categoryId, categoryRequest);
