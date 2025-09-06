@@ -1,16 +1,19 @@
-package com.budget.buddy.core.config.utils;
+package com.budget.buddy.user.application.utils;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.WeakKeyException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -19,22 +22,29 @@ import java.util.List;
 public class JwtUtil {
 
     @Value("${jwt.secret}")
-    private String secretKey; // Should be Base64-encoded or 256-bit min
+    private String secretKey;
 
     private final HttpServletRequest httpServletRequest;
 
     public static final long REFRESH_TOKEN_EXPIRATION = 7 * 24 * 60 * 60 * 1000L;
-    private static final long EXPIRATION_TIME = 60 * 60 * 1000;
+    private static final long EXPIRATION_TIME = 3 * 60 * 1000;
 
     private SecretKey getSigningKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
-        return Keys.hmacShaKeyFor(keyBytes);
+        if (secretKey == null || secretKey.isBlank()) {
+            throw new IllegalStateException("JWT secret is not configured");
+        }
+        try {
+            byte[] keyBytes = Decoders.BASE64.decode(secretKey);
+            return Keys.hmacShaKeyFor(keyBytes);
+        } catch (IllegalArgumentException | WeakKeyException e) {
+            throw new IllegalStateException("Invalid JWT secret: ensure it is Base64-encoded and at least 256 bits", e);
+        }
     }
 
-    public String generateToken(String email, List<String> roles) {
+    public String generateToken(String email) {
         return Jwts.builder()
                 .subject(email)
-                .claim("roles", roles)
+                .claim("roles", Collections.emptyList())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .signWith(getSigningKey(), Jwts.SIG.HS256)
@@ -54,14 +64,17 @@ public class JwtUtil {
         return parseClaims(token).getPayload().getSubject();
     }
 
-    public List<String> extractRoles(String token) {
-        Object roles = parseClaims(token).getPayload().get("roles");
-        return roles instanceof List<?> ? ((List<?>) roles).stream().map(Object::toString).toList() : List.of();
-    }
-
     public boolean validateToken(String token, String email) {
         var claims = parseClaims(token).getPayload();
-        return email.equals(claims.getSubject()) && !claims.getExpiration().before(new Date());
+        return email.equals(claims.getSubject()) && isExpired(token);
+    }
+
+    public boolean validateToken(String token, String email, UserDetails userDetails) {
+        return userDetails.getUsername().equals(email) && !isExpired(token);
+    }
+
+    private boolean isExpired(String token) {
+        return parseClaims(token).getPayload().getExpiration().before(new Date());
     }
 
     private Jws<Claims> parseClaims(String token) {
@@ -69,10 +82,5 @@ public class JwtUtil {
                 .verifyWith(getSigningKey())
                 .build()
                 .parseSignedClaims(token);
-    }
-
-    public String getEmailFromToken() {
-        String token = httpServletRequest.getHeader("Authorization").substring(7);
-        return extractEmail(token);
     }
 }

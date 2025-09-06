@@ -8,21 +8,22 @@ import com.budget.buddy.user.application.service.user.UserService;
 import com.budget.buddy.user.domain.model.User;
 import com.budget.buddy.user.domain.service.UserData;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+
+import java.util.Collection;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl implements UserService, UserDetailsService {
+
     private final UserData userData;
     private final UserMapper userMapper;
 
-    /**
-     * Finds the user ID associated with the provided email address.
-     *
-     * @param email the email address of the user whose ID needs to be retrieved
-     * @return the ID of the user associated with the given email address
-     * @throws NotFoundException if no user is found with the specified email address
-     */
     @Override
     public Long findUserIdByEmail(String email) {
         User user = userData.findActiveUser(email).orElseThrow(() -> new NotFoundException(ErrorCode.EMAIL_NOT_FOUND));
@@ -33,5 +34,26 @@ public class UserServiceImpl implements UserService {
     public UserDTO findActiveUser(String email) {
         User user = userData.findActiveUser(email).orElse(null);
         return userMapper.toDto(user);
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        User user = userData.findActiveUser(username).orElseThrow(() -> new UsernameNotFoundException(ErrorCode.EMAIL_NOT_FOUND.getMessage()));
+        return new UserDetails() {
+            @Override
+            public Collection<? extends GrantedAuthority> getAuthorities() {
+                return List.of();
+            }
+
+            @Override
+            public String getPassword() {
+                return "";
+            }
+
+            @Override
+            public String getUsername() {
+                return user.getEmailAddress().getValue();
+            }
+        };
     }
 }

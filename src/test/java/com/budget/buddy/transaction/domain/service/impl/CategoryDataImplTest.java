@@ -1,6 +1,5 @@
 package com.budget.buddy.transaction.domain.service.impl;
 
-import com.budget.buddy.core.config.utils.JwtUtil;
 import com.budget.buddy.transaction.application.dto.category.CategoryDTO;
 import com.budget.buddy.transaction.application.mapper.CategoryMapper;
 import com.budget.buddy.transaction.domain.enums.CategoryType;
@@ -8,7 +7,6 @@ import com.budget.buddy.transaction.domain.model.category.Category;
 import com.budget.buddy.transaction.domain.vo.CategoryVO;
 import com.budget.buddy.transaction.infrastructure.repository.CategoryRepository;
 import com.budget.buddy.user.application.service.user.UserService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -35,15 +33,7 @@ class CategoryDataImplTest {
     @Mock
     private CategoryMapper categoryMapper;
 
-    @Mock
-    private JwtUtil jwtUtil;
-
     private final String email = "test@example.com";
-
-    @BeforeEach
-    void setUp() {
-        when(jwtUtil.getEmailFromToken()).thenReturn(email);
-    }
 
     /**
      * Test to verify that a category is successfully created when valid input is provided.

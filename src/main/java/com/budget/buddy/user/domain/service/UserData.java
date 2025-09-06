@@ -14,8 +14,6 @@ public interface UserData {
 
     Optional<User> findActiveUser(String email);
 
-    boolean existsByEmail(String email);
-
     User saveNewUser(EmailAddressVO email);
 
     UserVerification saveNewUserVerificationToken(User user, VerificationTokenVO token);
@@ -29,8 +27,6 @@ public interface UserData {
     User saveUser(User user);
 
     void deleteUserVerification(UserVerification userVerification);
-
-    Optional<UserVerification> findUserVerificationByUserId(Long userId);
 
     Optional<Session> findSessionByUserId(Long userId);
 

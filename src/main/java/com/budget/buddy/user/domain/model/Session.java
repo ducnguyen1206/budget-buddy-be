@@ -18,9 +18,6 @@ public class Session extends BaseEntity {
     private User user;
 
     @Column(nullable = false, unique = true)
-    private String token;
-
-    @Column(nullable = false, unique = true)
     private String refreshToken;
 
     @Column(name = "expires_at", nullable = false)

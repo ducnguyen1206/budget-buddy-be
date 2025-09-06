@@ -5,6 +5,9 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+import org.hibernate.annotations.Filter;
+import org.hibernate.annotations.FilterDef;
+import org.hibernate.annotations.ParamDef;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +18,8 @@ import java.util.List;
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = false)
 @Entity
+@FilterDef(name = "userFilter", parameters = @ParamDef(name = "userId", type = Long.class))
+@Filter(name = "userFilter", condition = "user_id = :userId")
 @Table(
         name = "account_type_group",
         indexes = {

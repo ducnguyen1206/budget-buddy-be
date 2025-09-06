@@ -1,7 +1,7 @@
 package com.budget.buddy.user.application.service.impl;
 
 import com.budget.buddy.core.config.exception.AuthException;
-import com.budget.buddy.core.config.utils.JwtUtil;
+import com.budget.buddy.user.application.utils.JwtUtil;
 import com.budget.buddy.user.application.dto.LoginResponse;
 import com.budget.buddy.user.application.service.auth.impl.AuthenticationServiceImpl;
 import com.budget.buddy.user.domain.model.Session;
@@ -95,7 +95,7 @@ class AuthenticationServiceImplTest {
         when(user.getPassword()).thenReturn(encodedPassword);
 
         // Mock token generation
-        when(jwtUtil.generateToken(eq("test@test.com"), anyList())).thenReturn("token");
+        when(jwtUtil.generateToken(eq("test@test.com"))).thenReturn("token");
         when(jwtUtil.generateRefreshToken("test@test.com")).thenReturn("refreshToken");
 
         // Act
@@ -108,7 +108,7 @@ class AuthenticationServiceImplTest {
 
         // Verify method calls
         verify(userData, times(1)).findUserByEmail("test@test.com");
-        verify(jwtUtil, times(1)).generateToken(eq("test@test.com"), anyList());
+        verify(jwtUtil, times(1)).generateToken(eq("test@test.com"));
         verify(jwtUtil, times(1)).generateRefreshToken("test@test.com");
         verify(userData, times(1)).saveUser(any(User.class));
         verify(userData, times(1)).saveSession(any(Session.class));

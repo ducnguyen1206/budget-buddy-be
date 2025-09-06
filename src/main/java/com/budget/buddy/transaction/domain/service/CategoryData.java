@@ -1,7 +1,6 @@
 package com.budget.buddy.transaction.domain.service;
 
 import com.budget.buddy.transaction.application.dto.category.CategoryDTO;
-import jakarta.transaction.Transactional;
 
 import java.util.List;
 

@@ -33,11 +33,6 @@ public class UserDataImpl implements UserData {
     }
 
     @Override
-    public boolean existsByEmail(String email) {
-        return userRepository.existsByEmailAddress_Value(email.toLowerCase());
-    }
-
-    @Override
     public User saveNewUser(EmailAddressVO email) {
         User user = new User(email, null, 0, false);
         return userRepository.save(user);
@@ -72,11 +67,6 @@ public class UserDataImpl implements UserData {
     @Override
     public void deleteUserVerification(UserVerification userVerification) {
         userVerificationRepository.delete(userVerification);
-    }
-
-    @Override
-    public Optional<UserVerification> findUserVerificationByUserId(Long userId) {
-        return userVerificationRepository.findByUserId(userId);
     }
 
     @Override
