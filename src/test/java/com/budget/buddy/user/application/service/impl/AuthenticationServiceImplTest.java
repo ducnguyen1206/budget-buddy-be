@@ -1,7 +1,7 @@
 package com.budget.buddy.user.application.service.impl;
 
 import com.budget.buddy.core.config.exception.AuthException;
-import com.budget.buddy.user.application.utils.JwtUtil;
+import com.budget.buddy.core.utils.JwtUtil;
 import com.budget.buddy.user.application.dto.LoginResponse;
 import com.budget.buddy.user.application.service.auth.impl.AuthenticationServiceImpl;
 import com.budget.buddy.user.domain.model.Session;

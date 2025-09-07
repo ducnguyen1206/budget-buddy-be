@@ -52,7 +52,7 @@ class CategoryDataImplTest {
         CategoryDTO expectedResponse = new CategoryDTO(10L, "Food", CategoryType.EXPENSE);
 
         when(userService.findUserIdByEmail(email)).thenReturn(userId);
-        when(categoryRepository.findByUserIdAndIdentity_NameAndIdentity_Type(userId,
+        when(categoryRepository.findByIdentity_NameAndIdentity_Type(
                 categoryRequest.name(), categoryRequest.type())).thenReturn(java.util.Optional.empty());
         when(categoryRepository.save(any(Category.class))).thenReturn(categoryEntity);
         when(categoryMapper.toDto(any(Category.class))).thenReturn(expectedResponse);
@@ -65,7 +65,7 @@ class CategoryDataImplTest {
         assertEquals(expectedResponse.name(), actualResponse.name());
         assertEquals(expectedResponse.type(), actualResponse.type());
         Mockito.verify(userService).findUserIdByEmail(email);
-        Mockito.verify(categoryRepository).findByUserIdAndIdentity_NameAndIdentity_Type(userId,
+        Mockito.verify(categoryRepository).findByIdentity_NameAndIdentity_Type(
                 categoryRequest.name(), categoryRequest.type());
         Mockito.verify(categoryRepository).save(any(Category.class));
     }
@@ -131,7 +131,7 @@ class CategoryDataImplTest {
         CategoryDTO expectedResponse = new CategoryDTO(10L, "Food", CategoryType.EXPENSE);
 
         when(userService.findUserIdByEmail(email)).thenReturn(userId);
-        when(categoryRepository.findByUserIdAndIdentity_NameAndIdentity_Type(userId,
+        when(categoryRepository.findByIdentity_NameAndIdentity_Type(
                 categoryRequest.name(), categoryRequest.type())).thenReturn(java.util.Optional.of(existingCategory));
         when(categoryMapper.toDto(existingCategory)).thenReturn(expectedResponse);
 
@@ -143,7 +143,7 @@ class CategoryDataImplTest {
         assertEquals(expectedResponse.name(), actualResponse.name());
         assertEquals(expectedResponse.type(), actualResponse.type());
         Mockito.verify(userService).findUserIdByEmail(email);
-        Mockito.verify(categoryRepository).findByUserIdAndIdentity_NameAndIdentity_Type(userId,
+        Mockito.verify(categoryRepository).findByIdentity_NameAndIdentity_Type(
                 categoryRequest.name(), categoryRequest.type());
     }
 }

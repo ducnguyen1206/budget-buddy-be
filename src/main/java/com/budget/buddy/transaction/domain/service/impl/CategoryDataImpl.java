@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-import static com.budget.buddy.user.application.utils.ApplicationUtil.getEmailFromContext;
+import static com.budget.buddy.core.utils.ApplicationUtil.getEmailFromContext;
 
 @Service
 @RequiredArgsConstructor
@@ -36,7 +36,7 @@ public class CategoryDataImpl implements CategoryData {
                 categoryRequest.name(), categoryRequest.type(), email);
         Long userId = userService.findUserIdByEmail(email);
 
-        var existingOpt = categoryRepository.findByUserIdAndIdentity_NameAndIdentity_Type(userId, categoryRequest.name(), categoryRequest.type());
+        var existingOpt = categoryRepository.findByIdentity_NameAndIdentity_Type(categoryRequest.name(), categoryRequest.type());
         if (existingOpt.isPresent()) {
             var existing = existingOpt.get();
             logger.info("Category already exists with id={} for userId={}, skipping creation", existing.getId(), userId);
@@ -58,7 +58,7 @@ public class CategoryDataImpl implements CategoryData {
         String email = getEmailFromContext();
         Long userId = userService.findUserIdByEmail(email);
 
-        Category category = categoryRepository.findByIdAndUserId(categoryId, userId)
+        Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.CATEGORY_NOT_FOUND));
 
         logger.info("Retrieved category id={} for userId={}", categoryId, userId);
@@ -70,7 +70,7 @@ public class CategoryDataImpl implements CategoryData {
         String email = getEmailFromContext();
         Long userId = userService.findUserIdByEmail(email);
 
-        List<Category> categories = categoryRepository.findAllByUserId(userId);
+        List<Category> categories = categoryRepository.findAll();
         logger.info("Retrieved {} categories for userId={}", categories.size(), userId);
 
         return categories.stream().map(categoryMapper::toDto).toList();
@@ -82,10 +82,7 @@ public class CategoryDataImpl implements CategoryData {
         String email = getEmailFromContext();
         Long userId = userService.findUserIdByEmail(email);
 
-        long deleted = categoryRepository.deleteByIdAndUserId(categoryId, userId);
-        if (deleted == 0) {
-            logger.warn("Category id={} for userId={} not found", categoryId, userId);
-        }
+        categoryRepository.deleteById(categoryId);
 
         logger.info("Deleted category id={} for userId={}", categoryId, userId);
     }
@@ -96,14 +93,14 @@ public class CategoryDataImpl implements CategoryData {
         String email = getEmailFromContext();
         Long userId = userService.findUserIdByEmail(email);
 
-        var existingOpt = categoryRepository.findByUserIdAndIdentity_NameAndIdentity_Type(userId, categoryRequest.name(), categoryRequest.type());
+        var existingOpt = categoryRepository.findByIdentity_NameAndIdentity_Type(categoryRequest.name(), categoryRequest.type());
         if (existingOpt.isPresent()) {
             var existing = existingOpt.get();
             logger.info("Category already exists with id={} for userId={}, skipping update", existing.getId(), userId);
             return categoryMapper.toDto(existing);
         }
 
-        Category category = categoryRepository.findByIdAndUserId(categoryId, userId)
+        Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.CATEGORY_NOT_FOUND));
         logger.info("Updating category id={} for userId={}", categoryId, userId);
 

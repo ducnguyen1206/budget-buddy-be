@@ -12,12 +12,18 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.Objects;
 
 @Getter
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class CategoryVO {
+public class CategoryVO implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     @NotBlank
     @Size(max = 100)
     @Column(nullable = false, length = 100)

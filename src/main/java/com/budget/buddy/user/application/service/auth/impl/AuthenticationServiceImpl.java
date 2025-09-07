@@ -3,8 +3,8 @@ package com.budget.buddy.user.application.service.auth.impl;
 import com.budget.buddy.core.config.exception.AuthException;
 import com.budget.buddy.core.config.exception.BadRequestException;
 import com.budget.buddy.core.config.exception.ErrorCode;
-import com.budget.buddy.user.application.utils.ApplicationUtil;
-import com.budget.buddy.user.application.utils.JwtUtil;
+import com.budget.buddy.core.utils.ApplicationUtil;
+import com.budget.buddy.core.utils.JwtUtil;
 import com.budget.buddy.core.event.SendVerificationEmailEvent;
 import com.budget.buddy.user.application.constant.UserApplicationConstant;
 import com.budget.buddy.user.application.dto.LoginResponse;
@@ -25,7 +25,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.UUID;
 
 @Service

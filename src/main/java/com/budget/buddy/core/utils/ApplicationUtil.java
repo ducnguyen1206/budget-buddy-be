@@ -1,4 +1,4 @@
-package com.budget.buddy.user.application.utils;
+package com.budget.buddy.core.utils;
 
 import org.springframework.security.core.context.SecurityContextHolder;
 

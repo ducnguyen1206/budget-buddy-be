@@ -7,13 +7,18 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Objects;
 
 @Getter
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class MoneyVO {
+public class MoneyVO implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
 
     @Column(name = "amount", nullable = false)
     private BigDecimal amount;

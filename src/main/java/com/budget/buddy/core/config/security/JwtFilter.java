@@ -1,7 +1,7 @@
-package com.budget.buddy.user.application.config.security;
+package com.budget.buddy.core.config.security;
 
 import com.budget.buddy.user.application.service.user.impl.UserServiceImpl;
-import com.budget.buddy.user.application.utils.JwtUtil;
+import com.budget.buddy.core.utils.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,9 +22,9 @@ public class JwtFilter extends OncePerRequestFilter {
 
     private final UserDetailsService customUserDetailsService;
 
-    public JwtFilter(JwtUtil jwtUtil, UserServiceImpl customUserDetailsService) {
+    public JwtFilter(JwtUtil jwtUtil, UserDetailsService UserServiceImpl) {
         this.jwtUtil = jwtUtil;
-        this.customUserDetailsService = customUserDetailsService;
+        this.customUserDetailsService = UserServiceImpl;
     }
 
     @Override

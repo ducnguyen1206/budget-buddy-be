@@ -1,4 +1,4 @@
-package com.budget.buddy.user.application.config.security;
+package com.budget.buddy.core.config.security;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -23,7 +23,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final JwtFilter jwtFilter;
-    private final HibernateUserFilterConfigurer jpaUserFilterConfigurer;
 
     private static final String[] PUBLIC_ENDPOINTS = {
             "/api/v1/auth/verify",
@@ -49,9 +48,7 @@ public class SecurityConfig {
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterAfter(jpaUserFilterConfigurer, UsernamePasswordAuthenticationFilter.class);
-
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
