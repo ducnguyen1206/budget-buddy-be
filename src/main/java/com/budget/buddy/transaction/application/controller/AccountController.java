@@ -1,6 +1,8 @@
 package com.budget.buddy.transaction.application.controller;
 
 import com.budget.buddy.transaction.application.dto.account.AccountDTO;
+import com.budget.buddy.transaction.application.dto.account.AccountRetrieveResponse;
+import com.budget.buddy.transaction.application.service.AccountService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -18,12 +20,15 @@ import java.util.List;
 @RequestMapping("/api/v1/accounts")
 public class AccountController {
 
+    private final AccountService accountService;
+
     @Operation(summary = "Endpoint for creating a new account", responses = {
             @ApiResponse(responseCode = "201", description = "Account created successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid input data", content = @Content())
     })
     @PostMapping
     public ResponseEntity<Void> createAccount(@Valid @RequestBody AccountDTO request) {
+        accountService.creteAccount(request);
         return ResponseEntity.noContent().build();
     }
 
@@ -32,17 +37,18 @@ public class AccountController {
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content())
     })
     @GetMapping
-    public ResponseEntity<List<Object>> retrieveAccounts() {
-        return ResponseEntity.ok().build();
+    public ResponseEntity<List<AccountRetrieveResponse>> retrieveAccounts() {
+        List<AccountRetrieveResponse> accounts = accountService.retrieveAccounts();
+        return ResponseEntity.ok(accounts);
     }
 
     @Operation(summary = "Endpoint for retrieving an account by id", responses = {
             @ApiResponse(responseCode = "200", description = "Account retrieved successfully"),
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content())
     })
-    @GetMapping("/{id}")
-    public ResponseEntity<Object> retrieveAccount(@PathVariable("id") Long id) {
-        return ResponseEntity.ok().build();
+    @GetMapping("/{accountGroupId}/{accountId}")
+    public ResponseEntity<Object> retrieveAccount(@PathVariable("accountGroupId") Long accountGroupId, @PathVariable("accountId") Long accountId) {
+        return ResponseEntity.ok(accountService.retrieveAccount(accountId, accountGroupId));
     }
 
     @Operation(summary = "Endpoint for updating an account", responses = {
@@ -50,8 +56,8 @@ public class AccountController {
             @ApiResponse(responseCode = "404", description = "Account not found", content = @Content()),
             @ApiResponse(responseCode = "400", description = "Invalid input data", content = @Content())
     })
-    @PutMapping
-    public ResponseEntity<Void> updateAccount() {
+    @PutMapping("/{id}")
+    public ResponseEntity<Void> updateAccount(@PathVariable("id") Long id, @Valid @RequestBody AccountDTO request) {
         return ResponseEntity.ok().build();
     }
 
@@ -59,8 +65,9 @@ public class AccountController {
             @ApiResponse(responseCode = "204", description = "Account deleted successfully"),
             @ApiResponse(responseCode = "404", description = "Account not found", content = @Content())
     })
-    @DeleteMapping
-    public ResponseEntity<Void> deleteAccount() {
+    @DeleteMapping("/{accountGroupId}/{accountId}")
+    public ResponseEntity<Void> deleteAccount(@PathVariable("accountGroupId") Long accountGroupId, @PathVariable("accountId") Long accountId) {
+        accountService.deleteAccount(accountId, accountGroupId);
         return ResponseEntity.noContent().build();
     }
 }

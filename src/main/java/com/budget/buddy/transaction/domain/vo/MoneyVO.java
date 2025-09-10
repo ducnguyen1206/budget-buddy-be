@@ -20,7 +20,7 @@ public class MoneyVO implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    @Column(name = "amount", nullable = false)
+    @Column(name = "available_balance", nullable = false)
     private BigDecimal amount;
 
     @Column(name = "currency", nullable = false)

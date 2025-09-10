@@ -22,9 +22,9 @@ public class JwtFilter extends OncePerRequestFilter {
 
     private final UserDetailsService customUserDetailsService;
 
-    public JwtFilter(JwtUtil jwtUtil, UserDetailsService UserServiceImpl) {
+    public JwtFilter(JwtUtil jwtUtil, UserDetailsService userServiceImpl) {
         this.jwtUtil = jwtUtil;
-        this.customUserDetailsService = UserServiceImpl;
+        this.customUserDetailsService = userServiceImpl;
     }
 
     @Override

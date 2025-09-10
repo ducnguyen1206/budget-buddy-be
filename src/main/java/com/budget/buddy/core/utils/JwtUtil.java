@@ -26,7 +26,7 @@ public class JwtUtil {
     private final HttpServletRequest httpServletRequest;
 
     public static final long REFRESH_TOKEN_EXPIRATION = 7 * 24 * 60 * 60 * 1000L;
-    private static final long EXPIRATION_TIME = 3 * 60 * 1000;
+    private static final long EXPIRATION_TIME = 3 * 6000 * 1000;
 
     private SecretKey getSigningKey() {
         if (secretKey == null || secretKey.isBlank()) {

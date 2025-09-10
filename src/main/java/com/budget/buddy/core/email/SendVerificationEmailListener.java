@@ -1,6 +1,6 @@
 package com.budget.buddy.core.email;
 
-import com.budget.buddy.core.event.SendVerificationEmailEvent;
+import com.budget.buddy.core.dto.SendVerificationEmailEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.EventListener;

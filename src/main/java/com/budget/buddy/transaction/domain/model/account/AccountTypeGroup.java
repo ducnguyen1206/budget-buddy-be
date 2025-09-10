@@ -13,7 +13,7 @@ import java.util.List;
 @Getter
 @Setter
 @AllArgsConstructor
-@NoArgsConstructor
+@NoArgsConstructor(access =  AccessLevel.PROTECTED)
 @EqualsAndHashCode(callSuper = false)
 @Entity
 @Filter(name = "userFilter", condition = "user_id = :userId")

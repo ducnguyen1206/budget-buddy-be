@@ -5,7 +5,7 @@ import com.budget.buddy.core.config.exception.BadRequestException;
 import com.budget.buddy.core.config.exception.ErrorCode;
 import com.budget.buddy.core.utils.ApplicationUtil;
 import com.budget.buddy.core.utils.JwtUtil;
-import com.budget.buddy.core.event.SendVerificationEmailEvent;
+import com.budget.buddy.core.dto.SendVerificationEmailEvent;
 import com.budget.buddy.user.application.constant.UserApplicationConstant;
 import com.budget.buddy.user.application.dto.LoginResponse;
 import com.budget.buddy.user.application.dto.ResetPasswordRequest;

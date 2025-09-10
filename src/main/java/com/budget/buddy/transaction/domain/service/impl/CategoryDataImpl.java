@@ -6,6 +6,7 @@ import com.budget.buddy.transaction.application.dto.category.CategoryDTO;
 import com.budget.buddy.transaction.application.mapper.CategoryMapper;
 import com.budget.buddy.transaction.domain.model.category.Category;
 import com.budget.buddy.transaction.domain.service.CategoryData;
+import com.budget.buddy.transaction.domain.utils.TransactionUtils;
 import com.budget.buddy.transaction.domain.vo.CategoryVO;
 import com.budget.buddy.transaction.infrastructure.repository.CategoryRepository;
 import com.budget.buddy.user.application.service.user.UserService;
@@ -17,8 +18,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-import static com.budget.buddy.core.utils.ApplicationUtil.getEmailFromContext;
-
 @Service
 @RequiredArgsConstructor
 public class CategoryDataImpl implements CategoryData {
@@ -26,15 +25,16 @@ public class CategoryDataImpl implements CategoryData {
     private final UserService userService;
     private final CategoryRepository categoryRepository;
     private final CategoryMapper categoryMapper;
+    private final TransactionUtils transactionUtils;
 
     @Override
     @Transactional
     public CategoryDTO createCategory(CategoryDTO categoryRequest) {
-        String email = getEmailFromContext();
+        Long userId = transactionUtils.getCurrentUserId();
 
-        logger.info("Creating category: name='{}', type='{}' for user email='{}'",
-                categoryRequest.name(), categoryRequest.type(), email);
-        Long userId = userService.findUserIdByEmail(email);
+        logger.info("Creating category: name='{}', type='{}' for user user Id='{}'",
+                categoryRequest.name(), categoryRequest.type(), userId);
+
 
         var existingOpt = categoryRepository.findByIdentity_NameAndIdentity_Type(categoryRequest.name(), categoryRequest.type());
         if (existingOpt.isPresent()) {
@@ -55,8 +55,7 @@ public class CategoryDataImpl implements CategoryData {
 
     @Override
     public CategoryDTO getCategory(Long categoryId) {
-        String email = getEmailFromContext();
-        Long userId = userService.findUserIdByEmail(email);
+        Long userId = transactionUtils.getCurrentUserId();
 
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.CATEGORY_NOT_FOUND));
@@ -67,8 +66,7 @@ public class CategoryDataImpl implements CategoryData {
 
     @Override
     public List<CategoryDTO> getCategories() {
-        String email = getEmailFromContext();
-        Long userId = userService.findUserIdByEmail(email);
+        Long userId = transactionUtils.getCurrentUserId();
 
         List<Category> categories = categoryRepository.findAll();
         logger.info("Retrieved {} categories for userId={}", categories.size(), userId);
@@ -79,8 +77,7 @@ public class CategoryDataImpl implements CategoryData {
     @Transactional
     @Override
     public void deleteCategory(Long categoryId) {
-        String email = getEmailFromContext();
-        Long userId = userService.findUserIdByEmail(email);
+        Long userId = transactionUtils.getCurrentUserId();
 
         categoryRepository.deleteById(categoryId);
 
@@ -90,8 +87,7 @@ public class CategoryDataImpl implements CategoryData {
     @Transactional
     @Override
     public CategoryDTO updateCategory(Long categoryId, CategoryDTO categoryRequest) {
-        String email = getEmailFromContext();
-        Long userId = userService.findUserIdByEmail(email);
+        Long userId = transactionUtils.getCurrentUserId();
 
         var existingOpt = categoryRepository.findByIdentity_NameAndIdentity_Type(categoryRequest.name(), categoryRequest.type());
         if (existingOpt.isPresent()) {

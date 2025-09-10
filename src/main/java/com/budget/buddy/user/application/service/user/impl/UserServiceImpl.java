@@ -31,12 +31,6 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
-    public UserDTO findActiveUser(String email) {
-        User user = userData.findActiveUser(email).orElse(null);
-        return userMapper.toDto(user);
-    }
-
-    @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userData.findActiveUser(username).orElseThrow(() -> new UsernameNotFoundException(ErrorCode.EMAIL_NOT_FOUND.getMessage()));
         return new UserDetails() {
