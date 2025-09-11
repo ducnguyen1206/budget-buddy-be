@@ -27,7 +27,7 @@ public record AccountDTO(
         @NotNull(message = "Account type is required")
         String type,
 
-        @Schema(description = "Account group ID", example = "CASH")
+        @Schema(description = "Account group ID", example = "1", hidden = true)
         Long accountGroupId
 ) {
 }

@@ -9,7 +9,9 @@ public interface AccountService {
     void creteAccount(AccountDTO accountDTO);
     List<AccountRetrieveResponse> retrieveAccounts();
 
-    AccountRetrieveResponse retrieveAccount(Long accountId, Long accountGroupId);
+    AccountRetrieveResponse retrieveAccount(Long accountId);
 
-    void deleteAccount(Long accountId, Long accountGroupId);
+    void deleteAccount(Long accountId);
+
+    void updateAccount(Long accountId, AccountDTO accountDTO);
 }

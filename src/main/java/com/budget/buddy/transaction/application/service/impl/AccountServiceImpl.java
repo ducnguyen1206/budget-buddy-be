@@ -25,12 +25,17 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public AccountRetrieveResponse retrieveAccount(Long accountId, Long accountGroupId) {
-        return accountData.retrieveAccount(accountId, accountGroupId);
+    public AccountRetrieveResponse retrieveAccount(Long accountId) {
+        return accountData.retrieveAccount(accountId);
     }
 
     @Override
-    public void deleteAccount(Long accountId, Long accountGroupId) {
-        accountData.deleteAccount(accountId, accountGroupId);
+    public void deleteAccount(Long accountId) {
+        accountData.deleteAccount(accountId);
+    }
+
+    @Override
+    public void updateAccount(Long accountId, AccountDTO accountDTO) {
+        accountData.updateAccount(accountId, accountDTO);
     }
 }

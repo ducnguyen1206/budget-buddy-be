@@ -46,9 +46,9 @@ public class AccountController {
             @ApiResponse(responseCode = "200", description = "Account retrieved successfully"),
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content())
     })
-    @GetMapping("/{accountGroupId}/{accountId}")
-    public ResponseEntity<Object> retrieveAccount(@PathVariable("accountGroupId") Long accountGroupId, @PathVariable("accountId") Long accountId) {
-        return ResponseEntity.ok(accountService.retrieveAccount(accountId, accountGroupId));
+    @GetMapping("/{accountId}")
+    public ResponseEntity<Object> retrieveAccount(@PathVariable("accountId") Long accountId) {
+        return ResponseEntity.ok(accountService.retrieveAccount(accountId));
     }
 
     @Operation(summary = "Endpoint for updating an account", responses = {
@@ -56,18 +56,19 @@ public class AccountController {
             @ApiResponse(responseCode = "404", description = "Account not found", content = @Content()),
             @ApiResponse(responseCode = "400", description = "Invalid input data", content = @Content())
     })
-    @PutMapping("/{id}")
-    public ResponseEntity<Void> updateAccount(@PathVariable("id") Long id, @Valid @RequestBody AccountDTO request) {
-        return ResponseEntity.ok().build();
+    @PutMapping("/{accountId}")
+    public ResponseEntity<Void> updateAccount(@PathVariable("accountId") Long accountId, @Valid @RequestBody AccountDTO request) {
+        accountService.updateAccount(accountId, request);
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "Endpoint for deleting an account", responses = {
             @ApiResponse(responseCode = "204", description = "Account deleted successfully"),
             @ApiResponse(responseCode = "404", description = "Account not found", content = @Content())
     })
-    @DeleteMapping("/{accountGroupId}/{accountId}")
-    public ResponseEntity<Void> deleteAccount(@PathVariable("accountGroupId") Long accountGroupId, @PathVariable("accountId") Long accountId) {
-        accountService.deleteAccount(accountId, accountGroupId);
+    @DeleteMapping("/{accountId}")
+    public ResponseEntity<Void> deleteAccount(@PathVariable("accountId") Long accountId) {
+        accountService.deleteAccount(accountId);
         return ResponseEntity.noContent().build();
     }
 }

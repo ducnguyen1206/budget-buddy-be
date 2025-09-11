@@ -86,11 +86,11 @@ public class AccountDataImpl implements AccountData {
 
     @Transactional(readOnly = true)
     @Override
-    public AccountRetrieveResponse retrieveAccount(Long accountId, Long accountGroupId) {
+    public AccountRetrieveResponse retrieveAccount(Long accountId) {
         Long userId = transactionUtils.getCurrentUserId();
 
         logger.info("Retrieving account with id='{}' for user with id='{}'", accountId, userId);
-        AccountFlatView accounts = accountRepository.retrieveByAccountId(userId, accountGroupId, accountId);
+        AccountFlatView accounts = accountRepository.retrieveByAccountId(userId, accountId);
         if (accounts == null) {
             logger.info("Account with id='{}' not found for user with id='{}'", accountId, userId);
             throw new NotFoundException(ErrorCode.ACCOUNT_NOT_FOUND);
@@ -108,17 +108,44 @@ public class AccountDataImpl implements AccountData {
 
     @Transactional
     @Override
-    public void deleteAccount(Long accountId, Long accountGroupId) {
+    public void deleteAccount(Long accountId) {
+        checkAccountExists(accountId);
+        logger.info("Deleting account with id='{}' for user", accountId);
+        accountRepository.deleteById(accountId);
+    }
+
+    @Transactional
+    @Override
+    public void updateAccount(Long accountId, AccountDTO accountDTO) {
+        checkAccountExists(accountId);
+        logger.info("Updating account with id='{}' for user", accountId);
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.ACCOUNT_NOT_FOUND));
+
+        MoneyVO moneyVO = new MoneyVO(accountDTO.balance(), accountDTO.currency());
+        AccountTypeGroup accountTypeGroup = account.getAccountTypeGroup();
+
+        if (!accountTypeGroup.getName().equals(accountDTO.type())) {
+            String fromGroup = accountTypeGroup.getName();
+            logger.info("Account type group change detected for id='{}': '{}' -> '{}'", accountId, fromGroup, accountDTO.type());
+            accountTypeGroup = createOrGetAccountTypeGroup(accountDTO.type());
+            account.setAccountTypeGroup(accountTypeGroup);
+        }
+
+        account.setMoney(moneyVO);
+        account.setName(accountDTO.name());
+        accountRepository.save(account);
+        logger.info("Account updated successfully: id='{}'", accountId);
+    }
+
+    private void checkAccountExists(Long accountId) {
         Long userId = transactionUtils.getCurrentUserId();
 
-        boolean accountExisted = accountRepository.existsAccountBy(userId, accountGroupId, accountId);
+        boolean accountExisted = accountRepository.existsAccountBy(userId, accountId);
         if (!accountExisted) {
             logger.info("Account with id='{}' not existed for user with id='{}'", accountId, userId);
             throw new NotFoundException(ErrorCode.ACCOUNT_NOT_FOUND);
         }
-
-        logger.info("Deleting account with id='{}' for user with id='{}'", accountId, userId);
-        accountRepository.deleteById(accountId);
     }
 
     private AccountDTO buildAccountDTO(AccountFlatView view) {
