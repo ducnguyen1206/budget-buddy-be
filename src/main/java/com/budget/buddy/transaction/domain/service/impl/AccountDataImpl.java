@@ -33,6 +33,7 @@ public class AccountDataImpl implements AccountData {
 
     private static final Logger logger = LogManager.getLogger(AccountDataImpl.class);
 
+    // TODO implement the rule accounts inside account type group only have 1 currency
     @Transactional
     @Override
     public void createAccount(AccountDTO accountDTO) {
