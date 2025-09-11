@@ -11,5 +11,5 @@ import java.util.List;
 @AllArgsConstructor
 public class AccountRetrieveResponse {
     private String accountType;
-    private List<AccountDTO> account;
+    private List<AccountDTO> accounts;
 }

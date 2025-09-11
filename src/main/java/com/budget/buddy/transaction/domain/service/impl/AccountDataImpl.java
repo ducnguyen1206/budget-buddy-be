@@ -65,19 +65,17 @@ public class AccountDataImpl implements AccountData {
         logger.info("Retrieving all accounts for current user");
         List<AccountFlatView> flatList = accountRepository.retreiveAllAccounts(userId);
 
-        List<AccountDTO> accountDTOS = flatList.stream()
-                .map(this::buildAccountDTO)
-                .toList();
-
-        TreeMap<String, List<AccountDTO>> accountGroups = accountDTOS.stream()
-                .collect(Collectors.groupingBy(
-                        AccountDTO::type,
-                        TreeMap::new,
-                        Collectors.toList()
-                ));
-
-        List<AccountRetrieveResponse> results = accountGroups.entrySet().stream()
-                .map(e -> new AccountRetrieveResponse(e.getKey(), e.getValue()))
+        List<AccountRetrieveResponse> results = flatList.stream()
+                .collect(Collectors.groupingBy(AccountFlatView::getGroupName, TreeMap::new, Collectors.toList()))
+                .entrySet()
+                .stream()
+                .map(entry -> {
+                    String groupName = entry.getKey();
+                    List<AccountDTO> accounts = entry.getValue().stream()
+                            .map(this::buildAccountDTO)
+                            .toList();
+                    return new AccountRetrieveResponse(groupName, accounts);
+                })
                 .toList();
 
         logger.info("Retrieved {} account type groups", results.size());
@@ -100,7 +98,7 @@ public class AccountDataImpl implements AccountData {
 
         AccountRetrieveResponse response = new AccountRetrieveResponse();
         response.setAccountType(accounts.getGroupName());
-        response.setAccount(List.of(accountDTO));
+        response.setAccounts(List.of(accountDTO));
 
         logger.info("Retrieved account with id='{}'", accountId);
         return response;
@@ -154,8 +152,9 @@ public class AccountDataImpl implements AccountData {
                 view.getName(),
                 view.getAmount(),
                 Currency.valueOf(view.getCurrency()),
-                view.getGroupName(),
-                view.getGroupId());
+                null,
+                null
+        );
     }
 
     private AccountTypeGroup createOrGetAccountTypeGroup(String name) {
