@@ -1,5 +1,5 @@
 package com.budget.buddy.transaction.domain.enums;
 
 public enum CategoryType {
-    EXPENSE, INCOME
+    EXPENSE, INCOME,TRANSFER
 }
