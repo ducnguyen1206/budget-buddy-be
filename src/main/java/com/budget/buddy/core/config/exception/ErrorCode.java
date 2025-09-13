@@ -16,6 +16,7 @@ public enum ErrorCode {
     // Bad request
     REENTER_PASSWORD_NOT_THE_SAME("BAD_001", "Password and re-enter password must be the same"),
     REQUEST_ACCOUNTS_MUST_NOT_BE_EMPTY("BAD_002", "Request accounts must not be empty"),
+    INVALID_REQUEST_DATA("BAD_003", "Invalid request data"),
 
     // Not found
     EMAIL_NOT_FOUND("NOT_FOUND_001", "Email not found"),

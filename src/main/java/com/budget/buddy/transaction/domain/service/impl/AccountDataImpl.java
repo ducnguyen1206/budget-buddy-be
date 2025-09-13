@@ -20,6 +20,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
@@ -132,6 +133,15 @@ public class AccountDataImpl implements AccountData {
         return response;
     }
 
+    @Transactional(readOnly = true)
+    @Override
+    public List<AccountFlatView> retrieveAccountByIdList(List<Long> accountIds) {
+        Long userId = transactionUtils.getCurrentUserId();
+
+        logger.info("Retrieving accounts with id='{}' for user with id='{}'", accountIds, userId);
+        return accountRepository.retrieveByAccountIdIn(userId, accountIds);
+    }
+
     @Transactional
     @Override
     public void deleteAccount(Long accountId) {
@@ -195,6 +205,22 @@ public class AccountDataImpl implements AccountData {
             logger.info("Account with id='{}' not existed for user with id='{}'", accountId, userId);
             throw new NotFoundException(ErrorCode.ACCOUNT_NOT_FOUND);
         }
+    }
+
+    @Transactional
+    @Override
+    public void updateAvailableBalance(Long accountId, BigDecimal newBalance) {
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.ACCOUNT_NOT_FOUND));
+        MoneyVO moneyVO = account.getMoney();
+        BigDecimal oldBalance = moneyVO.getAmount();
+        newBalance = oldBalance.add(newBalance);
+        logger.info("Updating available balance for account with id='{}': {} -> {}", accountId, oldBalance, newBalance);
+
+        MoneyVO newMoney = new MoneyVO(newBalance, Currency.valueOf(moneyVO.getCurrency()));
+        account.setMoney(newMoney);
+        accountRepository.save(account);
+        logger.info("Updated available balance for account with id='{}'", accountId);
     }
 
     private AccountDTO buildAccountDTO(AccountFlatView view) {

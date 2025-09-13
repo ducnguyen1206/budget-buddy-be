@@ -1,5 +1,6 @@
 package com.budget.buddy.transaction.domain.model.transaction;
 
+import com.budget.buddy.transaction.domain.enums.CategoryType;
 import com.budget.buddy.transaction.domain.model.account.Account;
 import com.budget.buddy.transaction.domain.model.base.BaseEntity;
 import com.budget.buddy.transaction.domain.model.category.Category;
@@ -17,12 +18,12 @@ import java.time.LocalDate;
 @EqualsAndHashCode(callSuper = false)
 @Entity
 @Table(
-    name = "transaction",
-    indexes = {
-        @Index(name = "idx_transaction_user_id", columnList = "user_id"),
-        @Index(name = "idx_transaction_account_id", columnList = "account_id"),
-        @Index(name = "idx_transaction_category_id", columnList = "category_id"),
-    }
+        name = "transaction",
+        indexes = {
+                @Index(name = "idx_transaction_user_id", columnList = "user_id"),
+                @Index(name = "idx_transaction_account_id", columnList = "account_id"),
+                @Index(name = "idx_transaction_category_id", columnList = "category_id"),
+        }
 )
 public class Transaction extends BaseEntity {
     @Column(name = "user_id", nullable = false, updatable = false)
@@ -53,10 +54,10 @@ public class Transaction extends BaseEntity {
     @PastOrPresent
     private LocalDate date;
 
-    @Column(nullable = false, length = 16)
-    @NotBlank
-    @Pattern(regexp = "INCOME|EXPENSE|TRANSFER", message = "type must be INCOME, EXPENSE, or TRANSFER")
-    private String type;
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private CategoryType type;
 
     @Column(name = "transfer_info", nullable = false)
     @NotNull

@@ -9,12 +9,11 @@ import com.budget.buddy.transaction.domain.service.CategoryData;
 import com.budget.buddy.transaction.domain.utils.TransactionUtils;
 import com.budget.buddy.transaction.domain.vo.CategoryVO;
 import com.budget.buddy.transaction.infrastructure.repository.CategoryRepository;
-import com.budget.buddy.user.application.service.user.UserService;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -22,7 +21,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CategoryDataImpl implements CategoryData {
     private static final Logger logger = LogManager.getLogger(CategoryDataImpl.class);
-    private final UserService userService;
     private final CategoryRepository categoryRepository;
     private final CategoryMapper categoryMapper;
     private final TransactionUtils transactionUtils;
@@ -34,7 +32,6 @@ public class CategoryDataImpl implements CategoryData {
 
         logger.info("Creating category: name='{}', type='{}' for user user Id='{}'",
                 categoryRequest.name(), categoryRequest.type(), userId);
-
 
         var existingOpt = categoryRepository.findByIdentity_NameAndIdentity_Type(categoryRequest.name(), categoryRequest.type());
         if (existingOpt.isPresent()) {
@@ -55,21 +52,17 @@ public class CategoryDataImpl implements CategoryData {
 
     @Override
     public CategoryDTO getCategory(Long categoryId) {
-        Long userId = transactionUtils.getCurrentUserId();
-
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.CATEGORY_NOT_FOUND));
 
-        logger.info("Retrieved category id={} for userId={}", categoryId, userId);
+        logger.info("Retrieved category id={}", categoryId);
         return categoryMapper.toDto(category);
     }
 
     @Override
     public List<CategoryDTO> getCategories() {
-        Long userId = transactionUtils.getCurrentUserId();
-
         List<Category> categories = categoryRepository.findAll();
-        logger.info("Retrieved {} categories for userId={}", categories.size(), userId);
+        logger.info("Retrieved {} categories for", categories.size());
 
         return categories.stream().map(categoryMapper::toDto).toList();
     }
@@ -77,32 +70,28 @@ public class CategoryDataImpl implements CategoryData {
     @Transactional
     @Override
     public void deleteCategory(Long categoryId) {
-        Long userId = transactionUtils.getCurrentUserId();
-
         categoryRepository.deleteById(categoryId);
 
-        logger.info("Deleted category id={} for userId={}", categoryId, userId);
+        logger.info("Deleted category id={} for", categoryId);
     }
 
     @Transactional
     @Override
     public CategoryDTO updateCategory(Long categoryId, CategoryDTO categoryRequest) {
-        Long userId = transactionUtils.getCurrentUserId();
-
         var existingOpt = categoryRepository.findByIdentity_NameAndIdentity_Type(categoryRequest.name(), categoryRequest.type());
         if (existingOpt.isPresent()) {
             var existing = existingOpt.get();
-            logger.info("Category already exists with id={} for userId={}, skipping update", existing.getId(), userId);
+            logger.info("Category already exists with id={} for skipping update", existing.getId());
             return categoryMapper.toDto(existing);
         }
 
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.CATEGORY_NOT_FOUND));
-        logger.info("Updating category id={} for userId={}", categoryId, userId);
+        logger.info("Updating category id={} for", categoryId);
 
         category.setIdentity(new CategoryVO(categoryRequest.name(), categoryRequest.type()));
         category = categoryRepository.save(category);
-        logger.info("Updated category id={} for userId={}", categoryId, userId);
+        logger.info("Updated category id={} for", categoryId);
 
         return categoryMapper.toDto(category);
     }

@@ -17,7 +17,7 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
     @Query("select a.id as id, a.name as name, a.money.amount as amount, a.money.currency as currency, g.name as groupName, g.id as groupId " +
             "from Account a join a.accountTypeGroup g " +
             "where g.userId = :userId and a.id = :accountId " +
-            "order by g.name, a.name limit 1")
+            "order by g.name, a.name")
     AccountFlatView retrieveByAccountId(Long userId, Long accountId);
 
 
@@ -25,4 +25,16 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
             "from Account a join a.accountTypeGroup g " +
             "where g.userId = :userId and a.id = :accountId")
     boolean existsAccountBy(Long userId, Long accountId);
+
+    @Query("select a " +
+            "from Account a join a.accountTypeGroup g " +
+            "where g.userId = :userId and a.id = :accountId " +
+            "order by g.name, a.name")
+    Account findAccountByUserIdAndAccountId(Long userId, Long accountId);
+
+    @Query("select a.id as id, a.name as name, a.money.amount as amount, a.money.currency as currency, g.name as groupName, g.id as groupId " +
+            "from Account a join a.accountTypeGroup g " +
+            "where g.userId = :userId and a.id IN (:accountId) " +
+            "order by g.name, a.name")
+    List<AccountFlatView> retrieveByAccountIdIn(Long userId, List<Long> accountId);
 }
