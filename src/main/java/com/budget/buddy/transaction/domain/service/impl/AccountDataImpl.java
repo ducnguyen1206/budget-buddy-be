@@ -4,6 +4,7 @@ import com.budget.buddy.core.config.exception.ErrorCode;
 import com.budget.buddy.core.config.exception.NotFoundException;
 import com.budget.buddy.transaction.application.dto.account.AccountDTO;
 import com.budget.buddy.transaction.application.dto.account.AccountRetrieveResponse;
+import com.budget.buddy.transaction.application.dto.account.AccountTypeRetrieveResponse;
 import com.budget.buddy.transaction.domain.enums.Currency;
 import com.budget.buddy.transaction.domain.model.account.Account;
 import com.budget.buddy.transaction.domain.model.account.AccountTypeGroup;
@@ -33,7 +34,6 @@ public class AccountDataImpl implements AccountData {
 
     private static final Logger logger = LogManager.getLogger(AccountDataImpl.class);
 
-    // TODO implement the rule accounts inside account type group only have 1 currency
     @Transactional
     @Override
     public void createAccount(AccountDTO accountDTO) {
@@ -60,11 +60,38 @@ public class AccountDataImpl implements AccountData {
 
     @Transactional(readOnly = true)
     @Override
+    public boolean isAccountCurrencyInvalid(AccountDTO accountDTO, Long accountId) {
+        logger.info("Checking currency for account: type='{}'", accountDTO.type());
+
+        AccountTypeGroup accountTypeGroup = accountTypeGroupRepository.findByName(accountDTO.type())
+                .orElse(null);
+        if (accountTypeGroup == null) {
+            logger.info("Account type group not found: '{}'", accountDTO.type());
+            return false;
+        }
+
+        // Only 1 account in a group can have a different currency
+        if (accountId != null && accountTypeGroup.getAccounts().size() == 1) {
+            return false;
+        }
+
+        String currency = accountTypeGroup.getAccounts()
+                .stream()
+                .findFirst()
+                .map(Account::getMoney)
+                .map(MoneyVO::getCurrency)
+                .orElse(null);
+        logger.info("Found currency for account: type='{}': '{}'", accountDTO.type(), currency);
+        return currency != null && !currency.equals(accountDTO.currency().name());
+    }
+
+    @Transactional(readOnly = true)
+    @Override
     public List<AccountRetrieveResponse> retrieveAccounts() {
         Long userId = transactionUtils.getCurrentUserId();
 
         logger.info("Retrieving all accounts for current user");
-        List<AccountFlatView> flatList = accountRepository.retreiveAllAccounts(userId);
+        List<AccountFlatView> flatList = accountRepository.retrieveAllAccounts(userId);
 
         List<AccountRetrieveResponse> results = flatList.stream()
                 .collect(Collectors.groupingBy(AccountFlatView::getGroupName, TreeMap::new, Collectors.toList()))
@@ -79,7 +106,7 @@ public class AccountDataImpl implements AccountData {
                 })
                 .toList();
 
-        logger.info("Retrieved {} account type groups", results.size());
+        logger.info("Retrieved {} account groups", results.size());
         return results;
     }
 
@@ -108,7 +135,6 @@ public class AccountDataImpl implements AccountData {
     @Transactional
     @Override
     public void deleteAccount(Long accountId) {
-        checkAccountExists(accountId);
         logger.info("Deleting account with id='{}' for user", accountId);
         accountRepository.deleteById(accountId);
     }
@@ -116,7 +142,6 @@ public class AccountDataImpl implements AccountData {
     @Transactional
     @Override
     public void updateAccount(Long accountId, AccountDTO accountDTO) {
-        checkAccountExists(accountId);
         logger.info("Updating account with id='{}' for user", accountId);
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.ACCOUNT_NOT_FOUND));
@@ -137,7 +162,32 @@ public class AccountDataImpl implements AccountData {
         logger.info("Account updated successfully: id='{}'", accountId);
     }
 
-    private void checkAccountExists(Long accountId) {
+    @Override
+    public AccountTypeRetrieveResponse getAccountTypeGroups() {
+        List<String> accountTypeGroupNames = accountTypeGroupRepository.findAll()
+                .stream().map(AccountTypeGroup::getName).toList();
+        logger.info("Retrieved {} account type groups", accountTypeGroupNames.size());
+        return new AccountTypeRetrieveResponse(accountTypeGroupNames);
+    }
+
+    @Transactional
+    @Override
+    public void deleteAccountTypeGroups(Long groupId) {
+        logger.info("Deleting all account type groups");
+
+        AccountTypeGroup groups = accountTypeGroupRepository.findById(groupId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.ACCOUNT_TYPE_GROUP_NOT_FOUND));
+
+        List<Account> accounts = groups.getAccounts();
+
+        accountRepository.deleteAll(accounts);
+        accountTypeGroupRepository.deleteById(groupId);
+        logger.info("Deleted all account type groups");
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public void checkAccountExists(Long accountId) {
         Long userId = transactionUtils.getCurrentUserId();
 
         boolean accountExisted = accountRepository.existsAccountBy(userId, accountId);
@@ -154,7 +204,7 @@ public class AccountDataImpl implements AccountData {
                 view.getAmount(),
                 Currency.valueOf(view.getCurrency()),
                 null,
-                null
+                view.getGroupId()
         );
     }
 

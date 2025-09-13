@@ -179,6 +179,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         return loginResponse;
     }
 
+    // TODO change the way to handle the refresh token
     @Override
     public LoginResponse refreshToken(String refreshToken) {
         String email = ApplicationUtil.getEmailFromContext();

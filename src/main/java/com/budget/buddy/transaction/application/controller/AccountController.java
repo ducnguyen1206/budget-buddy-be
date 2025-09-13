@@ -2,6 +2,7 @@ package com.budget.buddy.transaction.application.controller;
 
 import com.budget.buddy.transaction.application.dto.account.AccountDTO;
 import com.budget.buddy.transaction.application.dto.account.AccountRetrieveResponse;
+import com.budget.buddy.transaction.application.dto.account.AccountTypeRetrieveResponse;
 import com.budget.buddy.transaction.application.service.AccountService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -9,6 +10,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,7 +31,7 @@ public class AccountController {
     @PostMapping
     public ResponseEntity<Void> createAccount(@Valid @RequestBody AccountDTO request) {
         accountService.creteAccount(request);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @Operation(summary = "Endpoint for retrieving all accounts", responses = {
@@ -69,6 +71,25 @@ public class AccountController {
     @DeleteMapping("/{accountId}")
     public ResponseEntity<Void> deleteAccount(@PathVariable("accountId") Long accountId) {
         accountService.deleteAccount(accountId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Endpoint for retrieving all account types", responses = {
+            @ApiResponse(responseCode = "200", description = "Account types retrieved successfully")
+    })
+    @GetMapping("/types")
+    public ResponseEntity<AccountTypeRetrieveResponse> retrieveAccountTypes() {
+        AccountTypeRetrieveResponse accountTypes = accountService.retrieveAccountTypes();
+        return ResponseEntity.ok(accountTypes);
+    }
+
+    @Operation(summary = "Endpoint for deleting an account type group", responses = {
+            @ApiResponse(responseCode = "204", description = "Account type group deleted successfully"),
+            @ApiResponse(responseCode = "404", description = "Account type group not found", content = @Content())
+    })
+    @DeleteMapping("/groups/{groupId}")
+    public ResponseEntity<Void> deleteAccountTypeGroup(@PathVariable("groupId") Long groupId) {
+        accountService.deleteAccountTypeGroup(groupId);
         return ResponseEntity.noContent().build();
     }
 }

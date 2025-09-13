@@ -12,7 +12,7 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
             "from Account a join a.accountTypeGroup g " +
             "where g.userId = :userId " +
             "order by g.name, a.name")
-    List<AccountFlatView> retreiveAllAccounts(Long userId);
+    List<AccountFlatView> retrieveAllAccounts(Long userId);
 
     @Query("select a.id as id, a.name as name, a.money.amount as amount, a.money.currency as currency, g.name as groupName, g.id as groupId " +
             "from Account a join a.accountTypeGroup g " +

@@ -27,6 +27,7 @@ public enum ErrorCode {
     // Conflict
     FAILED_TO_UPDATE_CATEGORY("CONFLICT_001", "Failed to save/update category"),
     TRANSACTION_IS_NOT_BELONG_TO_USER("CONFLICT_002", "Transaction is not belong to user"),
+    INVALID_CURRENCY("CONFLICT_003", "Invalid currency in account group"),
 
     // Server error
     SERVER_ERROR("SYS_001", "An unexpected error occurred"),

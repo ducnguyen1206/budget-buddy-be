@@ -1,7 +1,10 @@
 package com.budget.buddy.transaction.application.service.impl;
 
+import com.budget.buddy.core.config.exception.ConflictException;
+import com.budget.buddy.core.config.exception.ErrorCode;
 import com.budget.buddy.transaction.application.dto.account.AccountDTO;
 import com.budget.buddy.transaction.application.dto.account.AccountRetrieveResponse;
+import com.budget.buddy.transaction.application.dto.account.AccountTypeRetrieveResponse;
 import com.budget.buddy.transaction.application.service.AccountService;
 import com.budget.buddy.transaction.domain.service.AccountData;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +19,10 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public void creteAccount(AccountDTO accountDTO) {
+        if (accountData.isAccountCurrencyInvalid(accountDTO, null)) {
+            throw new ConflictException(ErrorCode.INVALID_CURRENCY);
+        }
+
         accountData.createAccount(accountDTO);
     }
 
@@ -31,11 +38,28 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public void deleteAccount(Long accountId) {
+        accountData.checkAccountExists(accountId);
         accountData.deleteAccount(accountId);
     }
 
     @Override
     public void updateAccount(Long accountId, AccountDTO accountDTO) {
+        accountData.checkAccountExists(accountId);
+
+        if (accountData.isAccountCurrencyInvalid(accountDTO, accountId)) {
+            throw new ConflictException(ErrorCode.INVALID_CURRENCY);
+        }
+
         accountData.updateAccount(accountId, accountDTO);
+    }
+
+    @Override
+    public AccountTypeRetrieveResponse retrieveAccountTypes() {
+        return accountData.getAccountTypeGroups();
+    }
+
+    @Override
+    public void deleteAccountTypeGroup(Long groupId) {
+        accountData.deleteAccountTypeGroups(groupId);
     }
 }
