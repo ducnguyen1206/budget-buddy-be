@@ -14,12 +14,7 @@ import lombok.*;
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = false)
 @Entity
-@Table(
-        name = "account",
-        indexes = {
-                @Index(name = "idx_account_account_type_group_id", columnList = "account_type_group_id")
-        }
-)
+@Table(name = "account")
 public class Account extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "account_type_group_id", nullable = false)

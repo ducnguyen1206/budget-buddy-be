@@ -18,21 +18,16 @@ import java.time.LocalDate;
 @EqualsAndHashCode(callSuper = false)
 @Entity
 @Table(
-        name = "transaction",
-        indexes = {
-                @Index(name = "idx_transaction_user_id", columnList = "user_id"),
-                @Index(name = "idx_transaction_account_id", columnList = "account_id"),
-                @Index(name = "idx_transaction_category_id", columnList = "category_id"),
-        }
+        name = "transaction"
 )
 public class Transaction extends BaseEntity {
     @Column(name = "user_id", nullable = false, updatable = false)
     private Long userId;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "account_id", nullable = false)
+    @JoinColumn(name = "source_account_id", nullable = false)
     @NotNull
-    private Account account;
+    private Account sourceAccount;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "category_id", nullable = false)
@@ -59,8 +54,7 @@ public class Transaction extends BaseEntity {
     @Column(nullable = false)
     private CategoryType type;
 
-    @Column(name = "transfer_info", nullable = false)
-    @NotNull
-    @Size(max = 255)
-    private String transferInfo = "N/A";
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "target_account_id")
+    private Account targetAccount;
 }

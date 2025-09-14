@@ -30,4 +30,10 @@ public interface AccountData {
     void checkAccountExists(Long accountId);
 
     void updateAvailableBalance(Long accountId, BigDecimal newBalance);
+
+    void transferMoney(Long fromAccountId, Long toAccountId, BigDecimal newBalance);
+
+    boolean isTransactionExistedByAccountId(Long accountId);
+
+    boolean isTransactionExistedByGroupAccountId(Long groupId);
 }

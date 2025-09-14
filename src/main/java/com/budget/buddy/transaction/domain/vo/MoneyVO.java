@@ -31,9 +31,7 @@ public class MoneyVO implements Serializable {
         if (amount == null || currency == null) {
             throw new IllegalArgumentException("Amount and currency must not be null or empty");
         }
-        if (amount.signum() < 0) {
-            throw new IllegalArgumentException("Amount must not be negative");
-        }
+
         this.amount = amount;
         this.currency = currency.name();
     }

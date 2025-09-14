@@ -38,6 +38,10 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public void deleteAccount(Long accountId) {
+        if (accountData.isTransactionExistedByAccountId(accountId)) {
+            throw new ConflictException(ErrorCode.TRANSACTION_EXISTED_FOR_ACCOUNT_ID);
+        }
+
         accountData.checkAccountExists(accountId);
         accountData.deleteAccount(accountId);
     }
@@ -60,6 +64,10 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public void deleteAccountTypeGroup(Long groupId) {
+        if (accountData.isTransactionExistedByGroupAccountId(groupId)) {
+            throw new ConflictException(ErrorCode.TRANSACTION_EXISTED_FOR_ACCOUNT_ID);
+        }
+
         accountData.deleteAccountTypeGroups(groupId);
     }
 }

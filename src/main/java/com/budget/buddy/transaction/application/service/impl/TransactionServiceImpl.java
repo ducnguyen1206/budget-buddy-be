@@ -1,16 +1,15 @@
 package com.budget.buddy.transaction.application.service.impl;
 
 import com.budget.buddy.core.config.exception.BadRequestException;
+import com.budget.buddy.core.config.exception.ConflictException;
 import com.budget.buddy.core.config.exception.ErrorCode;
 import com.budget.buddy.transaction.application.dto.category.CategoryDTO;
 import com.budget.buddy.transaction.application.dto.transaction.TransactionDTO;
-import com.budget.buddy.transaction.application.mapper.TransactionMapper;
 import com.budget.buddy.transaction.application.service.TransactionService;
 import com.budget.buddy.transaction.domain.enums.CategoryType;
 import com.budget.buddy.transaction.domain.service.AccountData;
 import com.budget.buddy.transaction.domain.service.CategoryData;
 import com.budget.buddy.transaction.domain.service.TransactionData;
-import com.budget.buddy.transaction.domain.utils.TransactionUtils;
 import com.budget.buddy.transaction.infrastructure.view.AccountFlatView;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
@@ -19,8 +18,6 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -28,8 +25,6 @@ public class TransactionServiceImpl implements TransactionService {
     private final TransactionData transactionData;
     private final CategoryData categoryData;
     private final AccountData accountData;
-    private final TransactionMapper transactionMapper;
-    private final TransactionUtils transactionUtils;
     private static final Logger logger = LogManager.getLogger(TransactionServiceImpl.class);
 
     @Override
@@ -38,25 +33,30 @@ public class TransactionServiceImpl implements TransactionService {
         accountData.checkAccountExists(transactionRequest.getAccountId());
 
         // save transaction
-        String transferInfo = generateTransferInfo(categoryDTO, transactionRequest);
-        transactionRequest.setTransferInfo(transferInfo);
-
+        validateTransferInfo(categoryDTO, transactionRequest);
         transactionData.createTransaction(transactionRequest);
 
         // Deduct balance from an account
-        // TODO handle update available balance for transaction transfer
         BigDecimal amount = transactionRequest.getAmount().abs();
+
+        if (CategoryType.TRANSFER.equals(categoryDTO.type())) {
+            Long sourceAccountId = transactionRequest.getAccountId();
+            Long targetAccountId = transactionRequest.getTargetAccountId();
+            accountData.transferMoney(sourceAccountId, targetAccountId, amount);
+            return;
+        }
+
         BigDecimal finalAmount = CategoryType.EXPENSE.equals(categoryDTO.type()) ? amount.negate() : amount;
         accountData.updateAvailableBalance(transactionRequest.getAccountId(), finalAmount);
     }
 
-    private String generateTransferInfo(CategoryDTO categoryDTO, TransactionDTO transactionRequest) {
+    private void validateTransferInfo(CategoryDTO categoryDTO, TransactionDTO transactionRequest) {
         if (!CategoryType.TRANSFER.equals(categoryDTO.type())) {
-            return "N/A";
+            return;
         }
 
         Long accountId = transactionRequest.getAccountId();
-        Long toAccountId = transactionRequest.getToAccountId();
+        Long toAccountId = transactionRequest.getTargetAccountId();
 
         if (toAccountId == null || accountId.equals(toAccountId)) {
             logger.info("toAccountId is null for transaction type transfer");
@@ -69,12 +69,20 @@ public class TransactionServiceImpl implements TransactionService {
             throw new BadRequestException(ErrorCode.INVALID_REQUEST_DATA);
         }
 
-        Map<Long, String> accountNameMap =
-                accounts.stream()
-                        .collect(Collectors.toMap(AccountFlatView::getId, AccountFlatView::getName));
-        String transferInfo = String.format("%s -> %s", accountNameMap.get(accountId), accountNameMap.get(toAccountId));
-        logger.info("Transfer info: {}", transferInfo);
+        AccountFlatView fromAccount = accounts.getFirst();
+        AccountFlatView toAccount = accounts.get(1);
 
-        return transferInfo;
+        // Ensure the same currency for transfer
+        if (!fromAccount.getCurrency().equals(toAccount.getCurrency())) {
+            logger.info("Transfer failed: currency mismatch. from='{}', to='{}'", fromAccount.getCurrency(), toAccount.getCurrency());
+            throw new ConflictException(ErrorCode.CURRENCY_TRANSFER_SHOULD_BE_THE_SAME);
+        }
+
+        // Check valid balance
+        BigDecimal sourceBalance = fromAccount.getAmount();
+        BigDecimal requestAmount = transactionRequest.getAmount();
+        if (sourceBalance.compareTo(requestAmount) < 0) {
+            throw new ConflictException(ErrorCode.SOURCE_ACCOUNT_BALANCE_NOT_ENOUGH_MONEY);
+        }
     }
 }

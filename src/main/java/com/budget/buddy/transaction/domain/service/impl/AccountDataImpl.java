@@ -13,6 +13,7 @@ import com.budget.buddy.transaction.domain.utils.TransactionUtils;
 import com.budget.buddy.transaction.domain.vo.MoneyVO;
 import com.budget.buddy.transaction.infrastructure.repository.AccountRepository;
 import com.budget.buddy.transaction.infrastructure.repository.AccountTypeGroupRepository;
+import com.budget.buddy.transaction.infrastructure.repository.TransactionRepository;
 import com.budget.buddy.transaction.infrastructure.view.AccountFlatView;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
@@ -23,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
@@ -32,7 +34,7 @@ public class AccountDataImpl implements AccountData {
     private final AccountRepository accountRepository;
     private final AccountTypeGroupRepository accountTypeGroupRepository;
     private final TransactionUtils transactionUtils;
-
+    private final TransactionRepository transactionRepository;
     private static final Logger logger = LogManager.getLogger(AccountDataImpl.class);
 
     @Transactional
@@ -221,6 +223,60 @@ public class AccountDataImpl implements AccountData {
         account.setMoney(newMoney);
         accountRepository.save(account);
         logger.info("Updated available balance for account with id='{}'", accountId);
+    }
+
+    @Transactional
+    @Override
+    public void transferMoney(Long sourceAccountId, Long targetAccountId, BigDecimal newBalance) {
+        List<Long> accountIds = List.of(sourceAccountId, targetAccountId);
+        List<Account> accounts = accountRepository.findByIdIn(accountIds);
+        Map<Long, Account> accountMap = accounts.stream().collect(Collectors.toMap(Account::getId, a -> a));
+
+        logger.info("Transfer money from account with id='{}' to account with id='{}': {}", sourceAccountId, targetAccountId, newBalance);
+
+        // Source account
+        Account sourceAccount = accountMap.get(sourceAccountId);
+
+        MoneyVO sourceMoney = sourceAccount.getMoney();
+        BigDecimal sourceBalance = sourceMoney.getAmount();
+
+        String currency = sourceMoney.getCurrency();
+
+        BigDecimal newSourceBalance = sourceBalance.subtract(newBalance);
+        MoneyVO newSourceMoney = new MoneyVO(newSourceBalance, Currency.valueOf(currency));
+
+        sourceAccount.setMoney(newSourceMoney);
+        accountRepository.save(sourceAccount);
+
+        // Target account
+        Account targetAccount = accountMap.get(targetAccountId);
+
+        MoneyVO currentTargetMoney = targetAccount.getMoney();
+        BigDecimal currentTargetBalance = currentTargetMoney.getAmount();
+
+        BigDecimal newTargetAccountBalance = currentTargetBalance.add(newBalance);
+        MoneyVO newTargetMoney = new MoneyVO(newTargetAccountBalance, Currency.valueOf(currency));
+
+        targetAccount.setMoney(newTargetMoney);
+        accountRepository.save(targetAccount);
+
+        logger.info("New balances for accounts: from account ='{}', to account ='{}'", newSourceBalance, newTargetAccountBalance);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public boolean isTransactionExistedByAccountId(Long accountId) {
+        return transactionRepository.existsBySourceAccountId(accountId);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public boolean isTransactionExistedByGroupAccountId(Long groupId) {
+        AccountTypeGroup groups = accountTypeGroupRepository.findById(groupId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.ACCOUNT_TYPE_GROUP_NOT_FOUND));
+        List<Account> accounts = groups.getAccounts();
+        List<Long> accountIds = accounts.stream().map(Account::getId).toList();
+        return transactionRepository.existsBySourceAccountIdIn(accountIds);
     }
 
     private AccountDTO buildAccountDTO(AccountFlatView view) {

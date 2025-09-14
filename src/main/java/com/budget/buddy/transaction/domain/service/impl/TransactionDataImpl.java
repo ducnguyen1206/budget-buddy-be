@@ -4,6 +4,7 @@ import com.budget.buddy.core.config.exception.ErrorCode;
 import com.budget.buddy.core.config.exception.NotFoundException;
 import com.budget.buddy.transaction.application.dto.transaction.TransactionDTO;
 import com.budget.buddy.transaction.application.mapper.TransactionMapper;
+import com.budget.buddy.transaction.domain.enums.CategoryType;
 import com.budget.buddy.transaction.domain.model.account.Account;
 import com.budget.buddy.transaction.domain.model.category.Category;
 import com.budget.buddy.transaction.domain.model.transaction.Transaction;
@@ -38,10 +39,14 @@ public class TransactionDataImpl implements TransactionData {
 
         Transaction transaction = transactionMapper.toTransaction(transactionRequest);
         transaction.setUserId(userId);
-        transaction.setAccount(account);
+        transaction.setSourceAccount(account);
         transaction.setCategory(category);
         transaction.setType(category.getIdentity().getType());
-        transaction.setTransferInfo(transactionRequest.getTransferInfo());
+
+        if (CategoryType.TRANSFER.equals(category.getIdentity().getType())) {
+            Account targetAccount = getAccount(userId, transactionRequest.getTargetAccountId());
+            transaction.setTargetAccount(targetAccount);
+        }
 
         transaction = transactionRepository.save(transaction);
         logger.info("saved transaction with ID: {}", transaction.getId());

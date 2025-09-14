@@ -26,7 +26,8 @@ public class TransactionController {
 
     @Operation(summary = "Endpoint for creating a new transaction", responses = {
             @ApiResponse(responseCode = "201", description = "Transaction created successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid input data", content = @Content())
+            @ApiResponse(responseCode = "400", description = "Invalid input data", content = @Content()),
+            @ApiResponse(responseCode = "409", description = "Failed to update transaction", content = @Content)
     })
     @PostMapping
     public ResponseEntity<Void> createTransaction(@Valid @RequestBody TransactionDTO request) {

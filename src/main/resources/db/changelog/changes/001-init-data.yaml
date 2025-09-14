@@ -122,12 +122,6 @@ databaseChangeLog:
             tableName: auth_provider
             columnNames: provider_name, provider_id
             constraintName: uq_auth_provider_name_id
-        - createIndex:
-            tableName: auth_provider
-            indexName: idx_auth_provider_user_id
-            columns:
-              - column:
-                  name: user_id
 
   - changeSet:
       id: 003-session
@@ -189,12 +183,6 @@ databaseChangeLog:
               - column:
                   name: last_modified_by
                   type: varchar(255)
-        - createIndex:
-            tableName: session
-            indexName: idx_session_user_id
-            columns:
-              - column:
-                  name: user_id
 
   - changeSet:
       id: 004-account-type-group
@@ -244,12 +232,6 @@ databaseChangeLog:
               - column:
                   name: last_modified_by
                   type: varchar(255)
-        - createIndex:
-            tableName: account_type_group
-            indexName: idx_account_type_group_user_id
-            columns:
-              - column:
-                  name: user_id
 
   - changeSet:
       id: 005-account
@@ -310,12 +292,6 @@ databaseChangeLog:
               - column:
                   name: last_modified_by
                   type: varchar(255)
-        - createIndex:
-            tableName: account
-            indexName: idx_account_account_type_group_id
-            columns:
-              - column:
-                  name: account_type_group_id
 
   - changeSet:
       id: 006-category
@@ -370,12 +346,6 @@ databaseChangeLog:
               - column:
                   name: last_modified_by
                   type: varchar(255)
-        - createIndex:
-            tableName: category
-            indexName: idx_category_user_id
-            columns:
-              - column:
-                  name: user_id
 
   - changeSet:
       id: 007-transaction
@@ -403,11 +373,11 @@ databaseChangeLog:
                     foreignKeyName: fk_transaction_user
                     references: user(id)
               - column:
-                  name: account_id
+                  name: source_account_id
                   type: bigint
                   constraints:
                     nullable: false
-                    foreignKeyName: fk_transaction_account
+                    foreignKeyName: fk_source_transaction_account
                     references: account(id)
               - column:
                   name: category_id
@@ -438,11 +408,12 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
-                  name: transfer_info
-                  type: varchar(255)
-                  defaultValue: 'N/A'
+                  name: target_account_id
+                  type: bigint
                   constraints:
-                    nullable: false
+                    nullable: true
+                    foreignKeyName: fk_target_transaction_account
+                    references: account(id)
               - column:
                   name: created_date
                   type: timestamp
@@ -461,24 +432,6 @@ databaseChangeLog:
               - column:
                   name: last_modified_by
                   type: varchar(255)
-        - createIndex:
-            tableName: transaction
-            indexName: idx_transaction_user_id
-            columns:
-              - column:
-                  name: user_id
-        - createIndex:
-            tableName: transaction
-            indexName: idx_transaction_account_id
-            columns:
-              - column:
-                  name: account_id
-        - createIndex:
-            tableName: transaction
-            indexName: idx_transaction_category_id
-            columns:
-              - column:
-                  name: category_id
 
   - changeSet:
       id: 008-budget
@@ -541,12 +494,6 @@ databaseChangeLog:
               - column:
                   name: last_modified_by
                   type: varchar(255)
-        - createIndex:
-            tableName: budget
-            indexName: idx_budget_category_id
-            columns:
-              - column:
-                  name: category_id
 
   - changeSet:
       id: 009-transaction-filter
@@ -608,12 +555,6 @@ databaseChangeLog:
               - column:
                   name: last_modified_by
                   type: varchar(255)
-        - createIndex:
-            tableName: transaction_filter
-            indexName: idx_transaction_filter_user_id
-            columns:
-              - column:
-                  name: user_id
 
   - changeSet:
       id: 010-user-verification
@@ -675,9 +616,3 @@ databaseChangeLog:
               - column:
                   name: last_modified_by
                   type: varchar(255)
-        - createIndex:
-            tableName: user_verification
-            indexName: idx_user_verification_user_id
-            columns:
-              - column:
-                  name: user_id

@@ -37,4 +37,6 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
             "where g.userId = :userId and a.id IN (:accountId) " +
             "order by g.name, a.name")
     List<AccountFlatView> retrieveByAccountIdIn(Long userId, List<Long> accountId);
+
+    List<Account> findByIdIn(List<Long> accountIds);
 }

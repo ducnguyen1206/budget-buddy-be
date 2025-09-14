@@ -17,12 +17,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = false)
 @Entity
 @Filter(name = "userFilter", condition = "user_id = :userId")
-@Table(
-        name = "account_type_group",
-        indexes = {
-                @Index(name = "idx_account_type_group_user_id", columnList = "user_id")
-        }
-)
+@Table(name = "account_type_group")
 public class AccountTypeGroup extends BaseEntity {
     @Column(name = "user_id", nullable = false, updatable = false)
     private Long userId;

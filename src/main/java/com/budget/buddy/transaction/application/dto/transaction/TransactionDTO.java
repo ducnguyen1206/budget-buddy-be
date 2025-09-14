@@ -48,5 +48,5 @@ public class TransactionDTO {
     private LocalDate date;
 
     @Schema(description = "Optional to account ID for transfer Info", example = "1")
-    private Long toAccountId;
+    private Long targetAccountId;
 }
