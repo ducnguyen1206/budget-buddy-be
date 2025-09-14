@@ -33,6 +33,7 @@ public enum ErrorCode {
     CURRENCY_TRANSFER_SHOULD_BE_THE_SAME("CONFLICT_004", "Invalid request data"),
     TRANSACTION_EXISTED_FOR_ACCOUNT_ID("CONFLICT_005", "Transaction existed for account. Please delete it first before deleting account"),
     SOURCE_ACCOUNT_BALANCE_NOT_ENOUGH_MONEY("CONFLICT_006", "Source account balance not enough money to transfer"),
+    TRANSACTION_EXISTED_FOR_CATEGORY_ID("CONFLICT_007", "Transaction existed for category. Please delete it first before deleting category"),
 
     // Server error
     SERVER_ERROR("SYS_001", "An unexpected error occurred"),

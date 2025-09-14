@@ -10,4 +10,5 @@ import java.util.List;
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
     boolean existsBySourceAccountId(Long accountId);
     boolean existsBySourceAccountIdIn(List<Long> accountIds);
+    boolean existsByCategoryId(Long categoryId);
 }

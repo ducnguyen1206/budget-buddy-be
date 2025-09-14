@@ -9,6 +9,7 @@ import com.budget.buddy.transaction.domain.service.CategoryData;
 import com.budget.buddy.transaction.domain.utils.TransactionUtils;
 import com.budget.buddy.transaction.domain.vo.CategoryVO;
 import com.budget.buddy.transaction.infrastructure.repository.CategoryRepository;
+import com.budget.buddy.transaction.infrastructure.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -24,6 +25,7 @@ public class CategoryDataImpl implements CategoryData {
     private final CategoryRepository categoryRepository;
     private final CategoryMapper categoryMapper;
     private final TransactionUtils transactionUtils;
+    private final TransactionRepository transactionRepository;
 
     @Override
     @Transactional
@@ -94,5 +96,11 @@ public class CategoryDataImpl implements CategoryData {
         logger.info("Updated category id={} for", categoryId);
 
         return categoryMapper.toDto(category);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public boolean isTransactionExistedByCategoryId(Long accountId) {
+        return transactionRepository.existsByCategoryId(accountId);
     }
 }

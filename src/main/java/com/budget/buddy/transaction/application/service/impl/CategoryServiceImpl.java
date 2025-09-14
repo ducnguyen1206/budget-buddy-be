@@ -1,5 +1,7 @@
 package com.budget.buddy.transaction.application.service.impl;
 
+import com.budget.buddy.core.config.exception.ConflictException;
+import com.budget.buddy.core.config.exception.ErrorCode;
 import com.budget.buddy.transaction.application.dto.category.CategoryDTO;
 import com.budget.buddy.transaction.application.service.CategoryService;
 import com.budget.buddy.transaction.domain.service.CategoryData;
@@ -12,7 +14,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CategoryServiceImpl implements CategoryService {
     private final CategoryData categoryData;
-
 
     @Override
     public CategoryDTO createCategory(CategoryDTO categoryRequest) {
@@ -32,9 +33,12 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public void deleteCategory(Long categoryId) {
+        if (categoryData.isTransactionExistedByCategoryId(categoryId)) {
+            throw new ConflictException(ErrorCode.TRANSACTION_EXISTED_FOR_CATEGORY_ID);
+        }
+
         categoryData.deleteCategory(categoryId);
     }
-
 
     @Override
     public CategoryDTO updateCategory(Long categoryId, CategoryDTO categoryRequest) {
