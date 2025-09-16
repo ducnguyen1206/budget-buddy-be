@@ -7,6 +7,7 @@ import com.budget.buddy.transaction.application.dto.account.AccountRetrieveRespo
 import com.budget.buddy.transaction.application.dto.account.AccountTypeRetrieveResponse;
 import com.budget.buddy.transaction.application.service.AccountService;
 import com.budget.buddy.transaction.domain.service.AccountData;
+import com.budget.buddy.transaction.domain.service.impl.TransactionDataImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +17,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AccountServiceImpl implements AccountService {
     private final AccountData accountData;
+    private final TransactionDataImpl transactionData;
 
     @Override
     public void creteAccount(AccountDTO accountDTO) {
@@ -39,7 +41,7 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public void deleteAccount(Long accountId) {
         if (accountData.isTransactionExistedByAccountId(accountId)) {
-            throw new ConflictException(ErrorCode.TRANSACTION_EXISTED_FOR_ACCOUNT_ID);
+            transactionData.deleteTransactionByAccountId(List.of(accountId));
         }
 
         accountData.checkAccountExists(accountId);
@@ -65,7 +67,8 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public void deleteAccountTypeGroup(Long groupId) {
         if (accountData.isTransactionExistedByGroupAccountId(groupId)) {
-            throw new ConflictException(ErrorCode.TRANSACTION_EXISTED_FOR_ACCOUNT_ID);
+            List<Long> accountIds = accountData.getAccountIdsByGroupId(groupId);
+            transactionData.deleteTransactionByAccountId(accountIds);
         }
 
         accountData.deleteAccountTypeGroups(groupId);

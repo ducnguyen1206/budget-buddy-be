@@ -279,6 +279,15 @@ public class AccountDataImpl implements AccountData {
         return transactionRepository.existsBySourceAccountIdIn(accountIds);
     }
 
+    @Transactional(readOnly = true)
+    @Override
+    public List<Long> getAccountIdsByGroupId(Long groupId) {
+        AccountTypeGroup groups = accountTypeGroupRepository.findById(groupId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.ACCOUNT_TYPE_GROUP_NOT_FOUND));
+        List<Account> accounts = groups.getAccounts();
+        return accounts.stream().map(Account::getId).toList();
+    }
+
     private AccountDTO buildAccountDTO(AccountFlatView view) {
         return new AccountDTO(
                 view.getId(),

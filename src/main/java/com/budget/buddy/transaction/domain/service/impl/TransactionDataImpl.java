@@ -17,6 +17,9 @@ import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +31,7 @@ public class TransactionDataImpl implements TransactionData {
     private final AccountRepository accountRepository;
     private static final Logger logger = LogManager.getLogger(TransactionDataImpl.class);
 
+    @Transactional
     @Override
     public void createTransaction(TransactionDTO transactionRequest) {
         Long userId = transactionUtils.getCurrentUserId();
@@ -50,6 +54,13 @@ public class TransactionDataImpl implements TransactionData {
 
         transaction = transactionRepository.save(transaction);
         logger.info("saved transaction with ID: {}", transaction.getId());
+    }
+
+    @Transactional
+    @Override
+    public void deleteTransactionByAccountId(List<Long> accountIds) {
+        List<Transaction> transactions = transactionRepository.findTransactionBySourceAccountIdIn(accountIds);
+        transactionRepository.deleteAll(transactions);
     }
 
     private Account getAccount(Long userId, Long accountId) {

@@ -36,4 +36,6 @@ public interface AccountData {
     boolean isTransactionExistedByAccountId(Long accountId);
 
     boolean isTransactionExistedByGroupAccountId(Long groupId);
+
+    List<Long> getAccountIdsByGroupId(Long groupId);
 }
