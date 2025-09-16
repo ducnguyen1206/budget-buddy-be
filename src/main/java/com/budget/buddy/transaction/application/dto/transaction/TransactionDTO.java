@@ -49,4 +49,10 @@ public class TransactionDTO {
 
     @Schema(description = "Optional to account ID for transfer Info", example = "1")
     private Long targetAccountId;
+
+    @Schema(description = "Account name of transaction", example = "Live Fresh")
+    private String accountName;
+
+    @Schema(description = "Category name of transaction", example = "Food")
+    private String categoryName;
 }

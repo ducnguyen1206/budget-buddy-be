@@ -7,7 +7,7 @@ import com.budget.buddy.transaction.application.dto.account.AccountRetrieveRespo
 import com.budget.buddy.transaction.application.dto.account.AccountTypeRetrieveResponse;
 import com.budget.buddy.transaction.application.service.AccountService;
 import com.budget.buddy.transaction.domain.service.AccountData;
-import com.budget.buddy.transaction.domain.service.impl.TransactionDataImpl;
+import com.budget.buddy.transaction.domain.service.TransactionData;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -17,7 +17,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AccountServiceImpl implements AccountService {
     private final AccountData accountData;
-    private final TransactionDataImpl transactionData;
+    private final TransactionData transactionData;
 
     @Override
     public void creteAccount(AccountDTO accountDTO) {

@@ -4,9 +4,13 @@ import com.budget.buddy.core.config.exception.BadRequestException;
 import com.budget.buddy.core.config.exception.ConflictException;
 import com.budget.buddy.core.config.exception.ErrorCode;
 import com.budget.buddy.transaction.application.dto.category.CategoryDTO;
+import com.budget.buddy.transaction.application.dto.transaction.RetrieveTransactionsParams;
 import com.budget.buddy.transaction.application.dto.transaction.TransactionDTO;
+import com.budget.buddy.transaction.application.dto.transaction.TransactionPagination;
 import com.budget.buddy.transaction.application.service.TransactionService;
 import com.budget.buddy.transaction.domain.enums.CategoryType;
+import com.budget.buddy.transaction.domain.model.account.Account;
+import com.budget.buddy.transaction.domain.model.transaction.Transaction;
 import com.budget.buddy.transaction.domain.service.AccountData;
 import com.budget.buddy.transaction.domain.service.CategoryData;
 import com.budget.buddy.transaction.domain.service.TransactionData;
@@ -14,9 +18,12 @@ import com.budget.buddy.transaction.infrastructure.view.AccountFlatView;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -84,5 +91,46 @@ public class TransactionServiceImpl implements TransactionService {
         if (sourceBalance.compareTo(requestAmount) < 0) {
             throw new ConflictException(ErrorCode.SOURCE_ACCOUNT_BALANCE_NOT_ENOUGH_MONEY);
         }
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public TransactionPagination retrieveTransactions(RetrieveTransactionsParams params) {
+        logger.info("Retrieving transactions with params: {}", params);
+        Page<Transaction> transactionPage = transactionData.retrieveTransactions(params);
+
+        List<Transaction> transactions = transactionPage.getContent();
+
+        List<TransactionDTO> transactionDTOList = new ArrayList<>();
+        for (Transaction transaction : transactions) {
+
+            String transferInfo = "N/A";
+            if (transaction.getType() == CategoryType.TRANSFER) {
+                Account sourceAccount = transaction.getSourceAccount();
+                Account targetAccount = transaction.getTargetAccount();
+                transferInfo = String.format("%s -> %s", sourceAccount.getName(), targetAccount.getName());
+            }
+
+            TransactionDTO transactionDTO = TransactionDTO
+                    .builder()
+                    .id(transaction.getId())
+                    .name(transaction.getName())
+                    .amount(transaction.getAmount())
+                    .transferInfo(transferInfo)
+                    .date(transaction.getDate())
+                    .accountName(transaction.getSourceAccount().getName())
+                    .categoryName(transaction.getCategory().getIdentity().getName())
+                    .build();
+
+            transactionDTOList.add(transactionDTO);
+        }
+
+        TransactionPagination.Pagination pagination = new TransactionPagination.Pagination(
+                transactionPage.getNumber(),
+                transactionPage.getSize(),
+                transactionPage.getTotalElements(),
+                transactionPage.getTotalPages()
+        );
+        return new TransactionPagination(pagination, transactionDTOList);
     }
 }

@@ -2,8 +2,6 @@ package com.budget.buddy.user.application.service.user.impl;
 
 import com.budget.buddy.core.config.exception.ErrorCode;
 import com.budget.buddy.core.config.exception.NotFoundException;
-import com.budget.buddy.user.application.dto.UserDTO;
-import com.budget.buddy.user.application.mapper.UserMapper;
 import com.budget.buddy.user.application.service.user.UserService;
 import com.budget.buddy.user.domain.model.User;
 import com.budget.buddy.user.domain.service.UserData;
@@ -22,7 +20,6 @@ import java.util.List;
 public class UserServiceImpl implements UserService, UserDetailsService {
 
     private final UserData userData;
-    private final UserMapper userMapper;
 
     @Override
     public Long findUserIdByEmail(String email) {
