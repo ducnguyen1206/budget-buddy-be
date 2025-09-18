@@ -1,6 +1,5 @@
 package com.budget.buddy.transaction.application.dto.transaction;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -39,7 +38,6 @@ public class TransactionDTO {
     @Schema(description = "Identifier of the category associated with the transaction", example = "2002")
     private Long categoryId;
 
-    @JsonIgnore
     @Schema(description = "Optional transfer information if the transaction is a transfer", example = "From Savings to Checking", hidden = true)
     private String transferInfo;
 
@@ -47,12 +45,18 @@ public class TransactionDTO {
     @Schema(description = "Date of the transaction", example = "2025-09-01")
     private LocalDate date;
 
+    @Schema(description = "Formatted date for display (dd-MM-YYYY)", example = "18-09-2025", hidden = true)
+    private String formattedDate;
+
     @Schema(description = "Optional to account ID for transfer Info", example = "1")
     private Long targetAccountId;
 
-    @Schema(description = "Account name of transaction", example = "Live Fresh")
-    private String accountName;
+    @Schema(description = "Source account name of transaction", example = "Live Fresh")
+    private String sourceAccountName;
 
     @Schema(description = "Category name of transaction", example = "Food")
     private String categoryName;
+
+    @Schema(description = "Currency of the account", example = "SGD")
+    private String currency;
 }

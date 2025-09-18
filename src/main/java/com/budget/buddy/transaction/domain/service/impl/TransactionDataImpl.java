@@ -4,6 +4,7 @@ import com.budget.buddy.core.config.exception.ErrorCode;
 import com.budget.buddy.core.config.exception.NotFoundException;
 import com.budget.buddy.transaction.application.dto.transaction.RetrieveTransactionsParams;
 import com.budget.buddy.transaction.application.dto.transaction.TransactionDTO;
+import com.budget.buddy.transaction.application.dto.transaction.TransactionPagination;
 import com.budget.buddy.transaction.domain.enums.CategoryType;
 import com.budget.buddy.transaction.domain.model.account.Account;
 import com.budget.buddy.transaction.domain.model.category.Category;
@@ -23,6 +24,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -66,8 +68,9 @@ public class TransactionDataImpl implements TransactionData {
         transactionRepository.deleteAll(transactions);
     }
 
+    @Transactional(readOnly = true)
     @Override
-    public Page<Transaction> retrieveTransactions(RetrieveTransactionsParams params) {
+    public TransactionPagination retrieveTransactions(RetrieveTransactionsParams params) {
         int page = Optional.ofNullable(params.getPage()).orElse(0);
         int size = Optional.ofNullable(params.getSize()).orElse(20);
         String sortBy = Objects.requireNonNullElse(params.getSortBy(), "id");
@@ -76,7 +79,47 @@ public class TransactionDataImpl implements TransactionData {
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
         logger.info("Fetching transactions with page {} size {} sort by {} direction {}", page, size, sortBy, direction);
 
-        return transactionRepository.findAll(pageable);
+        Page<Transaction> transactionPage = transactionRepository.findAll(pageable);
+
+        List<TransactionDTO> transactionDTOList = transactionPage.getContent()
+                .stream()
+                .map(this::toDto)
+                .toList();
+
+        TransactionPagination.Pagination pagination = new TransactionPagination.Pagination(
+                transactionPage.getNumber(),
+                transactionPage.getSize(),
+                transactionPage.getTotalElements(),
+                transactionPage.getTotalPages()
+        );
+
+        return new TransactionPagination(pagination, transactionDTOList);
+    }
+
+    private TransactionDTO toDto(Transaction transaction) {
+        String transferInfo = "N/A";
+
+        Account sourceAccount = transaction.getSourceAccount();
+
+        if (transaction.getType() == CategoryType.TRANSFER) {
+            Account targetAccount = transaction.getTargetAccount();
+            transferInfo = String.format("%s -> %s", sourceAccount.getName(), targetAccount.getName());
+        }
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+        String formattedDate = transaction.getDate().format(formatter);
+
+        return TransactionDTO.builder()
+                .id(transaction.getId())
+                .name(transaction.getName())
+                .amount(transaction.getAmount())
+                .transferInfo(transferInfo)
+                .date(transaction.getDate())
+                .formattedDate(formattedDate)
+                .sourceAccountName(sourceAccount.getName())
+                .categoryName(transaction.getCategory().getIdentity().getName())
+                .currency(sourceAccount.getMoney().getCurrency())
+                .build();
     }
 
     private Account getAccount(Long userId, Long accountId) {

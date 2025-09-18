@@ -10,7 +10,6 @@ import com.budget.buddy.transaction.application.dto.transaction.TransactionPagin
 import com.budget.buddy.transaction.application.service.TransactionService;
 import com.budget.buddy.transaction.domain.enums.CategoryType;
 import com.budget.buddy.transaction.domain.model.account.Account;
-import com.budget.buddy.transaction.domain.model.transaction.Transaction;
 import com.budget.buddy.transaction.domain.service.AccountData;
 import com.budget.buddy.transaction.domain.service.CategoryData;
 import com.budget.buddy.transaction.domain.service.TransactionData;
@@ -18,13 +17,12 @@ import com.budget.buddy.transaction.infrastructure.view.AccountFlatView;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -62,22 +60,23 @@ public class TransactionServiceImpl implements TransactionService {
             return;
         }
 
-        Long accountId = transactionRequest.getAccountId();
-        Long toAccountId = transactionRequest.getTargetAccountId();
+        Long sourceAccountId = transactionRequest.getAccountId();
+        Long targetAccountId = transactionRequest.getTargetAccountId();
 
-        if (toAccountId == null || accountId.equals(toAccountId)) {
+        if (targetAccountId == null || sourceAccountId.equals(targetAccountId)) {
             logger.info("toAccountId is null for transaction type transfer");
             throw new BadRequestException(ErrorCode.INVALID_REQUEST_DATA);
         }
 
-        List<AccountFlatView> accounts = accountData.retrieveAccountByIdList(List.of(accountId, toAccountId));
+        List<AccountFlatView> accounts = accountData.retrieveAccountByIdList(List.of(sourceAccountId, targetAccountId));
         if (accounts.size() != 2) {
-            logger.info("Invalid account ID list. To account doesn't exist {}", toAccountId);
+            logger.info("Invalid account ID list. To account doesn't exist {}", targetAccountId);
             throw new BadRequestException(ErrorCode.INVALID_REQUEST_DATA);
         }
 
-        AccountFlatView fromAccount = accounts.getFirst();
-        AccountFlatView toAccount = accounts.get(1);
+        Map<Long, AccountFlatView> accountMap = accounts.stream().collect(Collectors.toMap(AccountFlatView::getId, a -> a));
+        AccountFlatView fromAccount = accountMap.get(sourceAccountId);
+        AccountFlatView toAccount = accountMap.get(targetAccountId);
 
         // Ensure the same currency for transfer
         if (!fromAccount.getCurrency().equals(toAccount.getCurrency())) {
@@ -93,44 +92,10 @@ public class TransactionServiceImpl implements TransactionService {
         }
     }
 
-    @Transactional(readOnly = true)
+
     @Override
     public TransactionPagination retrieveTransactions(RetrieveTransactionsParams params) {
         logger.info("Retrieving transactions with params: {}", params);
-        Page<Transaction> transactionPage = transactionData.retrieveTransactions(params);
-
-        List<Transaction> transactions = transactionPage.getContent();
-
-        List<TransactionDTO> transactionDTOList = new ArrayList<>();
-        for (Transaction transaction : transactions) {
-
-            String transferInfo = "N/A";
-            if (transaction.getType() == CategoryType.TRANSFER) {
-                Account sourceAccount = transaction.getSourceAccount();
-                Account targetAccount = transaction.getTargetAccount();
-                transferInfo = String.format("%s -> %s", sourceAccount.getName(), targetAccount.getName());
-            }
-
-            TransactionDTO transactionDTO = TransactionDTO
-                    .builder()
-                    .id(transaction.getId())
-                    .name(transaction.getName())
-                    .amount(transaction.getAmount())
-                    .transferInfo(transferInfo)
-                    .date(transaction.getDate())
-                    .accountName(transaction.getSourceAccount().getName())
-                    .categoryName(transaction.getCategory().getIdentity().getName())
-                    .build();
-
-            transactionDTOList.add(transactionDTO);
-        }
-
-        TransactionPagination.Pagination pagination = new TransactionPagination.Pagination(
-                transactionPage.getNumber(),
-                transactionPage.getSize(),
-                transactionPage.getTotalElements(),
-                transactionPage.getTotalPages()
-        );
-        return new TransactionPagination(pagination, transactionDTOList);
+        return transactionData.retrieveTransactions(params);
     }
 }
