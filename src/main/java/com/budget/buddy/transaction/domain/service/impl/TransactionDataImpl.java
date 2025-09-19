@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -42,23 +43,39 @@ public class TransactionDataImpl implements TransactionData {
     @Override
     public void createTransaction(TransactionDTO transactionRequest) {
         Long userId = transactionUtils.getCurrentUserId();
-        Account account = getAccount(userId, transactionRequest.getAccountId());
+        Account sourceAccount = getAccount(userId, transactionRequest.getAccountId());
         Category category = getCategory(transactionRequest.getCategoryId());
 
-        logger.info("Creating transaction: amount='{}', category='{}', account='{}'",
-                userId, account.getId(), category.getId());
+        logger.info("Creating transaction: userId='{}', amount='{}', categoryId='{}', sourceAccountId='{}'",
+                userId, transactionRequest.getAmount(), category.getId(), sourceAccount.getId());
 
-        Account targetAccount = null;
+        List<Transaction> transactions = new ArrayList<>(2);
+
+        // For transfer category, also record a transaction entry for the target account
         if (CategoryType.TRANSFER.equals(category.getIdentity().getType())) {
-            targetAccount = getAccount(userId, transactionRequest.getTargetAccountId());
+            Account targetAccount = getAccount(userId, transactionRequest.getTargetAccountId());
+            transactions.add(buildTransaction(userId, targetAccount, category, transactionRequest));
+            logger.info("Creating transfer mirror transaction: userId='{}', amount='{}', categoryId='{}', targetAccountId='{}'",
+                    userId, transactionRequest.getAmount(), category.getId(), targetAccount.getId());
         }
 
-        Transaction transaction = new Transaction(userId, account, category,
-                transactionRequest.getName(), transactionRequest.getAmount(), transactionRequest.getDate(),
+        // Always record the transaction for the source account
+        transactions.add(buildTransaction(userId, sourceAccount, category, transactionRequest));
+
+        transactionRepository.saveAll(transactions);
+    }
+
+    private Transaction buildTransaction(Long userId, Account account, Category category, TransactionDTO dto) {
+        return new Transaction(
+                userId,
+                account,
+                category,
+                dto.getName(),
+                dto.getAmount(),
+                dto.getDate(),
                 category.getIdentity().getType(),
-                targetAccount);
-        transaction = transactionRepository.save(transaction);
-        logger.info("saved transaction with ID: {}", transaction.getId());
+                dto.getRemarks()
+        );
     }
 
     @Transactional
@@ -97,14 +114,7 @@ public class TransactionDataImpl implements TransactionData {
     }
 
     private TransactionDTO toDto(Transaction transaction) {
-        String transferInfo = "N/A";
-
         Account sourceAccount = transaction.getSourceAccount();
-
-        if (transaction.getType() == CategoryType.TRANSFER) {
-            Account targetAccount = transaction.getTargetAccount();
-            transferInfo = String.format("%s -> %s", sourceAccount.getName(), targetAccount.getName());
-        }
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
         String formattedDate = transaction.getDate().format(formatter);
@@ -113,7 +123,7 @@ public class TransactionDataImpl implements TransactionData {
                 .id(transaction.getId())
                 .name(transaction.getName())
                 .amount(transaction.getAmount())
-                .transferInfo(transferInfo)
+                .remarks(transaction.getRemarks())
                 .date(transaction.getDate())
                 .formattedDate(formattedDate)
                 .sourceAccountName(sourceAccount.getName())

@@ -54,7 +54,5 @@ public class Transaction extends BaseEntity {
     @Column(nullable = false)
     private CategoryType type;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "target_account_id")
-    private Account targetAccount;
+    private String remarks;
 }

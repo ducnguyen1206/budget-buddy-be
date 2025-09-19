@@ -38,8 +38,8 @@ public class TransactionDTO {
     @Schema(description = "Identifier of the category associated with the transaction", example = "2002")
     private Long categoryId;
 
-    @Schema(description = "Optional transfer information if the transaction is a transfer", example = "From Savings to Checking", hidden = true)
-    private String transferInfo;
+    @Schema(description = "Remarks for the transfer", example = "From Savings to Checking", hidden = true)
+    private String remarks;
 
     @NotNull(message = "Date is required")
     @Schema(description = "Date of the transaction", example = "2025-09-01")

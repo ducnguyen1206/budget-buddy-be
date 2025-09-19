@@ -1,17 +1,21 @@
+# This changelog initializes the database schema (tables, keys, constraints).
+# Note: The file name contains "init-data" but it currently defines schema objects, not data inserts.
+# QUOTE_ONLY_RESERVED_WORDS ensures reserved identifiers like "user" are quoted across supported databases.
+# If you later add seed data, consider splitting schema and data into separate changeSets/files.
+
 databaseChangeLog:
   - objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
-
   - changeSet:
       id: 001-user
       author: ducnguyen
       preConditions:
-        onFail: MARK_RAN
-        not:
-          tableExists:
-            tableName: user
+        - onFail: MARK_RAN
+        - not:
+            tableExists:
+              tableName: "user"
       changes:
         - createTable:
-            tableName: user
+            tableName: "user"
             columns:
               - column:
                   name: id
@@ -37,7 +41,6 @@ databaseChangeLog:
               - column:
                   name: failed_attempts
                   type: integer
-                  defaultValueNumeric: 0
                   constraints:
                     nullable: false
               - column:
@@ -69,10 +72,10 @@ databaseChangeLog:
       id: 002-auth-provider
       author: ducnguyen
       preConditions:
-        onFail: MARK_RAN
-        not:
-          tableExists:
-            tableName: auth_provider
+        - onFail: MARK_RAN
+        - not:
+            tableExists:
+              tableName: auth_provider
       changes:
         - createTable:
             tableName: auth_provider
@@ -127,10 +130,10 @@ databaseChangeLog:
       id: 003-session
       author: ducnguyen
       preConditions:
-        onFail: MARK_RAN
-        not:
-          tableExists:
-            tableName: session
+        - onFail: MARK_RAN
+        - not:
+            tableExists:
+              tableName: session
       changes:
         - createTable:
             tableName: session
@@ -183,15 +186,14 @@ databaseChangeLog:
               - column:
                   name: last_modified_by
                   type: varchar(255)
-
   - changeSet:
       id: 004-account-type-group
       author: ducnguyen
       preConditions:
-        onFail: MARK_RAN
-        not:
-          tableExists:
-            tableName: account_type_group
+        - onFail: MARK_RAN
+        - not:
+            tableExists:
+              tableName: account_type_group
       changes:
         - createTable:
             tableName: account_type_group
@@ -237,10 +239,10 @@ databaseChangeLog:
       id: 005-account
       author: ducnguyen
       preConditions:
-        onFail: MARK_RAN
-        not:
-          tableExists:
-            tableName: account
+        - onFail: MARK_RAN
+        - not:
+            tableExists:
+              tableName: account
       changes:
         - createTable:
             tableName: account
@@ -266,7 +268,6 @@ databaseChangeLog:
               - column:
                   name: available_balance
                   type: decimal(19,2)
-                  defaultValueNumeric: 0.00
                   constraints:
                     nullable: false
               - column:
@@ -297,10 +298,10 @@ databaseChangeLog:
       id: 006-category
       author: ducnguyen
       preConditions:
-        onFail: MARK_RAN
-        not:
-          tableExists:
-            tableName: category
+        - onFail: MARK_RAN
+        - not:
+            tableExists:
+              tableName: category
       changes:
         - createTable:
             tableName: category
@@ -351,10 +352,10 @@ databaseChangeLog:
       id: 007-transaction
       author: ducnguyen
       preConditions:
-        onFail: MARK_RAN
-        not:
-          tableExists:
-            tableName: transaction
+        - onFail: MARK_RAN
+        - not:
+            tableExists:
+              tableName: transaction
       changes:
         - createTable:
             tableName: transaction
@@ -394,7 +395,6 @@ databaseChangeLog:
               - column:
                   name: amount
                   type: decimal(19,2)
-                  defaultValueNumeric: 0.00
                   constraints:
                     nullable: false
               - column:
@@ -404,16 +404,12 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: type
-                  type: varchar(255)
+                  type: varchar(20)
                   constraints:
                     nullable: false
               - column:
-                  name: target_account_id
-                  type: bigint
-                  constraints:
-                    nullable: true
-                    foreignKeyName: fk_target_transaction_account
-                    references: account(id)
+                  name: remarks
+                  type: varchar(255)
               - column:
                   name: created_date
                   type: timestamp
@@ -437,10 +433,10 @@ databaseChangeLog:
       id: 008-budget
       author: ducnguyen
       preConditions:
-        onFail: MARK_RAN
-        not:
-          tableExists:
-            tableName: budget
+        - onFail: MARK_RAN
+        - not:
+            tableExists:
+              tableName: budget
       changes:
         - createTable:
             tableName: budget
@@ -461,19 +457,16 @@ databaseChangeLog:
               - column:
                   name: amount
                   type: decimal(19,2)
-                  defaultValueNumeric: 0.00
                   constraints:
                     nullable: false
               - column:
                   name: dispensed
                   type: decimal(19,2)
-                  defaultValueNumeric: 0.00
                   constraints:
                     nullable: false
               - column:
                   name: remaining
                   type: decimal(19,2)
-                  defaultValueNumeric: 0.00
                   constraints:
                     nullable: false
               - column:
@@ -499,10 +492,10 @@ databaseChangeLog:
       id: 009-transaction-filter
       author: ducnguyen
       preConditions:
-        onFail: MARK_RAN
-        not:
-          tableExists:
-            tableName: transaction_filter
+        - onFail: MARK_RAN
+        - not:
+            tableExists:
+              tableName: transaction_filter
       changes:
         - createTable:
             tableName: transaction_filter
@@ -560,10 +553,10 @@ databaseChangeLog:
       id: 010-user-verification
       author: ducnguyen
       preConditions:
-        onFail: MARK_RAN
-        not:
-          tableExists:
-            tableName: user_verification
+        - onFail: MARK_RAN
+        - not:
+            tableExists:
+              tableName: user_verification
       changes:
         - createTable:
             tableName: user_verification
@@ -581,7 +574,6 @@ databaseChangeLog:
                     nullable: false
                     foreignKeyName: fk_user_verification_user
                     references: user(id)
-                    unique: true
               - column:
                   name: verification_token
                   type: varchar(255)
@@ -616,3 +608,7 @@ databaseChangeLog:
               - column:
                   name: last_modified_by
                   type: varchar(255)
+        - addUniqueConstraint:
+            tableName: user_verification
+            columnNames: user_id
+            constraintName: uq_user_verification_user_id
