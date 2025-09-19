@@ -32,5 +32,5 @@ logging:
     org.hibernate.SQL: INFO
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
     liquibase: INFO
-    org.springframework.security: DEBUG
+    org.springframework.security: INFO
 jwt-secret: 8ee91ea4b6aa33998a45d67c6c3e8ee898f1e45063b33ee8f5837816015306d4940fd708a343ea8fe0439cfa846a66222f816b3829cb38ef3611759bcc8f0222d5dbddc5aebea3cfdfa88026d98a2220a2568b73625f2a1991c77511b650c16c0ae3222be4586a6236bee3ecd49f2f1f52b5e12b22246efe6424dfd587e7ee5a

@@ -94,6 +94,7 @@ public class TransactionDataImpl implements TransactionData {
         Sort.Direction direction = Objects.requireNonNullElse(params.getDirection(), Sort.Direction.ASC);
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+
         logger.info("Fetching transactions with page {} size {} sort by {} direction {}", page, size, sortBy, direction);
 
         Page<Transaction> transactionPage = transactionRepository.findAll(pageable);

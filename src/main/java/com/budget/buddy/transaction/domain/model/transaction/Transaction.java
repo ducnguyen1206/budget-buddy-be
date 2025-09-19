@@ -7,6 +7,7 @@ import com.budget.buddy.transaction.domain.model.category.Category;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
+import org.hibernate.annotations.Filter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -20,6 +21,7 @@ import java.time.LocalDate;
 @Table(
         name = "transaction"
 )
+@Filter(name = "userFilter", condition = "user_id = :userId")
 public class Transaction extends BaseEntity {
     @Column(name = "user_id", nullable = false, updatable = false)
     private Long userId;
