@@ -2,6 +2,7 @@ package com.budget.buddy.transaction.application.controller;
 
 import com.budget.buddy.transaction.application.dto.transaction.RetrieveTransactionsParams;
 import com.budget.buddy.transaction.application.dto.transaction.TransactionDTO;
+import com.budget.buddy.transaction.application.dto.transaction.TransactionFilterCriteria;
 import com.budget.buddy.transaction.application.dto.transaction.TransactionPagination;
 import com.budget.buddy.transaction.application.service.TransactionService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -43,8 +44,9 @@ public class TransactionController {
     public ResponseEntity<TransactionPagination> retrieveTransactions(@RequestParam(value = "page", required = false) Integer page,
                                                                       @RequestParam(value = "size", required = false) Integer size,
                                                                       @RequestParam(value = "sortBy", required = false) String sortBy,
-                                                                      @RequestParam(value = "direction", required = false) Sort.Direction direction) {
+                                                                      @RequestParam(value = "direction", required = false) Sort.Direction direction,
+                                                                      @Valid @RequestBody(required = false) TransactionFilterCriteria filterCriteria) {
         RetrieveTransactionsParams request = new RetrieveTransactionsParams(page, size, sortBy, direction);
-        return ResponseEntity.ok(transactionService.retrieveTransactions(request));
+        return ResponseEntity.ok(transactionService.retrieveTransactions(request, filterCriteria));
     }
 }

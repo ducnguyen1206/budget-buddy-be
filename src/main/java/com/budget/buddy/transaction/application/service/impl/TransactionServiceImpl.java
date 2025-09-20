@@ -6,6 +6,7 @@ import com.budget.buddy.core.config.exception.ErrorCode;
 import com.budget.buddy.transaction.application.dto.category.CategoryDTO;
 import com.budget.buddy.transaction.application.dto.transaction.RetrieveTransactionsParams;
 import com.budget.buddy.transaction.application.dto.transaction.TransactionDTO;
+import com.budget.buddy.transaction.application.dto.transaction.TransactionFilterCriteria;
 import com.budget.buddy.transaction.application.dto.transaction.TransactionPagination;
 import com.budget.buddy.transaction.application.service.TransactionService;
 import com.budget.buddy.transaction.domain.enums.CategoryType;
@@ -93,8 +94,8 @@ public class TransactionServiceImpl implements TransactionService {
 
 
     @Override
-    public TransactionPagination retrieveTransactions(RetrieveTransactionsParams params) {
+    public TransactionPagination retrieveTransactions(RetrieveTransactionsParams params, TransactionFilterCriteria filterCriteria) {
         logger.info("Retrieving transactions with params: {}", params);
-        return transactionData.retrieveTransactions(params);
+        return transactionData.retrieveTransactions(params, filterCriteria);
     }
 }

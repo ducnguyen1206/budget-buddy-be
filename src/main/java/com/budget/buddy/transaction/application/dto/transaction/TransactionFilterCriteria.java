@@ -1,0 +1,114 @@
+package com.budget.buddy.transaction.application.dto.transaction;
+
+import com.budget.buddy.transaction.domain.enums.CategoryType;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
+import lombok.Data;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
+
+@Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
+@Schema(name = "TransactionFilterCriteria", description = "Filters used to search transactions. All fields are optional. Combine fields to narrow results.")
+public class TransactionFilterCriteria {
+    @Valid
+    @Schema(description = "Filter by transaction name (case-insensitive)", example = "{\n  \"operator\": \"contains\",\n  \"value\": \"grocery\"\n}")
+    private StringFilter name;
+
+    @Valid
+    @Schema(description = "Filter by exact or comparative amount", example = "{\n  \"operator\": \">=\",\n  \"value\": 10.00\n}")
+    private AmountFilter amount;
+
+    @Schema(description = "Limit to transactions whose account currency is one of the given ISO-4217 codes (3 uppercase letters)", example = "[\"USD\", \"EUR\"]")
+    private List<@Pattern(regexp = "^[A-Z]{3}$", message = "Currency must be a valid ISO-4217 code (e.g., USD)") String> currencies;
+
+    @Valid
+    @Schema(description = "Filter by transaction date or date range", example = "{\n  \"operator\": \"is between\",\n  \"startDate\": \"2025-09-01\",\n  \"endDate\": \"2025-09-30\"\n}")
+    private DateFilter date;
+
+    @Schema(description = "Only include transactions from these source account IDs", example = "[1, 2, 5]")
+    private List<@Positive Long> accountIds;
+
+    @Schema(description = "Only include transactions that belong to these category IDs", example = "[10, 12]")
+    private List<@Positive Long> categoryIds;
+
+    @Schema(description = "Only include transactions of these types (enum values)", example = "[\"EXPENSE\", \"INCOME\"]")
+    private List<CategoryType> types;
+
+    @Valid
+    @Schema(description = "Filter by remarks (case-insensitive)", example = "{\n  \"operator\": \"does not contain\",\n  \"value\": \"reimbursed\"\n}")
+    private StringFilter remarks;
+
+    @Data
+    @Schema(description = "Case-insensitive text filter with an operator and a value.")
+    public static class StringFilter {
+        @NotBlank
+        @Pattern(regexp = "(?i)^(is|is not|contains|does not contain|starts with|ends with)$",
+                message = "Operator must be one of: is, is not, contains, does not contain, starts with, ends with")
+        @Schema(description = "Comparison operator for text fields", allowableValues = {"is", "is not", "contains", "does not contain", "starts with", "ends with"}, example = "contains")
+        private String operator;
+
+        @NotBlank
+        @Size(max = 200, message = "Value length must be at most 200 characters")
+        @Schema(description = "Text to compare against", example = "uber ride")
+        private String value;
+    }
+
+    @Data
+    @Schema(description = "Date filter. Use 'is' for a single day or 'is between' for a range (inclusive).")
+    public static class DateFilter {
+        @NotBlank
+        @Pattern(regexp = "(?i)^(is|is between)$",
+                message = "Operator must be one of: is, is between")
+        @Schema(description = "Date operator", allowableValues = {"is", "is between"}, example = "is between")
+        private String operator;
+
+        @Schema(description = "Start date in ISO-8601 format (yyyy-MM-dd)", example = "2025-09-01")
+        private LocalDate startDate;
+
+        @Schema(description = "End date in ISO-8601 format (yyyy-MM-dd). Required for 'is between'", example = "2025-09-30")
+        private LocalDate endDate;
+
+        @AssertTrue(message = "For 'is', startDate is required. For 'is between', both startDate and endDate are required and startDate must be before or equal to endDate")
+        public boolean isValidRange() {
+            if (operator == null) return true; // handled by @NotBlank
+            String op = operator.trim().toLowerCase();
+            if ("is".equals(op)) {
+                return startDate != null && endDate == null;
+            }
+            if ("is between".equals(op)) {
+                return startDate != null && endDate != null && !endDate.isBefore(startDate);
+            }
+            return true; // regex validation will flag invalid operators
+        }
+    }
+
+    @Data
+    @Schema(description = "Amount filter supporting equality and inequality operators.")
+    public static class AmountFilter {
+        @NotBlank
+        @Pattern(regexp = "^(=|!=|>|<|>=|<=)$",
+                message = "Operator must be one of: =, !=, >, <, >=, <=")
+        @Schema(description = "Numeric comparison operator", allowableValues = {"=", "!=", ">", "<", ">=", "<="}, example = ">=")
+        private String operator;
+
+        @Schema(description = "Amount value to compare against", example = "25.50")
+        private BigDecimal value;
+
+        @AssertTrue(message = "Amount value is required when amount filter is provided")
+        public boolean hasValue() {
+            if (operator == null) return true; // handled by @NotBlank
+            return value != null;
+        }
+    }
+}

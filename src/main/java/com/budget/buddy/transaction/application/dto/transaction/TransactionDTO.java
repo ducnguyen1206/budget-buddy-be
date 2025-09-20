@@ -1,5 +1,6 @@
 package com.budget.buddy.transaction.application.dto.transaction;
 
+import com.budget.buddy.transaction.domain.enums.CategoryType;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -59,4 +60,7 @@ public class TransactionDTO {
 
     @Schema(description = "Currency of the account", example = "SGD")
     private String currency;
+
+    @Schema(description = "Type of the category", example = "Expense")
+    private CategoryType categoryType;
 }

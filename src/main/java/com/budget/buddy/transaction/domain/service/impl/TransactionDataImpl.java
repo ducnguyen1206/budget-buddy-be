@@ -4,6 +4,7 @@ import com.budget.buddy.core.config.exception.ErrorCode;
 import com.budget.buddy.core.config.exception.NotFoundException;
 import com.budget.buddy.transaction.application.dto.transaction.RetrieveTransactionsParams;
 import com.budget.buddy.transaction.application.dto.transaction.TransactionDTO;
+import com.budget.buddy.transaction.application.dto.transaction.TransactionFilterCriteria;
 import com.budget.buddy.transaction.application.dto.transaction.TransactionPagination;
 import com.budget.buddy.transaction.domain.enums.CategoryType;
 import com.budget.buddy.transaction.domain.enums.Direction;
@@ -15,6 +16,7 @@ import com.budget.buddy.transaction.domain.utils.TransactionUtils;
 import com.budget.buddy.transaction.infrastructure.repository.AccountRepository;
 import com.budget.buddy.transaction.infrastructure.repository.CategoryRepository;
 import com.budget.buddy.transaction.infrastructure.repository.TransactionRepository;
+import com.budget.buddy.transaction.infrastructure.repository.TransactionSpecification;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -22,6 +24,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,6 +42,7 @@ public class TransactionDataImpl implements TransactionData {
     private final TransactionUtils transactionUtils;
     private final CategoryRepository categoryRepository;
     private final AccountRepository accountRepository;
+    private final TransactionSpecification transactionSpecification;
     private static final Logger logger = LogManager.getLogger(TransactionDataImpl.class);
 
     @Transactional
@@ -91,7 +95,7 @@ public class TransactionDataImpl implements TransactionData {
 
     @Transactional(readOnly = true)
     @Override
-    public TransactionPagination retrieveTransactions(RetrieveTransactionsParams params) {
+    public TransactionPagination retrieveTransactions(RetrieveTransactionsParams params, TransactionFilterCriteria filterCriteria) {
         int page = Optional.ofNullable(params.getPage()).orElse(0);
         int size = Optional.ofNullable(params.getSize()).orElse(20);
         String sortBy = Objects.requireNonNullElse(params.getSortBy(), "id");
@@ -101,7 +105,9 @@ public class TransactionDataImpl implements TransactionData {
 
         logger.info("Fetching transactions with page {} size {} sort by {} direction {}", page, size, sortBy, direction);
 
-        Page<Transaction> transactionPage = transactionRepository.findAll(pageable);
+        Specification<Transaction> specification = transactionSpecification.buildSpecification(filterCriteria, null);
+
+        Page<Transaction> transactionPage = transactionRepository.findAll(specification, pageable);
 
         List<TransactionDTO> transactionDTOList = transactionPage.getContent()
                 .stream()
@@ -134,6 +140,7 @@ public class TransactionDataImpl implements TransactionData {
                 .sourceAccountName(sourceAccount.getName())
                 .categoryName(transaction.getCategory().getIdentity().getName())
                 .currency(sourceAccount.getMoney().getCurrency())
+                .categoryType(transaction.getCategory().getIdentity().getType())
                 .build();
     }
 
