@@ -3,7 +3,7 @@ package com.budget.buddy.transaction.domain.service;
 import com.budget.buddy.transaction.application.dto.account.AccountDTO;
 import com.budget.buddy.transaction.application.dto.account.AccountRetrieveResponse;
 import com.budget.buddy.transaction.application.dto.account.AccountTypeRetrieveResponse;
-import com.budget.buddy.transaction.infrastructure.view.AccountFlatView;
+import com.budget.buddy.transaction.application.dto.account.AccountFlatView;
 
 import java.math.BigDecimal;
 import java.util.List;

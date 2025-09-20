@@ -14,7 +14,7 @@ import com.budget.buddy.transaction.domain.vo.MoneyVO;
 import com.budget.buddy.transaction.infrastructure.repository.AccountRepository;
 import com.budget.buddy.transaction.infrastructure.repository.AccountTypeGroupRepository;
 import com.budget.buddy.transaction.infrastructure.repository.TransactionRepository;
-import com.budget.buddy.transaction.infrastructure.view.AccountFlatView;
+import com.budget.buddy.transaction.application.dto.account.AccountFlatView;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

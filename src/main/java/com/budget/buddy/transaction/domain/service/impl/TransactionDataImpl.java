@@ -6,6 +6,7 @@ import com.budget.buddy.transaction.application.dto.transaction.RetrieveTransact
 import com.budget.buddy.transaction.application.dto.transaction.TransactionDTO;
 import com.budget.buddy.transaction.application.dto.transaction.TransactionPagination;
 import com.budget.buddy.transaction.domain.enums.CategoryType;
+import com.budget.buddy.transaction.domain.enums.Direction;
 import com.budget.buddy.transaction.domain.model.account.Account;
 import com.budget.buddy.transaction.domain.model.category.Category;
 import com.budget.buddy.transaction.domain.model.transaction.Transaction;
@@ -24,6 +25,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,29 +51,31 @@ public class TransactionDataImpl implements TransactionData {
         logger.info("Creating transaction: userId='{}', amount='{}', categoryId='{}', sourceAccountId='{}'",
                 userId, transactionRequest.getAmount(), category.getId(), sourceAccount.getId());
 
+        Transaction sourceTransaction = buildTransaction(userId, sourceAccount, category, transactionRequest,
+                CategoryType.INCOME.equals(category.getIdentity().getType()) ? Direction.IN : Direction.OUT);
+
         List<Transaction> transactions = new ArrayList<>(2);
+        transactions.add(sourceTransaction);
 
         // For transfer category, also record a transaction entry for the target account
         if (CategoryType.TRANSFER.equals(category.getIdentity().getType())) {
             Account targetAccount = getAccount(userId, transactionRequest.getTargetAccountId());
-            transactions.add(buildTransaction(userId, targetAccount, category, transactionRequest));
+            transactions.add(buildTransaction(userId, targetAccount, category, transactionRequest, Direction.IN));
             logger.info("Creating transfer mirror transaction: userId='{}', amount='{}', categoryId='{}', targetAccountId='{}'",
                     userId, transactionRequest.getAmount(), category.getId(), targetAccount.getId());
         }
 
-        // Always record the transaction for the source account
-        transactions.add(buildTransaction(userId, sourceAccount, category, transactionRequest));
-
         transactionRepository.saveAll(transactions);
     }
 
-    private Transaction buildTransaction(Long userId, Account account, Category category, TransactionDTO dto) {
+    private Transaction buildTransaction(Long userId, Account account, Category category, TransactionDTO dto, Direction direction) {
+        BigDecimal amount = direction.equals(Direction.OUT) ? dto.getAmount().abs().negate() : dto.getAmount().abs();
         return new Transaction(
                 userId,
                 account,
                 category,
                 dto.getName(),
-                dto.getAmount(),
+                amount,
                 dto.getDate(),
                 category.getIdentity().getType(),
                 dto.getRemarks()

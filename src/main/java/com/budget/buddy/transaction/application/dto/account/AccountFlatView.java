@@ -1,4 +1,4 @@
-package com.budget.buddy.transaction.infrastructure.view;
+package com.budget.buddy.transaction.application.dto.account;
 
 import java.math.BigDecimal;
 

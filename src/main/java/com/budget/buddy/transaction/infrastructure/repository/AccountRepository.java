@@ -1,7 +1,7 @@
 package com.budget.buddy.transaction.infrastructure.repository;
 
 import com.budget.buddy.transaction.domain.model.account.Account;
-import com.budget.buddy.transaction.infrastructure.view.AccountFlatView;
+import com.budget.buddy.transaction.application.dto.account.AccountFlatView;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
