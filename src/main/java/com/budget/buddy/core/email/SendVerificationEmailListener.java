@@ -1,6 +1,6 @@
 package com.budget.buddy.core.email;
 
-import com.budget.buddy.core.event.SendVerificationEmailEvent;
+import com.budget.buddy.core.dto.SendVerificationEmailEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.EventListener;
@@ -22,7 +22,7 @@ public class SendVerificationEmailListener {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(event.email());
         message.setSubject("Verify Your Budget Buddy AccountPayload");
-        message.setText("Click this link to verify your account: http://localhost:8080/api/v1/auth/verify?token=" + event.token());
+        message.setText("Click this link to verify your account: http://localhost:5173/token/" + event.token());
         mailSender.send(message);
     }
 }

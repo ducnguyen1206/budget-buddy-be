@@ -28,8 +28,8 @@ public class UserDataImpl implements UserData {
     }
 
     @Override
-    public boolean existsByEmail(String email) {
-        return userRepository.existsByEmailAddress_Value(email.toLowerCase());
+    public Optional<User> findActiveUser(String email) {
+        return userRepository.findByEmailAddress_ValueAndEmailAddress_ActiveAndLocked(email.toLowerCase(), true, false);
     }
 
     @Override
@@ -50,6 +50,11 @@ public class UserDataImpl implements UserData {
     }
 
     @Override
+    public Optional<UserVerification> findUserVerification(String token) {
+        return userVerificationRepository.findByVerificationToken_value(token);
+    }
+
+    @Override
     public UserVerification saveUserVerification(UserVerification userVerification) {
         return userVerificationRepository.save(userVerification);
     }
@@ -62,11 +67,6 @@ public class UserDataImpl implements UserData {
     @Override
     public void deleteUserVerification(UserVerification userVerification) {
         userVerificationRepository.delete(userVerification);
-    }
-
-    @Override
-    public Optional<UserVerification> findUserVerificationByUserId(Long userId) {
-        return userVerificationRepository.findByUserId(userId);
     }
 
     @Override

@@ -12,7 +12,7 @@ import java.util.Optional;
 public interface UserData {
     Optional<User> findUserByEmail(String email);
 
-    boolean existsByEmail(String email);
+    Optional<User> findActiveUser(String email);
 
     User saveNewUser(EmailAddressVO email);
 
@@ -20,13 +20,13 @@ public interface UserData {
 
     Optional<UserVerification> findUserVerificationWithDate(String token, LocalDateTime time);
 
+    Optional<UserVerification> findUserVerification(String token);
+
     UserVerification saveUserVerification(UserVerification userVerification);
 
     User saveUser(User user);
 
     void deleteUserVerification(UserVerification userVerification);
-
-    Optional<UserVerification> findUserVerificationByUserId(Long userId);
 
     Optional<Session> findSessionByUserId(Long userId);
 

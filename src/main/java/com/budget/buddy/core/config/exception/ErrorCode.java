@@ -16,6 +16,8 @@ public enum ErrorCode {
     // Bad request
     REENTER_PASSWORD_NOT_THE_SAME("BAD_001", "Password and re-enter password must be the same"),
     REQUEST_ACCOUNTS_MUST_NOT_BE_EMPTY("BAD_002", "Request accounts must not be empty"),
+    INVALID_REQUEST_DATA("BAD_003", "Invalid request data"),
+
 
     // Not found
     EMAIL_NOT_FOUND("NOT_FOUND_001", "Email not found"),
@@ -27,6 +29,11 @@ public enum ErrorCode {
     // Conflict
     FAILED_TO_UPDATE_CATEGORY("CONFLICT_001", "Failed to save/update category"),
     TRANSACTION_IS_NOT_BELONG_TO_USER("CONFLICT_002", "Transaction is not belong to user"),
+    INVALID_CURRENCY("CONFLICT_003", "Invalid currency in account group"),
+    CURRENCY_TRANSFER_SHOULD_BE_THE_SAME("CONFLICT_004", "Invalid request data"),
+    TRANSACTION_EXISTED_FOR_ACCOUNT_ID("CONFLICT_005", "Transaction existed for account. Please delete it first before deleting account"),
+    SOURCE_ACCOUNT_BALANCE_NOT_ENOUGH_MONEY("CONFLICT_006", "Source account balance not enough money to transfer"),
+    TRANSACTION_EXISTED_FOR_CATEGORY_ID("CONFLICT_007", "Transaction existed for category. Please delete it first before deleting category"),
 
     // Server error
     SERVER_ERROR("SYS_001", "An unexpected error occurred"),

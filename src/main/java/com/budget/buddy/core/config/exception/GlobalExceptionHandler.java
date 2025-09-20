@@ -73,6 +73,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleNotFoundException(NotFoundException ex) {
         logger.warn("Not found error: {} - {}", ex.getErrorCode(), ex.getMessage());
         ErrorResponse error = new ErrorResponse(ex.getErrorCode(), ex.getMessage());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<ErrorResponse> handleConflictException(ConflictException ex) {
+        logger.warn("Conflict error: {} - {}", ex.getErrorCode(), ex.getMessage());
+        ErrorResponse error = new ErrorResponse(ex.getErrorCode(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 }
