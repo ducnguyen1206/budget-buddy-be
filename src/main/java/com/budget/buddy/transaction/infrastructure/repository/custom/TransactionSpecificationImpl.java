@@ -28,6 +28,8 @@ public class TransactionSpecificationImpl implements TransactionSpecification {
     private static final String FIELD_DATE = "date";
     private static final String FIELD_TYPE = "type";
     private static final String FIELD_REMARKS = "remarks";
+    private static final String FIELD_IS_NOT = "is not";
+    private static final String FIELD_IS = "is";
 
     private static final Set<String> VALID_SORT_FIELDS = Set.of(FIELD_DATE, FIELD_AMOUNT, FIELD_NAME);
 
@@ -69,9 +71,9 @@ public class TransactionSpecificationImpl implements TransactionSpecification {
         if (idsFilter != null && !CollectionUtils.isEmpty(idsFilter.getIds())) {
             String op = normalize(idsFilter.getOperator());
             Expression<Long> path = root.get(fieldCategory).get(FIELD_ID).as(Long.class);
-            if ("is".equals(op)) {
+            if (FIELD_IS.equals(op)) {
                 predicates.add(path.in(idsFilter.getIds()));
-            } else if ("is not".equals(op)) {
+            } else if (FIELD_IS_NOT.equals(op)) {
                 predicates.add(path.in(idsFilter.getIds()).not());
             }
         }
@@ -89,7 +91,7 @@ public class TransactionSpecificationImpl implements TransactionSpecification {
         if (criteria.getDate() != null) {
             TransactionFilterCriteria.DateFilter dateRange = criteria.getDate();
             String operator = normalize(dateRange.getOperator());
-            if ("is".equals(operator) && dateRange.getStartDate() != null) {
+            if (FIELD_IS.equals(operator) && dateRange.getStartDate() != null) {
                 predicates.add(builder.equal(root.get(FIELD_DATE), dateRange.getStartDate()));
             } else if ("is between".equals(operator) && dateRange.getStartDate() != null && dateRange.getEndDate() != null) {
                 predicates.add(builder.between(root.get(FIELD_DATE), dateRange.getStartDate(), dateRange.getEndDate()));
@@ -129,8 +131,14 @@ public class TransactionSpecificationImpl implements TransactionSpecification {
     }
 
     private void addTypesFilter(TransactionFilterCriteria criteria, Root<Transaction> root, List<Predicate> predicates) {
-        if (!CollectionUtils.isEmpty(criteria.getTypes())) {
-            predicates.add(root.get(FIELD_TYPE).in(criteria.getTypes()));
+        TransactionFilterCriteria.TypesFilter types = criteria.getTypes();
+        if (types != null && !CollectionUtils.isEmpty(types.getTypes())) {
+            String op = normalize(types.getOperator());
+            if (FIELD_IS.equals(op)) {
+                predicates.add(root.get(FIELD_TYPE).in(types.getTypes()));
+            } else if (FIELD_IS_NOT.equals(op)) {
+                predicates.add(root.get(FIELD_TYPE).in(types.getTypes()).not());
+            }
         }
     }
 
@@ -143,20 +151,20 @@ public class TransactionSpecificationImpl implements TransactionSpecification {
     }
 
     private void addTextFilter(Root<Transaction> root,
-                                      CriteriaBuilder builder,
-                                      List<Predicate> predicates,
-                                      String field,
-                                      String value,
-                                      String operator) {
+                               CriteriaBuilder builder,
+                               List<Predicate> predicates,
+                               String field,
+                               String value,
+                               String operator) {
         if (value == null) return;
         Expression<String> path = builder.lower(root.get(field));
         String lowered = value.toLowerCase(Locale.ROOT);
         String pattern;
         switch (operator) {
-            case "is":
+            case FIELD_IS:
                 predicates.add(builder.equal(path, lowered));
                 break;
-            case "is not":
+            case FIELD_IS_NOT:
                 predicates.add(builder.notEqual(path, lowered));
                 break;
             case "contains":

@@ -40,8 +40,9 @@ public class TransactionFilterCriteria {
     @Schema(description = "Filter by categories using 'is' (IN) or 'is not' (NOT IN)", example = "{\n  \"operator\": \"is\",\n  \"ids\": [10,12]\n}")
     private IdsFilter categories;
 
-    @Schema(description = "Only include transactions of these types (enum values)", example = "[\"EXPENSE\", \"INCOME\"]")
-    private List<CategoryType> types;
+    @Valid
+    @Schema(description = "Filter by transaction types using 'is' (IN) or 'is not' (NOT IN)", example = "{\n  \"operator\": \"is\",\n  \"types\": [\"EXPENSE\", \"INCOME\"]\n}")
+    private TypesFilter types;
 
     @Valid
     @Schema(description = "Filter by remarks (case-insensitive)", example = "{\n  \"operator\": \"does not contain\",\n  \"value\": \"reimbursed\"\n}")
@@ -107,6 +108,25 @@ public class TransactionFilterCriteria {
         public boolean hasIds() {
             if (operator == null) return true; // handled by @NotBlank
             return ids != null && !ids.isEmpty();
+        }
+    }
+
+    @Data
+    @Schema(description = "Types filter with inclusion or exclusion operator.")
+    public static class TypesFilter {
+        @NotBlank
+        @Pattern(regexp = "(?i)^(is|is not)$",
+                message = "Operator must be one of: is, is not")
+        @Schema(description = "Operator for type comparison", allowableValues = {"is", "is not"}, example = "is")
+        private String operator;
+
+        @Schema(description = "List of transaction types", example = "[\"EXPENSE\",\"INCOME\"]")
+        private List<CategoryType> types;
+
+        @AssertTrue(message = "At least one type is required when using the filter")
+        public boolean hasTypes() {
+            if (operator == null) return true; // handled by @NotBlank
+            return types != null && !types.isEmpty();
         }
     }
 

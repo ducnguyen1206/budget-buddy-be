@@ -143,6 +143,7 @@ public class TransactionDataImpl implements TransactionData {
                 .categoryType(transaction.getCategory().getIdentity().getType())
                 .accountId(transaction.getSourceAccount().getId())
                 .sourceAccountType(transaction.getSourceAccount().getAccountTypeGroup().getName())
+                .categoryId(transaction.getCategory().getId())
                 .build();
     }
 
