@@ -6,24 +6,24 @@ import jakarta.validation.constraints.NotNull;
 
 import java.math.BigDecimal;
 
-@Schema(description = "Data Transfer Object for Account")
+@Schema(description = "Account details")
 public record AccountDTO(
-        @Schema(description = "Unique identifier of the account", example = "1", hidden = true)
+        @Schema(description = "Account ID", example = "1", hidden = true)
         Long id,
 
-        @Schema(description = "Name of the account", example = "Personal")
+        @Schema(description = "Account name", example = "Personal")
         @NotNull(message = "Account name is required")
         String name,
 
-        @Schema(description = "Balance of the account", example = "1000.00")
+        @Schema(description = "Balance", example = "1000.00")
         @NotNull(message = "Account balance is required")
         BigDecimal balance,
 
-        @Schema(description = "Currency of the account", example = "SGD")
+        @Schema(description = "Currency code", example = "SGD")
         @NotNull(message = "Account currency is required")
         Currency currency,
 
-        @Schema(description = "Type of the account", example = "CASH")
+        @Schema(description = "Account type", example = "CASH")
         @NotNull(message = "Account type is required")
         String type,
 

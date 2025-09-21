@@ -14,53 +14,53 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "Data Transfer Object for Transaction")
+@Schema(description = "Transaction details")
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class TransactionDTO {
-    @Schema(description = "Unique identifier of the account", example = "1", hidden = true)
+    @Schema(description = "Transaction ID", example = "1", hidden = true)
     private Long id;
 
     @NotBlank(message = "Transaction name is required")
-    @Schema(description = "Name or description of the transaction", example = "Grocery shopping")
+    @Schema(description = "Transaction name", example = "Grocery shopping")
     private String name;
 
     @NotNull(message = "Amount is required")
-    @Schema(description = "Transaction amount", example = "49.99")
+    @Schema(description = "Amount", example = "49.99")
     private BigDecimal amount;
 
     @NotNull(message = "Account ID is required")
-    @Schema(description = "Identifier of the account associated with the transaction", example = "1001")
+    @Schema(description = "Account ID", example = "1001")
     private Long accountId;
 
     @NotNull(message = "Category ID is required")
-    @Schema(description = "Identifier of the category associated with the transaction", example = "2002")
+    @Schema(description = "Category ID", example = "2002")
     private Long categoryId;
 
-    @Schema(description = "Remarks for the transfer", example = "From Savings to Checking", hidden = true)
+    @Schema(description = "Notes", example = "From Savings to Checking", hidden = true)
     private String remarks;
 
     @NotNull(message = "Date is required")
-    @Schema(description = "Date of the transaction", example = "2025-09-01")
+    @Schema(description = "Transaction date", example = "2025-09-01")
     private LocalDate date;
 
-    @Schema(description = "Formatted date for display (dd-MM-YYYY)", example = "18-09-2025", hidden = true)
+    @Schema(description = "Date formatted as dd-MM-yyyy", example = "18-09-2025", hidden = true)
     private String formattedDate;
 
-    @Schema(description = "Optional to account ID for transfer Info", example = "1")
+    @Schema(description = "Target account ID (for transfers)", example = "1")
     private Long targetAccountId;
 
-    @Schema(description = "Source account name of transaction", example = "Live Fresh")
+    @Schema(description = "Account name", example = "Live Fresh")
     private String sourceAccountName;
 
-    @Schema(description = "Category name of transaction", example = "Food")
+    @Schema(description = "Category name", example = "Food")
     private String categoryName;
 
-    @Schema(description = "Currency of the account", example = "SGD")
+    @Schema(description = "Currency code", example = "SGD")
     private String currency;
 
-    @Schema(description = "Type of the category", example = "Expense")
+    @Schema(description = "Category type", example = "EXPENSE")
     private CategoryType categoryType;
 }
