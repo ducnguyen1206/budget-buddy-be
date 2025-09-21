@@ -56,14 +56,24 @@ public class TransactionSpecificationImpl implements TransactionSpecification {
     }
 
     private void addAccountFilter(TransactionFilterCriteria criteria, Root<Transaction> root, List<Predicate> predicates) {
-        if (!CollectionUtils.isEmpty(criteria.getAccountIds())) {
-            predicates.add(root.get(FIELD_SOURCE_ACCOUNT).get(FIELD_ID).in(criteria.getAccountIds()));
-        }
+        TransactionFilterCriteria.IdsFilter accounts = criteria.getAccounts();
+        filterIDs(root, predicates, accounts, FIELD_SOURCE_ACCOUNT);
     }
 
     private void addCategoryFilter(TransactionFilterCriteria criteria, Root<Transaction> root, List<Predicate> predicates) {
-        if (!CollectionUtils.isEmpty(criteria.getCategoryIds())) {
-            predicates.add(root.get(FIELD_CATEGORY).get(FIELD_ID).in(criteria.getCategoryIds()));
+        TransactionFilterCriteria.IdsFilter categories = criteria.getCategories();
+        filterIDs(root, predicates, categories, FIELD_CATEGORY);
+    }
+
+    private void filterIDs(Root<Transaction> root, List<Predicate> predicates, TransactionFilterCriteria.IdsFilter idsFilter, String fieldCategory) {
+        if (idsFilter != null && !CollectionUtils.isEmpty(idsFilter.getIds())) {
+            String op = normalize(idsFilter.getOperator());
+            Expression<Long> path = root.get(fieldCategory).get(FIELD_ID).as(Long.class);
+            if ("is".equals(op)) {
+                predicates.add(path.in(idsFilter.getIds()));
+            } else if ("is not".equals(op)) {
+                predicates.add(path.in(idsFilter.getIds()).not());
+            }
         }
     }
 

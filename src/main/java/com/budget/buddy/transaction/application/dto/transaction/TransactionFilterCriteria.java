@@ -36,11 +36,13 @@ public class TransactionFilterCriteria {
     @Schema(description = "Filter by transaction date or date range", example = "{\n  \"operator\": \"is between\",\n  \"startDate\": \"2025-09-01\",\n  \"endDate\": \"2025-09-30\"\n}")
     private DateFilter date;
 
-    @Schema(description = "Only include transactions from these source account IDs", example = "[1, 2, 5]")
-    private List<@Positive Long> accountIds;
+    @Valid
+    @Schema(description = "Filter by source accounts using 'is' (IN) or 'is not' (NOT IN)", example = "{\n  \"operator\": \"is\",\n  \"ids\": [1,2,5]\n}")
+    private IdsFilter accounts;
 
-    @Schema(description = "Only include transactions that belong to these category IDs", example = "[10, 12]")
-    private List<@Positive Long> categoryIds;
+    @Valid
+    @Schema(description = "Filter by categories using 'is' (IN) or 'is not' (NOT IN)", example = "{\n  \"operator\": \"is\",\n  \"ids\": [10,12]\n}")
+    private IdsFilter categories;
 
     @Schema(description = "Only include transactions of these types (enum values)", example = "[\"EXPENSE\", \"INCOME\"]")
     private List<CategoryType> types;
@@ -90,6 +92,25 @@ public class TransactionFilterCriteria {
                 return startDate != null && endDate != null && !endDate.isBefore(startDate);
             }
             return true; // regex validation will flag invalid operators
+        }
+    }
+
+    @Data
+    @Schema(description = "List-of-IDs filter with an operator for inclusion or exclusion.")
+    public static class IdsFilter {
+        @NotBlank
+        @Pattern(regexp = "(?i)^(is|is not)$",
+                message = "Operator must be one of: is, is not")
+        @Schema(description = "Operator for list comparison", allowableValues = {"is", "is not"}, example = "is")
+        private String operator;
+
+        @Schema(description = "List of IDs", example = "[1,2,5]")
+        private List<@Positive Long> ids;
+
+        @AssertTrue(message = "At least one id is required when using the filter")
+        public boolean hasIds() {
+            if (operator == null) return true; // handled by @NotBlank
+            return ids != null && !ids.isEmpty();
         }
     }
 
