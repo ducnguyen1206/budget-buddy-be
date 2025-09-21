@@ -63,4 +63,7 @@ public class TransactionDTO {
 
     @Schema(description = "Category type", example = "EXPENSE")
     private CategoryType categoryType;
+
+    @Schema(description = "Source account type", example = "SAVINGS")
+    private String sourceAccountType;
 }
