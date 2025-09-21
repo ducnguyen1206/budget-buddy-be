@@ -25,8 +25,9 @@ public class TransactionFilterCriteria {
     @Schema(description = "Filter by exact or comparative amount", example = "{\n  \"operator\": \">=\",\n  \"value\": 10.00\n}")
     private AmountFilter amount;
 
-    @Schema(description = "Limit to transactions whose account currency is one of the given ISO-4217 codes (3 uppercase letters)", example = "[\"USD\", \"EUR\"]")
-    private List<@Pattern(regexp = "^[A-Z]{3}$", message = "Currency must be a valid ISO-4217 code (e.g., USD)") String> currencies;
+    @Valid
+    @Schema(description = "Filter by account currencies using 'is' (IN) or 'is not' (NOT IN)", example = "{\n  \"operator\": \"is\",\n  \"currencies\": [\"SGD\", \"VND\"]\n}")
+    private CurrenciesFilter currencies;
 
     @Valid
     @Schema(description = "Filter by transaction date or date range", example = "{\n  \"operator\": \"is between\",\n  \"startDate\": \"2025-09-01\",\n  \"endDate\": \"2025-09-30\"\n}")
@@ -127,6 +128,25 @@ public class TransactionFilterCriteria {
         public boolean hasTypes() {
             if (operator == null) return true; // handled by @NotBlank
             return types != null && !types.isEmpty();
+        }
+    }
+
+    @Data
+    @Schema(description = "Currencies filter with inclusion or exclusion operator.")
+    public static class CurrenciesFilter {
+        @NotBlank
+        @Pattern(regexp = "(?i)^(is|is not)$",
+                message = "Operator must be one of: is, is not")
+        @Schema(description = "Operator for currency comparison", allowableValues = {"is", "is not"}, example = "is")
+        private String operator;
+
+        @Schema(description = "List of currency codes (3 uppercase letters)", example = "[\"SGD\",\"VND\"]")
+        private List<@Pattern(regexp = "^[A-Z]{3}$", message = "Currency must be a 3-letter uppercase code (ISO 4217)") String> currencies;
+
+        @AssertTrue(message = "At least one currency is required when using the filter")
+        public boolean hasCurrencies() {
+            if (operator == null) return true; // handled by @NotBlank
+            return currencies != null && !currencies.isEmpty();
         }
     }
 

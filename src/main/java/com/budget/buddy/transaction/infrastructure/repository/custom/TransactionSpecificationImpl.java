@@ -28,6 +28,7 @@ public class TransactionSpecificationImpl implements TransactionSpecification {
     private static final String FIELD_DATE = "date";
     private static final String FIELD_TYPE = "type";
     private static final String FIELD_REMARKS = "remarks";
+    private static final String FIELD_CURRENCY = "currency";
     private static final String FIELD_IS_NOT = "is not";
     private static final String FIELD_IS = "is";
 
@@ -44,6 +45,7 @@ public class TransactionSpecificationImpl implements TransactionSpecification {
                 addNameFilter(criteria, root, builder, predicates);
                 addDateFilter(criteria, root, builder, predicates);
                 addAmountFilter(criteria, root, builder, predicates);
+                addCurrenciesFilter(criteria, root, predicates);
                 addTypesFilter(criteria, root, predicates);
                 addRemarksFilter(criteria, root, builder, predicates);
             }
@@ -126,6 +128,19 @@ public class TransactionSpecificationImpl implements TransactionSpecification {
                 default:
                     // ignore invalid operator to avoid leaking details; DTO validation should prevent this
                     break;
+            }
+        }
+    }
+
+    private void addCurrenciesFilter(TransactionFilterCriteria criteria, Root<Transaction> root, List<Predicate> predicates) {
+        TransactionFilterCriteria.CurrenciesFilter currencies = criteria.getCurrencies();
+        if (currencies != null && !CollectionUtils.isEmpty(currencies.getCurrencies())) {
+            String op = normalize(currencies.getOperator());
+            Expression<?> path = root.get(FIELD_SOURCE_ACCOUNT).get("money").get(FIELD_CURRENCY);
+            if (FIELD_IS.equals(op)) {
+                predicates.add(path.in(currencies.getCurrencies()));
+            } else if (FIELD_IS_NOT.equals(op)) {
+                predicates.add(path.in(currencies.getCurrencies()).not());
             }
         }
     }
