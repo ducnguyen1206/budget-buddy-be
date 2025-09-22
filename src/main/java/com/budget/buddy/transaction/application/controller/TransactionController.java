@@ -7,17 +7,19 @@ import com.budget.buddy.transaction.application.dto.transaction.TransactionPagin
 import com.budget.buddy.transaction.application.service.TransactionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 
-@Tag(name = "Transaction Management", description = "Endpoints for transaction management module")
+@Tag(name = "Transaction Management", description = "APIs to create and search user transactions")
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/transaction")
@@ -25,10 +27,10 @@ public class TransactionController {
 
     private final TransactionService transactionService;
 
-    @Operation(summary = "Endpoint for creating a new transaction", responses = {
+    @Operation(summary = "Create a new transaction", description = "Creates a transaction for the authenticated user.", responses = {
             @ApiResponse(responseCode = "201", description = "Transaction created successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid input data", content = @Content()),
-            @ApiResponse(responseCode = "409", description = "Failed to update transaction", content = @Content)
+            @ApiResponse(responseCode = "409", description = "Conflict while creating transaction", content = @Content)
     })
     @PostMapping
     public ResponseEntity<Void> createTransaction(@Valid @RequestBody TransactionDTO request) {
@@ -36,8 +38,10 @@ public class TransactionController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-    @Operation(summary = "Endpoint for retrieving transactions", responses = {
-            @ApiResponse(responseCode = "200", description = "Transactions retrieved successfully"),
+    @Operation(summary = "Search and paginate transactions", description = "Returns a paged list of transactions. Use query parameters for pagination and sorting (page, size, sortBy, direction). Optionally provide filter criteria in the request body to filter by fields like date range, category, account, amount, etc.", responses = {
+            @ApiResponse(responseCode = "200", description = "Transactions retrieved successfully",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = TransactionPagination.class))),
             @ApiResponse(responseCode = "400", description = "Invalid input data", content = @Content())
     })
     @PostMapping("/inquiry")

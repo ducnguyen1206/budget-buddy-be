@@ -3,18 +3,21 @@ package com.budget.buddy.transaction.application.controller;
 import com.budget.buddy.transaction.application.dto.category.CategoryDTO;
 import com.budget.buddy.transaction.application.service.CategoryService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Tag(name = "Category Management", description = "Endpoints for category management module")
+@Tag(name = "Category Management", description = "CRUD APIs for managing transaction categories")
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/categories")
@@ -22,8 +25,10 @@ public class CategoryController {
 
     private final CategoryService categoryService;
 
-    @Operation(summary = "Endpoint for adding a new category", responses = {
-            @ApiResponse(responseCode = "201", description = "Category added successfully"),
+    @Operation(summary = "Create a new category", description = "Creates a category for the authenticated user.", responses = {
+            @ApiResponse(responseCode = "201", description = "Category added successfully",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = CategoryDTO.class))),
             @ApiResponse(responseCode = "404", description = "User not found", content = @Content()),
             @ApiResponse(responseCode = "400", description = "Invalid input data", content = @Content())
     })
@@ -32,8 +37,10 @@ public class CategoryController {
         return ResponseEntity.status(HttpStatus.CREATED).body(categoryService.createCategory(request));
     }
 
-    @Operation(summary = "Endpoint for updating a category", responses = {
-            @ApiResponse(responseCode = "200", description = "Category updated successfully"),
+    @Operation(summary = "Update a category", description = "Updates the specified category if it belongs to the authenticated user.", responses = {
+            @ApiResponse(responseCode = "200", description = "Category updated successfully",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = CategoryDTO.class))),
             @ApiResponse(responseCode = "404", description = "Category not found", content = @Content()),
             @ApiResponse(responseCode = "400", description = "Invalid input data", content = @Content())
     })
@@ -42,8 +49,10 @@ public class CategoryController {
         return ResponseEntity.ok(categoryService.updateCategory(id, request));
     }
 
-    @Operation(summary = "Endpoint for Getting a category by id", responses = {
-            @ApiResponse(responseCode = "200", description = "Category retrieved successfully"),
+    @Operation(summary = "Get a category by ID", responses = {
+            @ApiResponse(responseCode = "200", description = "Category retrieved successfully",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = CategoryDTO.class))),
             @ApiResponse(responseCode = "404", description = "Category not found", content = @Content())
     })
     @GetMapping("/{id}")
@@ -51,15 +60,17 @@ public class CategoryController {
         return ResponseEntity.ok(categoryService.getCategory(id));
     }
 
-    @Operation(summary = "List current user's categories", responses = {
-            @ApiResponse(responseCode = "200", description = "Categories retrieved successfully")
+    @Operation(summary = "List my categories", description = "Returns all categories created by the authenticated user.", responses = {
+            @ApiResponse(responseCode = "200", description = "Categories retrieved successfully",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            array = @ArraySchema(schema = @Schema(implementation = CategoryDTO.class))))
     })
     @GetMapping
     public ResponseEntity<List<CategoryDTO>> getMyCategories() {
         return ResponseEntity.ok(categoryService.getMyCategories());
     }
 
-    @Operation(summary = "Delete a category by id", responses = {
+    @Operation(summary = "Delete a category by ID", description = "Deletes the specified category if it belongs to the authenticated user.", responses = {
             @ApiResponse(responseCode = "204", description = "Category deleted successfully"),
             @ApiResponse(responseCode = "404", description = "Category not found", content = @Content())
     })

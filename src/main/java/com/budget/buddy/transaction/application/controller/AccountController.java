@@ -5,18 +5,21 @@ import com.budget.buddy.transaction.application.dto.account.AccountRetrieveRespo
 import com.budget.buddy.transaction.application.dto.account.AccountTypeRetrieveResponse;
 import com.budget.buddy.transaction.application.service.AccountService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Tag(name = "Account Management", description = "Endpoints for account management module")
+@Tag(name = "Account Management", description = "CRUD APIs for managing user accounts and account types")
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/accounts")
@@ -24,7 +27,7 @@ public class AccountController {
 
     private final AccountService accountService;
 
-    @Operation(summary = "Endpoint for creating a new account", responses = {
+    @Operation(summary = "Create a new account", description = "Creates an account for the authenticated user.", responses = {
             @ApiResponse(responseCode = "201", description = "Account created successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid input data", content = @Content())
     })
@@ -34,8 +37,10 @@ public class AccountController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-    @Operation(summary = "Endpoint for retrieving all accounts", responses = {
-            @ApiResponse(responseCode = "200", description = "Accounts retrieved successfully"),
+    @Operation(summary = "List all accounts", description = "Returns all accounts owned by the authenticated user.", responses = {
+            @ApiResponse(responseCode = "200", description = "Accounts retrieved successfully",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            array = @ArraySchema(schema = @Schema(implementation = AccountRetrieveResponse.class)))),
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content())
     })
     @GetMapping
@@ -44,17 +49,20 @@ public class AccountController {
         return ResponseEntity.ok(accounts);
     }
 
-    @Operation(summary = "Endpoint for retrieving an account by id", responses = {
-            @ApiResponse(responseCode = "200", description = "Account retrieved successfully"),
+    @Operation(summary = "Get an account by ID", description = "Returns details of the specified account if it belongs to the authenticated user.", responses = {
+            @ApiResponse(responseCode = "200", description = "Account retrieved successfully",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = AccountRetrieveResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Account not found", content = @Content()),
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content())
     })
     @GetMapping("/{accountId}")
-    public ResponseEntity<Object> retrieveAccount(@PathVariable("accountId") Long accountId) {
+    public ResponseEntity<AccountRetrieveResponse> retrieveAccount(@PathVariable("accountId") Long accountId) {
         return ResponseEntity.ok(accountService.retrieveAccount(accountId));
     }
 
-    @Operation(summary = "Endpoint for updating an account", responses = {
-            @ApiResponse(responseCode = "200", description = "Account updated successfully"),
+    @Operation(summary = "Update an existing account", description = "Updates the specified account if it belongs to the authenticated user.", responses = {
+            @ApiResponse(responseCode = "204", description = "Account updated successfully"),
             @ApiResponse(responseCode = "404", description = "Account not found", content = @Content()),
             @ApiResponse(responseCode = "400", description = "Invalid input data", content = @Content())
     })
@@ -64,7 +72,7 @@ public class AccountController {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Endpoint for deleting an account", responses = {
+    @Operation(summary = "Delete an account by ID", description = "Deletes the specified account if it belongs to the authenticated user.", responses = {
             @ApiResponse(responseCode = "204", description = "Account deleted successfully"),
             @ApiResponse(responseCode = "404", description = "Account not found", content = @Content())
     })
@@ -74,8 +82,10 @@ public class AccountController {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Endpoint for retrieving all account types", responses = {
-            @ApiResponse(responseCode = "200", description = "Account types retrieved successfully")
+    @Operation(summary = "List account types", description = "Returns supported account types and their groups.", responses = {
+            @ApiResponse(responseCode = "200", description = "Account types retrieved successfully",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = AccountTypeRetrieveResponse.class)))
     })
     @GetMapping("/types")
     public ResponseEntity<AccountTypeRetrieveResponse> retrieveAccountTypes() {
@@ -83,7 +93,7 @@ public class AccountController {
         return ResponseEntity.ok(accountTypes);
     }
 
-    @Operation(summary = "Endpoint for deleting an account type group", responses = {
+    @Operation(summary = "Delete an account type group", description = "Deletes an account type group by its ID.", responses = {
             @ApiResponse(responseCode = "204", description = "Account type group deleted successfully"),
             @ApiResponse(responseCode = "404", description = "Account type group not found", content = @Content())
     })
