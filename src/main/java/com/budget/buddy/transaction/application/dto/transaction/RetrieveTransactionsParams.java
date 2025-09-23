@@ -13,8 +13,4 @@ import org.springframework.data.domain.Sort;
 public class RetrieveTransactionsParams {
     private Integer page;
     private Integer size;
-
-    // Sorting
-    private String sortBy;
-    private Sort.Direction direction;
 }

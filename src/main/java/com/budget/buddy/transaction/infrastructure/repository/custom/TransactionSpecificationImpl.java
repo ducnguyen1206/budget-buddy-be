@@ -3,10 +3,7 @@ package com.budget.buddy.transaction.infrastructure.repository.custom;
 import com.budget.buddy.transaction.application.dto.transaction.TransactionFilterCriteria;
 import com.budget.buddy.transaction.domain.model.transaction.Transaction;
 import com.budget.buddy.transaction.infrastructure.repository.TransactionSpecification;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.Expression;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -204,42 +201,61 @@ public class TransactionSpecificationImpl implements TransactionSpecification {
         }
     }
 
-    private void applySorting(Root<Transaction> root, jakarta.persistence.criteria.CriteriaQuery<?> query, CriteriaBuilder builder, String sort) {
+    private void applySorting(Root<Transaction> root, CriteriaQuery<?> query, CriteriaBuilder builder, String sort) {
+        List<Order> orders = buildOrders(root, builder, sort);
+        query.orderBy(orders);
+    }
+
+    private List<Order> buildOrders(Root<Transaction> root, CriteriaBuilder builder, String sort) {
+        List<Order> orders = new ArrayList<>();
+        if (sort == null || sort.isBlank()) {
+            orders.add(builder.desc(root.get(FIELD_DATE)));
+            return orders;
+        }
+
+        String[] directives = sort.trim().split("[;|]");
+        for (String raw : directives) {
+            Order order = parseDirectiveToOrder(root, builder, raw);
+            if (order != null) {
+                orders.add(order);
+            }
+        }
+
+        if (orders.isEmpty()) {
+            orders.add(builder.desc(root.get(FIELD_DATE)));
+        }
+        return orders;
+    }
+
+    private Order parseDirectiveToOrder(Root<Transaction> root, CriteriaBuilder builder, String directive) {
+        if (directive == null) {
+            return null;
+        }
+
+        String s = directive.trim();
+        if (s.isEmpty()) {
+            return null;
+        }
+
         String field = FIELD_DATE;
-        boolean desc = true; // default desc
+        String dir = null;
 
-        if (sort != null && !sort.isBlank()) {
-            String s = sort.trim();
-            String dir = null;
-            if (s.contains(",")) {
-                String[] parts = s.split(",", 2);
-                field = parts[0].trim();
-                dir = parts[1].trim();
-            } else if (s.contains(":")) {
-                String[] parts = s.split(":", 2);
-                field = parts[0].trim();
-                dir = parts[1].trim();
-            } else if (s.contains(" ")) {
-                String[] parts = s.split(" ", 2);
-                field = parts[0].trim();
-                dir = parts[1].trim();
-            } else {
-                field = s;
-            }
-            field = field.toLowerCase(Locale.ROOT);
-            if (!VALID_SORT_FIELDS.contains(field)) {
-                field = FIELD_DATE;
-            }
-            if (dir != null) {
-                desc = !dir.equalsIgnoreCase("asc");
-            }
+        String[] parts = s.split("[,:\\s]", 2);
+        if (parts.length >= 1) {
+            field = parts[0].trim();
         }
 
-        if (desc) {
-            query.orderBy(builder.desc(root.get(field)));
-        } else {
-            query.orderBy(builder.asc(root.get(field)));
+        if (parts.length == 2) {
+            dir = parts[1].trim();
         }
+
+        field = field.toLowerCase(Locale.ROOT);
+        if (!VALID_SORT_FIELDS.contains(field)) {
+            return null; // ignore invalid fields for safety
+        }
+
+        boolean desc = !"asc".equalsIgnoreCase(dir);
+        return desc ? builder.desc(root.get(field)) : builder.asc(root.get(field));
     }
 
     private String normalize(String operator) {

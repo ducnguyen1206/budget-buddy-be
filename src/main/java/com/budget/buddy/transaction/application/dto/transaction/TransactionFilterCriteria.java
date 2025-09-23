@@ -49,6 +49,10 @@ public class TransactionFilterCriteria {
     @Schema(description = "Filter by remarks (case-insensitive)", example = "{\n  \"operator\": \"does not contain\",\n  \"value\": \"reimbursed\"\n}")
     private StringFilter remarks;
 
+    @Schema(description = "Optional sort string to order results. Supports multiple directives separated by ';' or '|' (e.g., 'date,desc;amount,asc'). Each directive supports: 'field,dir', 'field:dir', 'field dir', or just 'field'. Allowed fields: date, amount, name. Direction: asc or desc (defaults to desc when omitted). Invalid fields are ignored. If none are valid or absent, defaults to 'date desc'.",
+            example = "date,desc;amount,asc")
+    private String sort;
+
     @Data
     @Schema(description = "Case-insensitive text filter with an operator and a value.")
     public static class StringFilter {

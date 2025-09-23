@@ -23,7 +23,6 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,7 +31,6 @@ import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -98,14 +96,13 @@ public class TransactionDataImpl implements TransactionData {
     public TransactionPagination retrieveTransactions(RetrieveTransactionsParams params, TransactionFilterCriteria filterCriteria) {
         int page = Optional.ofNullable(params.getPage()).orElse(0);
         int size = Optional.ofNullable(params.getSize()).orElse(20);
-        String sortBy = Objects.requireNonNullElse(params.getSortBy(), "id");
-        Sort.Direction direction = Objects.requireNonNullElse(params.getDirection(), Sort.Direction.ASC);
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+        Pageable pageable = PageRequest.of(page, size);
 
-        logger.info("Fetching transactions with page {} size {} sort by {} direction {}", page, size, sortBy, direction);
+        String sort = filterCriteria.getSort();
+        logger.info("Fetching transactions with page {} size {} sort {}", page, size, sort);
 
-        Specification<Transaction> specification = transactionSpecification.buildSpecification(filterCriteria, null);
+        Specification<Transaction> specification = transactionSpecification.buildSpecification(filterCriteria, sort);
 
         Page<Transaction> transactionPage = transactionRepository.findAll(specification, pageable);
 
