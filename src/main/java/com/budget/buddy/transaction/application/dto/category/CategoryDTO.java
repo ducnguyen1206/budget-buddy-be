@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotNull;
 
 @Schema(description = "Data Transfer Object for Category")
 public record CategoryDTO(
-        @Schema(description = "Unique identifier of the category", example = "1", hidden = true)
+        @Schema(description = "Unique identifier of the category", example = "1", accessMode = Schema.AccessMode.READ_ONLY)
         Long id,
 
         @NotBlank(message = "Category name is required")

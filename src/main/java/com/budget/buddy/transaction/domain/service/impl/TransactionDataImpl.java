@@ -48,7 +48,7 @@ public class TransactionDataImpl implements TransactionData {
     public void createTransaction(TransactionDTO transactionRequest) {
         Long userId = transactionUtils.getCurrentUserId();
         Account sourceAccount = getAccount(userId, transactionRequest.getAccountId());
-        Category category = getCategory(transactionRequest.getCategoryId());
+        Category category = getCategory(userId, transactionRequest.getCategoryId());
 
         logger.info("Creating transaction: userId='{}', amount='{}', categoryId='{}', sourceAccountId='{}'",
                 userId, transactionRequest.getAmount(), category.getId(), sourceAccount.getId());
@@ -148,8 +148,8 @@ public class TransactionDataImpl implements TransactionData {
         return accountRepository.findAccountByUserIdAndAccountId(userId, accountId);
     }
 
-    private Category getCategory(Long category) {
-        return categoryRepository.findById(category)
+    private Category getCategory(Long userId, Long category) {
+        return categoryRepository.findBydId(category, userId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.CATEGORY_NOT_FOUND));
     }
 }

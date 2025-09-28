@@ -25,6 +25,7 @@ public enum ErrorCode {
     CATEGORY_NOT_FOUND("NOT_FOUND_003", "Category not found"),
     USER_NOT_FOUND("NOT_FOUND_004", "User not found"),
     ACCOUNT_NOT_FOUND("NOT_FOUND_005", "Account not found"),
+    BUDGET_NOT_FOUND("NOT_FOUND_006", "Budget not found"),
 
     // Conflict
     FAILED_TO_UPDATE_CATEGORY("CONFLICT_001", "Failed to save/update category"),
@@ -34,6 +35,7 @@ public enum ErrorCode {
     TRANSACTION_EXISTED_FOR_ACCOUNT_ID("CONFLICT_005", "Transaction existed for account. Please delete it first before deleting account"),
     SOURCE_ACCOUNT_BALANCE_NOT_ENOUGH_MONEY("CONFLICT_006", "Source account balance not enough money to transfer"),
     TRANSACTION_EXISTED_FOR_CATEGORY_ID("CONFLICT_007", "Transaction existed for category. Please delete it first before deleting category"),
+    BUDGET_EXISTED_FOR_CATEGORY_ID("CONFLICT_008", "Budget existed for category"),
 
     // Server error
     SERVER_ERROR("SYS_001", "An unexpected error occurred"),

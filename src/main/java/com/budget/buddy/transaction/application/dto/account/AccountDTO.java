@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 
 @Schema(description = "Account details")
 public record AccountDTO(
-        @Schema(description = "Account ID", example = "1", hidden = true)
+        @Schema(description = "Account ID", example = "1", accessMode = Schema.AccessMode.READ_ONLY)
         Long id,
 
         @Schema(description = "Account name", example = "Personal")

@@ -460,76 +460,17 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
-                  name: dispensed
-                  type: decimal(19,2)
+                  name: currency
+                  type: varchar(5)
                   constraints:
                     nullable: false
-              - column:
-                  name: remaining
-                  type: decimal(19,2)
-                  constraints:
-                    nullable: false
-              - column:
-                  name: created_date
-                  type: timestamp
-                  defaultValueComputed: CURRENT_TIMESTAMP
-                  constraints:
-                    nullable: false
-              - column:
-                  name: created_by
-                  type: varchar(255)
-                  constraints:
-                    nullable: false
-              - column:
-                  name: last_modified_date
-                  type: timestamp
-                  defaultValueComputed: CURRENT_TIMESTAMP
-              - column:
-                  name: last_modified_by
-                  type: varchar(255)
-
-  - changeSet:
-      id: 009-transaction-filter
-      author: ducnguyen
-      preConditions:
-        - onFail: MARK_RAN
-        - not:
-            tableExists:
-              tableName: transaction_filter
-      changes:
-        - createTable:
-            tableName: transaction_filter
-            columns:
-              - column:
-                  name: id
-                  type: bigint
-                  autoIncrement: true
-                  constraints:
-                    primaryKey: true
               - column:
                   name: user_id
                   type: bigint
                   constraints:
                     nullable: false
-                    foreignKeyName: fk_transaction_filter_user
+                    foreignKeyName: fk_budget_user
                     references: user(id)
-              - column:
-                  name: name
-                  type: varchar(255)
-                  constraints:
-                    nullable: false
-              - column:
-                  name: filters
-                  type: json
-                  constraints:
-                    nullable: false
-              - column:
-                  name: sort
-                  type: varchar(255)
-              - column:
-                  name: is_default
-                  type: boolean
-                  defaultValueBoolean: false
               - column:
                   name: created_date
                   type: timestamp
@@ -548,7 +489,6 @@ databaseChangeLog:
               - column:
                   name: last_modified_by
                   type: varchar(255)
-
   - changeSet:
       id: 010-user-verification
       author: ducnguyen

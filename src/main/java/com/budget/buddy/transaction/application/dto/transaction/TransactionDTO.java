@@ -20,7 +20,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TransactionDTO {
-    @Schema(description = "Transaction ID", example = "1", hidden = true)
+    @Schema(description = "Transaction ID", example = "1", accessMode = Schema.AccessMode.READ_ONLY)
     private Long id;
 
     @NotBlank(message = "Transaction name is required")
@@ -39,31 +39,31 @@ public class TransactionDTO {
     @Schema(description = "Category ID", example = "2002")
     private Long categoryId;
 
-    @Schema(description = "Notes", example = "From Savings to Checking", hidden = true)
+    @Schema(description = "Notes", example = "From Savings to Checking", accessMode = Schema.AccessMode.READ_ONLY)
     private String remarks;
 
     @NotNull(message = "Date is required")
     @Schema(description = "Transaction date", example = "2025-09-01")
     private LocalDate date;
 
-    @Schema(description = "Date formatted as dd-MM-yyyy", example = "18-09-2025", hidden = true)
+    @Schema(description = "Date formatted as dd-MM-yyyy", example = "18-09-2025", accessMode = Schema.AccessMode.READ_ONLY)
     private String formattedDate;
 
     @Schema(description = "Target account ID (for transfers)", example = "1")
     private Long targetAccountId;
 
-    @Schema(description = "Account name", example = "Live Fresh")
+    @Schema(description = "Account name", example = "Live Fresh", accessMode = Schema.AccessMode.READ_ONLY)
     private String sourceAccountName;
 
-    @Schema(description = "Category name", example = "Food")
+    @Schema(description = "Category name", example = "Food", accessMode = Schema.AccessMode.READ_ONLY)
     private String categoryName;
 
-    @Schema(description = "Currency code", example = "SGD")
+    @Schema(description = "Currency code", example = "SGD", accessMode = Schema.AccessMode.READ_ONLY)
     private String currency;
 
-    @Schema(description = "Category type", example = "EXPENSE")
+    @Schema(description = "Category type", example = "EXPENSE", accessMode = Schema.AccessMode.READ_ONLY)
     private CategoryType categoryType;
 
-    @Schema(description = "Source account type", example = "SAVINGS")
+    @Schema(description = "Source account type", example = "SAVINGS", accessMode = Schema.AccessMode.READ_ONLY)
     private String sourceAccountType;
 }

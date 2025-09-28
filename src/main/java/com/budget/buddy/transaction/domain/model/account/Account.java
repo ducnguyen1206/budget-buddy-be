@@ -26,6 +26,8 @@ public class Account extends BaseEntity {
     @Size(max = 100)
     private String name;
 
+    @AttributeOverride(name = "amount", column = @Column(name = "available_balance", precision = 19, scale = 2, nullable = false))
+    @AttributeOverride(name = "currency", column = @Column(name = "currency", length = 3, nullable = false))
     @Embedded
     private MoneyVO money;
 }

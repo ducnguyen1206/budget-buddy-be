@@ -1,7 +1,6 @@
 package com.budget.buddy.transaction.domain.vo;
 
 import com.budget.buddy.transaction.domain.enums.Currency;
-import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -20,10 +19,7 @@ public class MoneyVO implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    @Column(name = "available_balance", nullable = false)
     private BigDecimal amount;
-
-    @Column(name = "currency", nullable = false)
     private String currency;
 
     // Constructor

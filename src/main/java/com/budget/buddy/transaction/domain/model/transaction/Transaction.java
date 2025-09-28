@@ -41,7 +41,7 @@ public class Transaction extends BaseEntity {
     @Size(max = 200)
     private String name;
 
-    @Column(nullable = false, precision = 19, scale = 4)
+    @Column(nullable = false, precision = 19, scale = 2)
     @NotNull
     @Digits(integer = 15, fraction = 4)
     private BigDecimal amount;

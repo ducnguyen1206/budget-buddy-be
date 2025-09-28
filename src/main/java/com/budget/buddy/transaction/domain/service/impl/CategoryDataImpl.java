@@ -54,7 +54,9 @@ public class CategoryDataImpl implements CategoryData {
 
     @Override
     public CategoryDTO getCategory(Long categoryId) {
-        Category category = categoryRepository.findById(categoryId)
+        Long userId = transactionUtils.getCurrentUserId();
+
+        Category category = categoryRepository.findBydId(categoryId, userId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.CATEGORY_NOT_FOUND));
 
         logger.info("Retrieved category id={}", categoryId);
@@ -87,7 +89,9 @@ public class CategoryDataImpl implements CategoryData {
             return categoryMapper.toDto(existing);
         }
 
-        Category category = categoryRepository.findById(categoryId)
+        Long userId = transactionUtils.getCurrentUserId();
+
+        Category category = categoryRepository.findBydId(categoryId, userId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.CATEGORY_NOT_FOUND));
         logger.info("Updating category id={} for", categoryId);
 

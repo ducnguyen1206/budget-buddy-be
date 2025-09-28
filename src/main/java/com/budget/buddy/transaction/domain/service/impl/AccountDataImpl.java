@@ -154,9 +154,13 @@ public class AccountDataImpl implements AccountData {
     @Transactional
     @Override
     public void updateAccount(Long accountId, AccountDTO accountDTO) {
+        Long userId = transactionUtils.getCurrentUserId();
+
         logger.info("Updating account with id='{}' for user", accountId);
-        Account account = accountRepository.findById(accountId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.ACCOUNT_NOT_FOUND));
+        Account account = accountRepository.findAccountByUserIdAndAccountId(userId, accountId);
+        if (account == null) {
+            throw new NotFoundException(ErrorCode.ACCOUNT_NOT_FOUND);
+        }
 
         MoneyVO moneyVO = new MoneyVO(accountDTO.balance(), accountDTO.currency());
         AccountTypeGroup accountTypeGroup = account.getAccountTypeGroup();
@@ -187,7 +191,9 @@ public class AccountDataImpl implements AccountData {
     public void deleteAccountTypeGroups(Long groupId) {
         logger.info("Deleting all account type groups");
 
-        AccountTypeGroup groups = accountTypeGroupRepository.findById(groupId)
+        Long userId = transactionUtils.getCurrentUserId();
+
+        AccountTypeGroup groups = accountTypeGroupRepository.findBydId(groupId, userId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.ACCOUNT_TYPE_GROUP_NOT_FOUND));
 
         List<Account> accounts = groups.getAccounts();
@@ -212,8 +218,13 @@ public class AccountDataImpl implements AccountData {
     @Transactional
     @Override
     public void updateAvailableBalance(Long accountId, BigDecimal newBalance) {
-        Account account = accountRepository.findById(accountId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.ACCOUNT_NOT_FOUND));
+        Long userId = transactionUtils.getCurrentUserId();
+
+        Account account = accountRepository.findAccountByUserIdAndAccountId(userId, accountId);
+        if (account == null) {
+            throw new NotFoundException(ErrorCode.ACCOUNT_NOT_FOUND);
+        }
+
         MoneyVO moneyVO = account.getMoney();
         BigDecimal oldBalance = moneyVO.getAmount();
         newBalance = oldBalance.add(newBalance);
@@ -272,7 +283,9 @@ public class AccountDataImpl implements AccountData {
     @Transactional(readOnly = true)
     @Override
     public boolean isTransactionExistedByGroupAccountId(Long groupId) {
-        AccountTypeGroup groups = accountTypeGroupRepository.findById(groupId)
+        Long userId = transactionUtils.getCurrentUserId();
+
+        AccountTypeGroup groups = accountTypeGroupRepository.findBydId(groupId, userId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.ACCOUNT_TYPE_GROUP_NOT_FOUND));
         List<Account> accounts = groups.getAccounts();
         List<Long> accountIds = accounts.stream().map(Account::getId).toList();
@@ -282,7 +295,9 @@ public class AccountDataImpl implements AccountData {
     @Transactional(readOnly = true)
     @Override
     public List<Long> getAccountIdsByGroupId(Long groupId) {
-        AccountTypeGroup groups = accountTypeGroupRepository.findById(groupId)
+        Long userId = transactionUtils.getCurrentUserId();
+
+        AccountTypeGroup groups = accountTypeGroupRepository.findBydId(groupId, userId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.ACCOUNT_TYPE_GROUP_NOT_FOUND));
         List<Account> accounts = groups.getAccounts();
         return accounts.stream().map(Account::getId).toList();
