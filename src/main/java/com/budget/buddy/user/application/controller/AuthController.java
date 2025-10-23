@@ -81,8 +81,8 @@ public class AuthController {
             }
     )
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout() {
-        authenticationService.logout();
+    public ResponseEntity<Void> logout(@RequestHeader(value = "Authorization", required = false) String authorization) {
+        authenticationService.logout(authorization);
         return ResponseEntity.noContent().build();
     }
 

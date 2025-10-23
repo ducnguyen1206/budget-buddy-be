@@ -157,7 +157,7 @@ public class JwtUtil {
         return UUID.randomUUID().toString();
     }
 
-    private long getAccessTtlMs() {
+    public long getAccessTtlMs() {
         if (cachedAccessTtlMs != null) {
             return cachedAccessTtlMs;
         }
@@ -167,7 +167,7 @@ public class JwtUtil {
         return v;
     }
 
-    private long getRefreshTtlMs() {
+    public long getRefreshTtlMs() {
         if (cachedRefreshTtlMs != null) {
             return cachedRefreshTtlMs;
         }

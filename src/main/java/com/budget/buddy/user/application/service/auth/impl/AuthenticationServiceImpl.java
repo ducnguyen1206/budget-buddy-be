@@ -3,14 +3,14 @@ package com.budget.buddy.user.application.service.auth.impl;
 import com.budget.buddy.core.config.exception.AuthException;
 import com.budget.buddy.core.config.exception.BadRequestException;
 import com.budget.buddy.core.config.exception.ErrorCode;
+import com.budget.buddy.core.dto.SendVerificationEmailEvent;
 import com.budget.buddy.core.utils.ApplicationUtil;
 import com.budget.buddy.core.utils.JwtUtil;
-import com.budget.buddy.core.dto.SendVerificationEmailEvent;
+import com.budget.buddy.core.utils.RedisTokenService;
 import com.budget.buddy.user.application.constant.UserApplicationConstant;
 import com.budget.buddy.user.application.dto.LoginResponse;
 import com.budget.buddy.user.application.dto.ResetPasswordRequest;
 import com.budget.buddy.user.application.service.auth.AuthenticationService;
-import com.budget.buddy.user.domain.model.Session;
 import com.budget.buddy.user.domain.model.User;
 import com.budget.buddy.user.domain.model.UserVerification;
 import com.budget.buddy.user.domain.service.UserData;
@@ -37,6 +37,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final ApplicationEventPublisher applicationEventPublisher;
     private final BCryptPasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final RedisTokenService redisTokenService;
 
     @Override
     @Transactional
@@ -169,82 +170,68 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         user.setFailedAttempts(0);
         userData.saveUser(user);
 
-        userData.findSessionByUserId(user.getId()).ifPresent(userData::deleteSession);
-
         String token = jwtUtil.generateToken(email);
         String refreshToken = jwtUtil.generateRefreshToken(email);
 
+        // Store access token JTI and refresh token in Redis with respective TTLs
+        String accessJti = jwtUtil.extractJti(token);
+        redisTokenService.storeAccessJti(accessJti, jwtUtil.getAccessTtlMs());
+        redisTokenService.storeRefreshToken(email, refreshToken, jwtUtil.getRefreshTtlMs());
+
         LoginResponse loginResponse = new LoginResponse(token, refreshToken);
-        logger.info("Login successful for email: {}, accessToken generated", email);
+        logger.info("Login successful for email: {}, tokens generated and stored in Redis", email);
         return loginResponse;
     }
 
-    // TODO change the way to handle the refresh token
     @Override
     public LoginResponse refreshToken(String refreshToken) {
-        String email = ApplicationUtil.getEmailFromContext();
+        // Extract email from the refresh token itself (no auth context required)
+        String email = jwtUtil.extractEmail(refreshToken);
 
-        User user = userData.findUserByEmail(email)
-                .orElseThrow(() -> {
-                    logger.warn("Refresh failed: Email {} not found", email);
-                    return new AuthException(ErrorCode.LOGIN_FAILED);
-                });
-
-        // Validate refresh token with the access token
+        // Basic JWT validation (signature, issuer, expiration)
         if (!jwtUtil.validateToken(refreshToken, email)) {
             logger.warn("Refresh failed: invalid refresh token for {}", email);
             throw new AuthException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
 
-        // Ensure refresh token matches stored session
-        Session session = userData.findSessionByUserId(user.getId())
-                .orElseThrow(() -> {
-                    logger.warn("Refresh failed: No active session for email {}", email);
-                    return new AuthException(ErrorCode.INVALID_REFRESH_TOKEN);
-                });
-
-        if (!session.getRefreshToken().equals(refreshToken)) {
-            logger.warn("Refresh failed: Refresh token mismatch for email {}", email);
+        // Validate refresh token existence in Redis for the given user
+        if (!redisTokenService.validateRefreshToken(refreshToken, email)) {
+            logger.warn("Refresh failed: refresh token not found in Redis or email mismatch for {}", email);
             throw new AuthException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
 
-        // Generate new tokens
+        // Rotate: delete old refresh token and create new pair
+        redisTokenService.deleteRefreshToken(refreshToken);
+
         String newAccessToken = jwtUtil.generateToken(email);
         String newRefreshToken = jwtUtil.generateRefreshToken(email);
 
-        session.setRefreshToken(newRefreshToken);
-        session.setExpiresAt(LocalDateTime.now()
-                .plusSeconds(JwtUtil.REFRESH_TOKEN_EXPIRATION / 1000));
-        userData.saveSession(session);
+        // Store new tokens
+        String newAccessJti = jwtUtil.extractJti(newAccessToken);
+        redisTokenService.storeAccessJti(newAccessJti, jwtUtil.getAccessTtlMs());
+        redisTokenService.storeRefreshToken(email, newRefreshToken, jwtUtil.getRefreshTtlMs());
 
         logger.info("Refresh successful for email: {}", email);
         return new LoginResponse(newAccessToken, newRefreshToken);
     }
 
     @Override
-    public void logout() {
-        // Find the user
-        User user = retrieveUser();
-
-        // Find and delete the active session if exists
-        userData.findSessionByUserId(user.getId())
-                .ifPresent(userData::deleteSession);
-
-        logger.info("Logout successful for email: {}", user.getEmailAddress().getValue());
-    }
-
-    private User retrieveUser() {
+    public void logout(String authHeader) {
         String email = ApplicationUtil.getEmailFromContext();
-        logger.debug("Extracted email from JWT: '{}'", email);
-
-        return userData.findUserByEmail(email)
-                .map(user -> {
-                    logger.debug("User found in repository: id={}, email='{}'", user.getId(), user.getEmailAddress().getValue());
-                    return user;
-                })
-                .orElseThrow(() -> {
-                    logger.error("User not found for email='{}'", email);
-                    return new AuthException(ErrorCode.USER_NOT_FOUND);
-                });
+        String token = null;
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            token = authHeader.substring(7);
+        }
+        if (token != null) {
+            try {
+                String jti = jwtUtil.extractJti(token);
+                redisTokenService.revokeAccessJti(jti);
+                logger.info("Logout successful for email: {}. Access token revoked.", email);
+            } catch (Exception e) {
+                logger.warn("Logout: failed to parse token for revocation, email: {}", email);
+            }
+        } else {
+            logger.warn("Logout called without Authorization header; nothing to revoke. email: {}", email);
+        }
     }
 }

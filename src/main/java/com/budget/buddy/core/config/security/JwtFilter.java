@@ -12,6 +12,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import com.budget.buddy.core.utils.RedisTokenService;
 
 import java.io.IOException;
 
@@ -20,10 +21,12 @@ public class JwtFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
 
     private final UserDetailsService customUserDetailsService;
+    private final RedisTokenService redisTokenService;
 
-    public JwtFilter(JwtUtil jwtUtil, UserDetailsService userServiceImpl) {
+    public JwtFilter(JwtUtil jwtUtil, UserDetailsService userServiceImpl, RedisTokenService redisTokenService) {
         this.jwtUtil = jwtUtil;
         this.customUserDetailsService = userServiceImpl;
+        this.redisTokenService = redisTokenService;
     }
 
     @Override
@@ -41,10 +44,13 @@ public class JwtFilter extends OncePerRequestFilter {
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
             if (jwtUtil.validateToken(token, email, userDetails)) {
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(email, null, userDetails.getAuthorities());
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+                String jti = jwtUtil.extractJti(token);
+                if (redisTokenService.isAccessJtiActive(jti)) {
+                    UsernamePasswordAuthenticationToken authToken =
+                            new UsernamePasswordAuthenticationToken(email, null, userDetails.getAuthorities());
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
             }
         }
 
