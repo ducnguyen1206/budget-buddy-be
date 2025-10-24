@@ -84,7 +84,7 @@ public class JwtUtil {
         }
 
         return builder
-                .signWith(getSigningKey(), Jwts.SIG.HS512)
+                .signWith(getSigningKey(), Jwts.SIG.HS256)
                 .compact();
     }
 
@@ -106,7 +106,7 @@ public class JwtUtil {
         }
 
         return builder
-                .signWith(getSigningKey(), Jwts.SIG.HS512)
+                .signWith(getSigningKey(), Jwts.SIG.HS256)
                 .compact();
     }
 

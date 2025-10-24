@@ -170,12 +170,16 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         user.setFailedAttempts(0);
         userData.saveUser(user);
 
+        revokeAccessToken(email, null);
+
         String token = jwtUtil.generateToken(email);
         String refreshToken = jwtUtil.generateRefreshToken(email);
 
         // Store access token JTI and refresh token in Redis with respective TTLs
         String accessJti = jwtUtil.extractJti(token);
-        redisTokenService.storeAccessJti(accessJti, jwtUtil.getAccessTtlMs());
+        long accessTtlMs = jwtUtil.getAccessTtlMs();
+        redisTokenService.storeAccessJti(email, accessJti, accessTtlMs);
+        redisTokenService.setUserAccessJti(email, accessJti, accessTtlMs);
         redisTokenService.storeRefreshToken(email, refreshToken, jwtUtil.getRefreshTtlMs());
 
         LoginResponse loginResponse = new LoginResponse(token, refreshToken);
@@ -200,15 +204,15 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw new AuthException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
 
-        // Rotate: delete old refresh token and create new pair
-        redisTokenService.deleteRefreshToken(refreshToken);
+        // Rotate: delete the old refresh token and create a new pair
+        revokeAccessToken(email, refreshToken);
 
         String newAccessToken = jwtUtil.generateToken(email);
         String newRefreshToken = jwtUtil.generateRefreshToken(email);
 
         // Store new tokens
         String newAccessJti = jwtUtil.extractJti(newAccessToken);
-        redisTokenService.storeAccessJti(newAccessJti, jwtUtil.getAccessTtlMs());
+        redisTokenService.storeAccessJti(email, newAccessJti, jwtUtil.getAccessTtlMs());
         redisTokenService.storeRefreshToken(email, newRefreshToken, jwtUtil.getRefreshTtlMs());
 
         logger.info("Refresh successful for email: {}", email);
@@ -218,20 +222,25 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     public void logout(String authHeader) {
         String email = ApplicationUtil.getEmailFromContext();
-        String token = null;
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            token = authHeader.substring(7);
-        }
-        if (token != null) {
-            try {
-                String jti = jwtUtil.extractJti(token);
-                redisTokenService.revokeAccessJti(jti);
-                logger.info("Logout successful for email: {}. Access token revoked.", email);
-            } catch (Exception e) {
-                logger.warn("Logout: failed to parse token for revocation, email: {}", email);
+        revokeAccessToken(email, null);
+    }
+
+    private void revokeAccessToken(String email, String refreshToken) {
+        // Clear existing access JTI for this user (if any) before issuing a new one
+        try {
+            String existingJti = redisTokenService.getUserAccessJti(email);
+            if (existingJti != null) {
+                redisTokenService.revokeAccessJti(existingJti);
+                redisTokenService.clearUserAccessJti(email);
+                logger.debug("Cleared existing JTI for email: {} -> {}", email, existingJti);
             }
-        } else {
-            logger.warn("Logout called without Authorization header; nothing to revoke. email: {}", email);
+
+            if (refreshToken != null) {
+                redisTokenService.deleteRefreshToken(refreshToken);
+            }
+
+        } catch (Exception e) {
+            logger.warn("Failed to clear existing JTI for email: {}", email);
         }
     }
 }
