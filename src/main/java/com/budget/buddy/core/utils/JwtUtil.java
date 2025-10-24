@@ -24,9 +24,6 @@ public class JwtUtil {
     @Value("${jwt-secret}")
     private String secretKey;
 
-    // Kept for backward compatibility with existing usages; prefer jwt.refresh-ttl property
-    public static final long REFRESH_TOKEN_EXPIRATION = 7 * 24 * 60 * 60 * 1000L;
-
     @Value("${jwt.issuer:}")
     private String issuer;
 

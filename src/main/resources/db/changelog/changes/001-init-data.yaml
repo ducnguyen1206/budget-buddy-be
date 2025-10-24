@@ -125,69 +125,8 @@ databaseChangeLog:
             tableName: auth_provider
             columnNames: provider_name, provider_id
             constraintName: uq_auth_provider_name_id
-
   - changeSet:
-      id: 003-session
-      author: ducnguyen
-      preConditions:
-        - onFail: MARK_RAN
-        - not:
-            tableExists:
-              tableName: session
-      changes:
-        - createTable:
-            tableName: session
-            columns:
-              - column:
-                  name: id
-                  type: bigint
-                  autoIncrement: true
-                  constraints:
-                    primaryKey: true
-              - column:
-                  name: user_id
-                  type: bigint
-                  constraints:
-                    nullable: false
-                    foreignKeyName: fk_session_user
-                    references: user(id)
-              - column:
-                  name: token
-                  type: varchar(512)
-                  constraints:
-                    nullable: false
-                    unique: true
-              - column:
-                  name: refresh_token
-                  type: varchar(512)
-                  constraints:
-                    nullable: false
-                    unique: true
-              - column:
-                  name: expires_at
-                  type: timestamp
-                  constraints:
-                    nullable: false
-              - column:
-                  name: created_date
-                  type: timestamp
-                  defaultValueComputed: CURRENT_TIMESTAMP
-                  constraints:
-                    nullable: false
-              - column:
-                  name: created_by
-                  type: varchar(255)
-                  constraints:
-                    nullable: false
-              - column:
-                  name: last_modified_date
-                  type: timestamp
-                  defaultValueComputed: CURRENT_TIMESTAMP
-              - column:
-                  name: last_modified_by
-                  type: varchar(255)
-  - changeSet:
-      id: 004-account-type-group
+      id: 003-account-type-group
       author: ducnguyen
       preConditions:
         - onFail: MARK_RAN
@@ -236,7 +175,7 @@ databaseChangeLog:
                   type: varchar(255)
 
   - changeSet:
-      id: 005-account
+      id: 004-account
       author: ducnguyen
       preConditions:
         - onFail: MARK_RAN
@@ -295,7 +234,7 @@ databaseChangeLog:
                   type: varchar(255)
 
   - changeSet:
-      id: 006-category
+      id: 005-category
       author: ducnguyen
       preConditions:
         - onFail: MARK_RAN
@@ -349,7 +288,7 @@ databaseChangeLog:
                   type: varchar(255)
 
   - changeSet:
-      id: 007-transaction
+      id: 006-transaction
       author: ducnguyen
       preConditions:
         - onFail: MARK_RAN
@@ -430,7 +369,7 @@ databaseChangeLog:
                   type: varchar(255)
 
   - changeSet:
-      id: 008-budget
+      id: 007-budget
       author: ducnguyen
       preConditions:
         - onFail: MARK_RAN
@@ -490,7 +429,7 @@ databaseChangeLog:
                   name: last_modified_by
                   type: varchar(255)
   - changeSet:
-      id: 010-user-verification
+      id: 008-user-verification
       author: ducnguyen
       preConditions:
         - onFail: MARK_RAN
