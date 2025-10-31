@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "Data Transfer Object for Budget")
@@ -34,6 +35,9 @@ public record BudgetDTO(
         @NotNull(message = "Currency is required")
         @Pattern(regexp = "^(VND|SGD)$", message = "Currency must be either VND or SGD")
         @Schema(description = "Currency of the budget", example = "SGD")
-        String currency
+        String currency,
+
+        @Schema(description = "Last updated date and time", example = "2021-01-01T00:00:00", accessMode = Schema.AccessMode.READ_ONLY)
+        LocalDateTime updatedAt
 ) {
 }

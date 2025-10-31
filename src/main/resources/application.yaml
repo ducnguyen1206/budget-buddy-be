@@ -9,26 +9,35 @@ spring:
     password: admin
     driver-class-name: org.postgresql.Driver
     hikari:
+      initialization-fail-timeout: -1
       pool-name: HikariPool
       maximum-pool-size: 10          # Usually 5–20 for local dev
       minimum-idle: 2
       idle-timeout: 30000            # 30 seconds
       max-lifetime: 1800000          # 30 minutes
-      connection-timeout: 20000      # 20 seconds
+      connection-timeout: 500        # 5 seconds
       auto-commit: false             # Let JPA manage transactions
+      validation-timeout: 3000          # Add validation timeout
   jpa:
     hibernate:
       ddl-auto: none
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc.batch_size: 20
+        order_inserts: true
+        order_updates: true
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.yaml
-    enabled: true
+    enabled: false
+    drop-first: false
+    clear-checksums: false
   modulith:
     events:
       default-async: true
+    docs:
+      enabled: false  # Disable in dev/local profiles
   mail:
     host: smtp.gmail.com
     port: 587
