@@ -1,6 +1,7 @@
 package com.budget.buddy.transaction.application.service;
 
 import com.budget.buddy.transaction.application.dto.category.CategoryDTO;
+import com.budget.buddy.transaction.domain.enums.CategoryType;
 
 import java.util.List;
 
@@ -9,7 +10,7 @@ public interface CategoryService {
 
     CategoryDTO getCategory(Long categoryId);
 
-    List<CategoryDTO> getMyCategories();
+    List<CategoryDTO> getMyCategories(CategoryType type);
 
     void deleteCategory(Long categoryId);
 

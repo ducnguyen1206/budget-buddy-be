@@ -11,9 +11,6 @@ import java.util.Optional;
 public interface BudgetRepository extends JpaRepository<Budget, Long> {
     boolean existsByCategoryIdAndMoney_Currency(Long categoryId, String currency);
 
-    @Query("SELECT b FROM Budget b WHERE b.id = :id AND b.userId = :userId")
-    Optional<Budget> findBydId(Long id, Long userId);
-
     @Query("""
             SELECT b.id                                                                 AS id,
                    b.category.id                                                        AS caegoryID,
@@ -32,6 +29,9 @@ public interface BudgetRepository extends JpaRepository<Budget, Long> {
             """)
     List<BudgetDTO> findAllBudgetsForUser();
 
+    // Secure, user-scoped entity lookup to enforce userFilter semantics
+    Optional<Budget> findByIdAndUserId(Long id, Long userId);
+
     @Query("""
             SELECT b.id                                                                 AS id,
                    b.category.id                                                        AS caegoryID,
@@ -45,8 +45,8 @@ public interface BudgetRepository extends JpaRepository<Budget, Long> {
                      JOIN Category c ON c.id = b.category.id
                      LEFT JOIN Transaction t ON t.category.id = c.id AND t.sourceAccount.money.currency = b.money.currency
                      LEFT JOIN Account a ON a.id = t.sourceAccount.id
-            WHERE b.id = :id
+            WHERE b.id = :id AND b.userId = :userId
             GROUP BY b.id, b.category.id, c.identity.name, b.money.currency
             """)
-    Optional<BudgetDTO> findBudgetDTOByIdAndUserId(Long id);
+    Optional<BudgetDTO> findBudgetDTOByIdAndUserId(Long id, Long userId);
 }

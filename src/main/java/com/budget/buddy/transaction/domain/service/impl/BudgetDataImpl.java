@@ -58,8 +58,8 @@ public class BudgetDataImpl implements BudgetData {
     public void updateBudget(BudgetDTO budgetDTO, Long budgetId) {
         Long userId = transactionUtils.getCurrentUserId();
 
-        Optional<Budget> budgetOptional = budgetRepository.findBydId(budgetId, userId);
-        logger.info("Checking update request if budget exists for budgetId='{}': {}", budgetId, budgetOptional.isPresent());
+        Optional<Budget> budgetOptional = budgetRepository.findByIdAndUserId(budgetId, userId);
+        logger.info("Checking update request if budget exists for userId='{}', budgetId='{}': {}", userId, budgetId, budgetOptional.isPresent());
 
         if (budgetOptional.isEmpty()) {
             throw new NotFoundException(ErrorCode.BUDGET_NOT_FOUND);
@@ -91,8 +91,8 @@ public class BudgetDataImpl implements BudgetData {
     public void deleteBudget(Long budgetId) {
         Long userId = transactionUtils.getCurrentUserId();
 
-        Optional<Budget> budgetOptional = budgetRepository.findBydId(budgetId, userId);
-        logger.info("Checking delete request if budget exists for budgetId='{}': {}", budgetId, budgetOptional.isPresent());
+        Optional<Budget> budgetOptional = budgetRepository.findByIdAndUserId(budgetId, userId);
+        logger.info("Checking delete request if budget exists for userId='{}', budgetId='{}': {}", userId, budgetId, budgetOptional.isPresent());
 
         if (budgetOptional.isEmpty()) {
             throw new NotFoundException(ErrorCode.BUDGET_NOT_FOUND);
@@ -114,7 +114,8 @@ public class BudgetDataImpl implements BudgetData {
 
     @Override
     public BudgetDTO getBudgetById(Long budgetId) {
-        Optional<BudgetDTO> budgetDTO = budgetRepository.findBudgetDTOByIdAndUserId(budgetId);
+        Long userId = transactionUtils.getCurrentUserId();
+        Optional<BudgetDTO> budgetDTO = budgetRepository.findBudgetDTOByIdAndUserId(budgetId, userId);
         return budgetDTO.orElseThrow(() -> new NotFoundException(ErrorCode.BUDGET_NOT_FOUND));
     }
 }

@@ -18,4 +18,6 @@ public interface AccountTypeGroupRepository extends JpaRepository<AccountTypeGro
 
     @Query("SELECT a FROM AccountTypeGroup a WHERE a.id = :id AND a.userId = :userId")
     Optional<AccountTypeGroup> findBydId(Long id, Long userId);
+
+    List<AccountTypeGroup> findAllByUserId(Long currentUserId);
 }

@@ -4,6 +4,7 @@ import com.budget.buddy.core.config.exception.ErrorCode;
 import com.budget.buddy.core.config.exception.NotFoundException;
 import com.budget.buddy.transaction.application.dto.category.CategoryDTO;
 import com.budget.buddy.transaction.application.mapper.CategoryMapper;
+import com.budget.buddy.transaction.domain.enums.CategoryType;
 import com.budget.buddy.transaction.domain.model.category.Category;
 import com.budget.buddy.transaction.domain.service.CategoryData;
 import com.budget.buddy.transaction.domain.utils.TransactionUtils;
@@ -64,8 +65,14 @@ public class CategoryDataImpl implements CategoryData {
     }
 
     @Override
-    public List<CategoryDTO> getCategories() {
-        List<Category> categories = categoryRepository.findAll();
+    public List<CategoryDTO> getCategories(CategoryType type) {
+        if (type != null) {
+            List<Category> categories = categoryRepository.findByIdentity_Type(type);
+            logger.info("Retrieved {} categories for type {}", categories.size(), type);
+            return categories.stream().map(categoryMapper::toDto).toList();
+        }
+
+        List<Category> categories = categoryRepository.findAllByUserId(transactionUtils.getCurrentUserId());
         logger.info("Retrieved {} categories for", categories.size());
 
         return categories.stream().map(categoryMapper::toDto).toList();

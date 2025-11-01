@@ -1,7 +1,7 @@
 package com.budget.buddy.transaction.domain.service;
 
 import com.budget.buddy.transaction.application.dto.category.CategoryDTO;
-import org.springframework.transaction.annotation.Transactional;
+import com.budget.buddy.transaction.domain.enums.CategoryType;
 
 import java.util.List;
 
@@ -10,12 +10,11 @@ public interface CategoryData {
 
     CategoryDTO getCategory(Long categoryId);
 
-    List<CategoryDTO> getCategories();
+    List<CategoryDTO> getCategories(CategoryType type);
 
     void deleteCategory(Long categoryId);
 
     CategoryDTO updateCategory(Long categoryId, CategoryDTO categoryRequest);
 
-    @Transactional(readOnly = true)
     boolean isTransactionExistedByCategoryId(Long accountId);
 }

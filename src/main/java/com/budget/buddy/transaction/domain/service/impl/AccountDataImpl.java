@@ -180,7 +180,7 @@ public class AccountDataImpl implements AccountData {
 
     @Override
     public AccountTypeRetrieveResponse getAccountTypeGroups() {
-        List<String> accountTypeGroupNames = accountTypeGroupRepository.findAll()
+        List<String> accountTypeGroupNames = accountTypeGroupRepository.findAllByUserId(transactionUtils.getCurrentUserId())
                 .stream().map(AccountTypeGroup::getName).toList();
         logger.info("Retrieved {} account type groups", accountTypeGroupNames.size());
         return new AccountTypeRetrieveResponse(accountTypeGroupNames);

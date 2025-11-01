@@ -4,6 +4,7 @@ import com.budget.buddy.core.config.exception.ConflictException;
 import com.budget.buddy.core.config.exception.ErrorCode;
 import com.budget.buddy.transaction.application.dto.category.CategoryDTO;
 import com.budget.buddy.transaction.application.service.CategoryService;
+import com.budget.buddy.transaction.domain.enums.CategoryType;
 import com.budget.buddy.transaction.domain.service.CategoryData;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,8 +28,8 @@ public class CategoryServiceImpl implements CategoryService {
 
 
     @Override
-    public List<CategoryDTO> getMyCategories() {
-        return categoryData.getCategories();
+    public List<CategoryDTO> getMyCategories(CategoryType type) {
+        return categoryData.getCategories(type);
     }
 
     @Override

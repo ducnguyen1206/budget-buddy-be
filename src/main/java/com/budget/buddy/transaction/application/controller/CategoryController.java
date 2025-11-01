@@ -2,6 +2,7 @@ package com.budget.buddy.transaction.application.controller;
 
 import com.budget.buddy.transaction.application.dto.category.CategoryDTO;
 import com.budget.buddy.transaction.application.service.CategoryService;
+import com.budget.buddy.transaction.domain.enums.CategoryType;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -16,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @Tag(name = "Category Management", description = "CRUD APIs for managing transaction categories")
 @RequiredArgsConstructor
@@ -66,8 +68,8 @@ public class CategoryController {
                             array = @ArraySchema(schema = @Schema(implementation = CategoryDTO.class))))
     })
     @GetMapping
-    public ResponseEntity<List<CategoryDTO>> getMyCategories() {
-        return ResponseEntity.ok(categoryService.getMyCategories());
+    public ResponseEntity<List<CategoryDTO>> getMyCategories(@RequestParam(required = false) CategoryType type) {
+        return ResponseEntity.ok(categoryService.getMyCategories(type));
     }
 
     @Operation(summary = "Delete a category by ID", description = "Deletes the specified category if it belongs to the authenticated user.", responses = {

@@ -5,6 +5,7 @@ import com.budget.buddy.transaction.domain.model.category.Category;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface CategoryRepository extends JpaRepository<Category, Long> {
@@ -14,4 +15,8 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
 
     @Query("SELECT c FROM Category c WHERE c.id = :id AND c.userId = :userId")
     Optional<Category> findBydId(Long id, Long userId);
+
+    List<Category> findByIdentity_Type(CategoryType type);
+
+    List<Category> findAllByUserId(Long userId);
 }
