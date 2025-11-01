@@ -14,23 +14,24 @@ import static com.budget.buddy.core.utils.ApplicationUtil.getUserIdFromContext;
 @RequiredArgsConstructor
 public class HibernateTenantFilterAspect {
     private final EntityManager entityManager;
+    private static final String USER_FILTER_NAME = "userFilter";
 
     @Around("execution(* com.budget.buddy.transaction.domain.service.impl..*(..))")
     public Object aroundTx(ProceedingJoinPoint pjp) throws Throwable {
         var session = entityManager.unwrap(org.hibernate.Session.class);
-        var filter = session.getEnabledFilter("userFilter");
+        var filter = session.getEnabledFilter(USER_FILTER_NAME);
         boolean enabledHere = false;
 
         try {
             if (filter == null) {
                 Long userId = getUserIdFromContext();
-                session.enableFilter("userFilter").setParameter("userId", userId);
+                session.enableFilter(USER_FILTER_NAME).setParameter("userId", userId);
                 enabledHere = true;
             }
             return pjp.proceed();
         } finally {
             if (enabledHere) {
-                session.disableFilter("userFilter");
+                session.disableFilter(USER_FILTER_NAME);
             }
         }
     }

@@ -5,7 +5,6 @@ import com.budget.buddy.user.domain.model.UserVerification;
 import com.budget.buddy.user.domain.service.UserData;
 import com.budget.buddy.user.domain.vo.EmailAddressVO;
 import com.budget.buddy.user.domain.vo.VerificationTokenVO;
-import com.budget.buddy.user.infrastructure.repository.SessionRepository;
 import com.budget.buddy.user.infrastructure.repository.UserRepository;
 import com.budget.buddy.user.infrastructure.repository.UserVerificationRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +18,6 @@ import java.util.Optional;
 public class UserDataImpl implements UserData {
     private final UserRepository userRepository;
     private final UserVerificationRepository userVerificationRepository;
-    private final SessionRepository sessionRepository;
 
     @Override
     public Optional<User> findUserByEmail(String email) {

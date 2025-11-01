@@ -13,9 +13,9 @@ spring:
       pool-name: HikariPool
       maximum-pool-size: 10          # Usually 5–20 for local dev
       minimum-idle: 2
-      idle-timeout: 30000            # 30 seconds
-      max-lifetime: 1800000          # 30 minutes
-      connection-timeout: 500        # 5 seconds
+      idle-timeout: 600000      # 30 seconds
+      max-lifetime: 1800000      # 30 minutes
+      connection-timeout: 30000        # 5 seconds
       auto-commit: false             # Let JPA manage transactions
       validation-timeout: 3000          # Add validation timeout
   jpa:
