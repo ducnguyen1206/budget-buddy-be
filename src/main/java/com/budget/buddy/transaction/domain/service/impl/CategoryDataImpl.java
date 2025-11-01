@@ -36,7 +36,7 @@ public class CategoryDataImpl implements CategoryData {
         logger.info("Creating category: name='{}', type='{}' for user user Id='{}'",
                 categoryRequest.name(), categoryRequest.type(), userId);
 
-        var existingOpt = categoryRepository.findByIdentity_NameAndIdentity_Type(categoryRequest.name(), categoryRequest.type());
+        var existingOpt = categoryRepository.findByUserIdAndIdentity_NameAndIdentity_Type(userId, categoryRequest.name(), categoryRequest.type());
         if (existingOpt.isPresent()) {
             var existing = existingOpt.get();
             logger.info("Category already exists with id={} for userId={}, skipping creation", existing.getId(), userId);
@@ -66,13 +66,15 @@ public class CategoryDataImpl implements CategoryData {
 
     @Override
     public List<CategoryDTO> getCategories(CategoryType type) {
+        Long userId = transactionUtils.getCurrentUserId();
+
         if (type != null) {
-            List<Category> categories = categoryRepository.findByIdentity_Type(type);
+            List<Category> categories = categoryRepository.findByUserIdAndIdentity_Type(userId, type);
             logger.info("Retrieved {} categories for type {}", categories.size(), type);
             return categories.stream().map(categoryMapper::toDto).toList();
         }
 
-        List<Category> categories = categoryRepository.findAllByUserId(transactionUtils.getCurrentUserId());
+        List<Category> categories = categoryRepository.findAllByUserId(userId);
         logger.info("Retrieved {} categories for", categories.size());
 
         return categories.stream().map(categoryMapper::toDto).toList();
@@ -89,7 +91,7 @@ public class CategoryDataImpl implements CategoryData {
     @Transactional
     @Override
     public CategoryDTO updateCategory(Long categoryId, CategoryDTO categoryRequest) {
-        var existingOpt = categoryRepository.findByIdentity_NameAndIdentity_Type(categoryRequest.name(), categoryRequest.type());
+        var existingOpt = categoryRepository.findByUserIdAndIdentity_NameAndIdentity_Type(transactionUtils.getCurrentUserId(), categoryRequest.name(), categoryRequest.type());
         if (existingOpt.isPresent()) {
             var existing = existingOpt.get();
             logger.info("Category already exists with id={} for skipping update", existing.getId());

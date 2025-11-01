@@ -11,12 +11,12 @@ import java.util.Optional;
 public interface CategoryRepository extends JpaRepository<Category, Long> {
 
 
-    Optional<Category> findByIdentity_NameAndIdentity_Type(String name, CategoryType type);
+    Optional<Category> findByUserIdAndIdentity_NameAndIdentity_Type(Long userId, String name, CategoryType type);
 
     @Query("SELECT c FROM Category c WHERE c.id = :id AND c.userId = :userId")
     Optional<Category> findBydId(Long id, Long userId);
 
-    List<Category> findByIdentity_Type(CategoryType type);
+    List<Category> findByUserIdAndIdentity_Type(Long userId, CategoryType type);
 
     List<Category> findAllByUserId(Long userId);
 }

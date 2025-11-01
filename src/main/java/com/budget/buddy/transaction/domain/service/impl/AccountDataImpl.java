@@ -66,7 +66,7 @@ public class AccountDataImpl implements AccountData {
     public boolean isAccountCurrencyInvalid(AccountDTO accountDTO, Long accountId) {
         logger.info("Checking currency for account: type='{}'", accountDTO.type());
 
-        AccountTypeGroup accountTypeGroup = accountTypeGroupRepository.findByName(accountDTO.type())
+        AccountTypeGroup accountTypeGroup = accountTypeGroupRepository.findByNameAndUserId(accountDTO.type(), transactionUtils.getCurrentUserId())
                 .orElse(null);
         if (accountTypeGroup == null) {
             logger.info("Account type group not found: '{}'", accountDTO.type());
@@ -317,7 +317,7 @@ public class AccountDataImpl implements AccountData {
     private AccountTypeGroup createOrGetAccountTypeGroup(String name) {
         Long userId = transactionUtils.getCurrentUserId();
 
-        return accountTypeGroupRepository.findByName(name)
+        return accountTypeGroupRepository.findByNameAndUserId(name, userId)
                 .orElseGet(() -> {
                     AccountTypeGroup newGroup = new AccountTypeGroup(userId, name, new ArrayList<>());
                     logger.info("Creating new account type group: name='{}' for userId='{}'", name, userId);

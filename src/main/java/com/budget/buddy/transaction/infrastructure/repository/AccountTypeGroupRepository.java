@@ -12,6 +12,8 @@ import java.util.Optional;
 public interface AccountTypeGroupRepository extends JpaRepository<AccountTypeGroup, Long> {
     Optional<AccountTypeGroup> findByName(String name);
 
+    Optional<AccountTypeGroup> findByNameAndUserId(String name, Long userId);
+
     @EntityGraph(attributePaths = {"accounts"})
     @NonNull
     List<AccountTypeGroup> findAll();
