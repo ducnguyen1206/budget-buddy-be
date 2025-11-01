@@ -43,7 +43,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
             @Override
             public String getUsername() {
-                return user.getEmailAddress().getValue();
+                return user.getId().toString();
             }
         };
     }

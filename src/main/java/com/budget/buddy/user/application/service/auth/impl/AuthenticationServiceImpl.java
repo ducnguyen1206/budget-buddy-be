@@ -193,7 +193,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         String email = jwtUtil.extractEmail(refreshToken);
 
         // Basic JWT validation (signature, issuer, expiration)
-        if (!jwtUtil.validateToken(refreshToken, email)) {
+        if (!jwtUtil.validateToken(refreshToken)) {
             logger.warn("Refresh failed: invalid refresh token for {}", email);
             throw new AuthException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
@@ -221,8 +221,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public void logout(String authHeader) {
-        String email = ApplicationUtil.getEmailFromContext();
-        revokeAccessToken(email, null);
+        Long userId = ApplicationUtil.getUserIdFromContext();
+        User user = userData.findByUserId(userId).orElseThrow(() -> new AuthException(ErrorCode.USER_NOT_FOUND));
+        revokeAccessToken(user.getEmailAddress().getValue(), null);
     }
 
     private void revokeAccessToken(String email, String refreshToken) {

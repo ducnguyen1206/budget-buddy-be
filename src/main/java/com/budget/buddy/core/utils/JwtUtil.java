@@ -115,18 +115,14 @@ public class JwtUtil {
         return parseClaims(token).getPayload().getId();
     }
 
-    public boolean validateToken(String token, String email) {
+    public boolean validateToken(String token) {
         var claims = parseClaims(token).getPayload();
 
         if (!StringUtils.isBlank(issuer) && !issuer.equals(claims.getIssuer())) {
             return false;
         }
 
-        return email.equals(claims.getSubject()) && !isExpired(claims.getExpiration());
-    }
-
-    public boolean validateToken(String token, String email, UserDetails userDetails) {
-        return userDetails.getUsername().equals(email) && validateToken(token, email);
+        return !isExpired(claims.getExpiration());
     }
 
     private boolean isExpired(Date expiration) {

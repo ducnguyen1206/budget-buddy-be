@@ -1,6 +1,5 @@
 package com.budget.buddy.user.domain.service;
 
-import com.budget.buddy.user.domain.model.Session;
 import com.budget.buddy.user.domain.model.User;
 import com.budget.buddy.user.domain.model.UserVerification;
 import com.budget.buddy.user.domain.vo.EmailAddressVO;
@@ -16,21 +15,17 @@ public interface UserData {
 
     User saveNewUser(EmailAddressVO email);
 
-    UserVerification saveNewUserVerificationToken(User user, VerificationTokenVO token);
+    void saveNewUserVerificationToken(User user, VerificationTokenVO token);
 
     Optional<UserVerification> findUserVerificationWithDate(String token, LocalDateTime time);
 
     Optional<UserVerification> findUserVerification(String token);
 
-    UserVerification saveUserVerification(UserVerification userVerification);
+    void saveUserVerification(UserVerification userVerification);
 
-    User saveUser(User user);
+    void saveUser(User user);
 
     void deleteUserVerification(UserVerification userVerification);
 
-    Optional<Session> findSessionByUserId(Long userId);
-
-    void deleteSession(Session session);
-
-    void saveSession(Session session);
+    Optional<User> findByUserId(Long userId);
 }

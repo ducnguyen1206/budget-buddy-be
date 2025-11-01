@@ -1,6 +1,5 @@
 package com.budget.buddy.user.domain.service.impl;
 
-import com.budget.buddy.user.domain.model.Session;
 import com.budget.buddy.user.domain.model.User;
 import com.budget.buddy.user.domain.model.UserVerification;
 import com.budget.buddy.user.domain.service.UserData;
@@ -39,9 +38,9 @@ public class UserDataImpl implements UserData {
     }
 
     @Override
-    public UserVerification saveNewUserVerificationToken(User user, VerificationTokenVO token) {
+    public void saveNewUserVerificationToken(User user, VerificationTokenVO token) {
         UserVerification verification = new UserVerification(user, token, false);
-        return userVerificationRepository.save(verification);
+        userVerificationRepository.save(verification);
     }
 
     @Override
@@ -55,13 +54,13 @@ public class UserDataImpl implements UserData {
     }
 
     @Override
-    public UserVerification saveUserVerification(UserVerification userVerification) {
-        return userVerificationRepository.save(userVerification);
+    public void saveUserVerification(UserVerification userVerification) {
+        userVerificationRepository.save(userVerification);
     }
 
     @Override
-    public User saveUser(User user) {
-        return userRepository.save(user);
+    public void saveUser(User user) {
+        userRepository.save(user);
     }
 
     @Override
@@ -70,17 +69,7 @@ public class UserDataImpl implements UserData {
     }
 
     @Override
-    public Optional<Session> findSessionByUserId(Long userId) {
-        return sessionRepository.findByUserId(userId);
-    }
-
-    @Override
-    public void deleteSession(Session session) {
-        sessionRepository.delete(session);
-    }
-
-    @Override
-    public void saveSession(Session session) {
-        sessionRepository.save(session);
+    public Optional<User> findByUserId(Long userId) {
+        return userRepository.findById(userId);
     }
 }

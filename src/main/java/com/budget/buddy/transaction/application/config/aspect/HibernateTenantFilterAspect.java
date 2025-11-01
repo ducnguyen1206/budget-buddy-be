@@ -1,6 +1,5 @@
 package com.budget.buddy.transaction.application.config.aspect;
 
-import com.budget.buddy.transaction.application.config.hibernate.UserContext;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -8,13 +7,13 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
 
+import static com.budget.buddy.core.utils.ApplicationUtil.getUserIdFromContext;
+
 @Aspect
 @Component
 @RequiredArgsConstructor
 public class HibernateTenantFilterAspect {
-
     private final EntityManager entityManager;
-    private final UserContext userContext;
 
     @Around("execution(* com.budget.buddy.transaction.domain.service.impl..*(..))")
     public Object aroundTx(ProceedingJoinPoint pjp) throws Throwable {
@@ -23,9 +22,9 @@ public class HibernateTenantFilterAspect {
         boolean enabledHere = false;
 
         try {
-            if (userContext.getUser() != null && filter == null) {
-                session.enableFilter("userFilter")
-                        .setParameter("userId", userContext.getUser());
+            if (filter == null) {
+                Long userId = getUserIdFromContext();
+                session.enableFilter("userFilter").setParameter("userId", userId);
                 enabledHere = true;
             }
             return pjp.proceed();

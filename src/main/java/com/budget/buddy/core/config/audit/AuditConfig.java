@@ -19,8 +19,8 @@ public class AuditConfig {
             if (authentication == null || !authentication.isAuthenticated()) {
                 return Optional.of("System");
             }
-            String email = authentication.getName();
-            return Optional.of(email);
+            String userId = authentication.getName();
+            return Optional.of(userId);
         };
     }
 
