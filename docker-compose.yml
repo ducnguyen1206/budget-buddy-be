@@ -8,16 +8,16 @@ services:
       POSTGRES_DB: budget-buddy
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: admin
-    ports:
-      - "5450:5432"
+    # Ports removed for security (app connects internally)
     volumes:
       - pgdata:/var/lib/postgresql/data
+    restart: always
 
   redis:
     image: redis:7
     container_name: budget-buddy-redis
-    ports:
-      - "6379:6379"
+    # Ports removed for security (app connects internally)
+    restart: always
 
   app:
     build:
@@ -30,23 +30,18 @@ services:
     ports:
       - "8080:8080"
     environment:
-      # Spring profile as requested
       SPRING_PROFILES_ACTIVE: local
-
-      # Override datasource to use Postgres service instead of H2 defined in application-cloud.yml
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/budget-buddy
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: admin
       SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
-
-      # Redis connection to the redis service
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
-
-      # Secrets provided at runtime via .env file (not committed)
       EMAIL_USERNAME: minhduc.nguyennn25@gmail.com
+      # These pull from the .env file we just created
       EMAIL_PASSWORD: ${EMAIL_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
+    restart: always
 
 volumes:
   pgdata:
