@@ -107,7 +107,7 @@ public class BudgetDataImpl implements BudgetData {
     public List<BudgetDTO> getAllBudgetsForCurrentUser() {
         Long userId = transactionUtils.getCurrentUserId();
         logger.info("Retrieving all budgets for userId='{}'", userId);
-        List<BudgetDTO> budgets = budgetRepository.findAllBudgetsForUser();
+        List<BudgetDTO> budgets = budgetRepository.findAllBudgetsForUser(userId);
         logger.info("Retrieved {} budgets for userId='{}'", budgets.size(), userId);
         return budgets;
     }

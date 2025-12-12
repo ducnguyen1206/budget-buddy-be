@@ -1,0 +1,13 @@
+# Docker build context ignore rules
+.git
+.gitignore
+target
+**/target
+.idea
+.vscode
+*.iml
+node_modules
+.mvn/wrapper/maven-wrapper.jar
+Dockerfile*
+docker-compose*.yml
+.env

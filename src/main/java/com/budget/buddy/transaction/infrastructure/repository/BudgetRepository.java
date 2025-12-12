@@ -25,9 +25,10 @@ public interface BudgetRepository extends JpaRepository<Budget, Long> {
                      JOIN Category c ON c.id = b.category.id
                      LEFT JOIN Transaction t ON t.category.id = c.id AND t.sourceAccount.money.currency = b.money.currency
                      LEFT JOIN Account a ON a.id = t.sourceAccount.id
+            WHERE b.userId = :userId
             GROUP BY b.id, b.category.id, c.identity.name, b.money.currency
             """)
-    List<BudgetDTO> findAllBudgetsForUser();
+    List<BudgetDTO> findAllBudgetsForUser(Long userId);
 
     // Secure, user-scoped entity lookup to enforce userFilter semantics
     Optional<Budget> findByIdAndUserId(Long id, Long userId);

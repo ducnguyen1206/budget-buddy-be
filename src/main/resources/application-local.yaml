@@ -30,7 +30,7 @@ spring:
         order_updates: true
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.yaml
-    enabled: false
+    enabled: true
     drop-first: false
     clear-checksums: false
   modulith:
