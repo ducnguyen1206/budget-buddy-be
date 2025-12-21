@@ -25,7 +25,7 @@ COPY --from=build /app/target/*.jar /app/app.jar
 
 # Default JVM and Spring profile (can be overridden at runtime)
 ENV JAVA_OPTS=""
-ENV SPRING_PROFILES_ACTIVE=local
+ENV SPRING_PROFILES_ACTIVE=cloud
 
 EXPOSE 8080
 
