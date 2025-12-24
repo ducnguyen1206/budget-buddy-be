@@ -67,8 +67,8 @@ public class CategoryController {
                             array = @ArraySchema(schema = @Schema(implementation = CategoryDTO.class))))
     })
     @GetMapping
-    public ResponseEntity<List<CategoryDTO>> getMyCategories(@RequestParam(required = false) CategoryType type) {
-        return ResponseEntity.ok(categoryService.getMyCategories(type));
+    public ResponseEntity<List<CategoryDTO>> getMyCategories() {
+        return ResponseEntity.ok(categoryService.getMyCategories());
     }
 
     @Operation(summary = "Delete a category by ID", description = "Deletes the specified category if it belongs to the authenticated user.", responses = {

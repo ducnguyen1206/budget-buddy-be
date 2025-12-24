@@ -4,7 +4,7 @@ spring:
       host: localhost
       port: 6379
   datasource:
-    url: jdbc:postgresql://localhost:5432/budget-buddy
+    url: jdbc:postgresql://localhost:5432/budgetbuddy
     username: postgres
     password: admin
     driver-class-name: org.postgresql.Driver

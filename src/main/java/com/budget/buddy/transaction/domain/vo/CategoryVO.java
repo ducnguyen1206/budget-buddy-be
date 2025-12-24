@@ -28,26 +28,19 @@ public class CategoryVO implements Serializable {
     @Size(max = 100)
     @Column(nullable = false, length = 100)
     private String name;
-
-    @NotNull
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private CategoryType type;
-
     // Constructor
-    public CategoryVO(String name, CategoryType type) {
-        if (name == null || type == null) {
+    public CategoryVO(String name) {
+        if (name == null) {
             throw new IllegalArgumentException("Amount and currency must not be null or empty");
         }
 
         this.name = name;
-        this.type = type;
     }
 
     // toString method for debugging
     @Override
     public String toString() {
-        return name + " " + type;
+        return name;
     }
 
     // Equals and hashCode (for value equality)
@@ -55,11 +48,11 @@ public class CategoryVO implements Serializable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof CategoryVO categoryVO)) return false;
-        return name.equals(categoryVO.name) && type.equals(categoryVO.type);
+        return name.equals(categoryVO.name);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, type);
+        return Objects.hash(name);
     }
 }

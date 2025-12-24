@@ -13,7 +13,6 @@ public interface CategoryMapper {
 
     @Mapping(target = "id", expression = "java(category.getId())")
     @Mapping(target = "name", expression = "java(category.getIdentity().getName())")
-    @Mapping(target = "type", expression = "java(category.getIdentity().getType())")
     CategoryDTO toDto(Category category);
 
 

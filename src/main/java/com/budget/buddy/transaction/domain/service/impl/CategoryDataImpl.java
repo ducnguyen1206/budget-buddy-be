@@ -33,17 +33,17 @@ public class CategoryDataImpl implements CategoryData {
     public CategoryDTO createCategory(CategoryDTO categoryRequest) {
         Long userId = transactionUtils.getCurrentUserId();
 
-        logger.info("Creating category: name='{}', type='{}' for user user Id='{}'",
-                categoryRequest.name(), categoryRequest.type(), userId);
+        logger.info("Creating category: name='{}', for user user Id='{}'",
+                categoryRequest.name(), userId);
 
-        var existingOpt = categoryRepository.findByUserIdAndIdentity_NameAndIdentity_Type(userId, categoryRequest.name(), categoryRequest.type());
+        var existingOpt = categoryRepository.findByUserIdAndIdentity_Name(userId, categoryRequest.name());
         if (existingOpt.isPresent()) {
             var existing = existingOpt.get();
             logger.info("Category already exists with id={} for userId={}, skipping creation", existing.getId(), userId);
             return categoryMapper.toDto(existing);
         }
 
-        CategoryVO categoryIdentity = new CategoryVO(categoryRequest.name(), categoryRequest.type());
+        CategoryVO categoryIdentity = new CategoryVO(categoryRequest.name());
         Category category = new Category(categoryIdentity, userId);
 
 
@@ -65,14 +65,8 @@ public class CategoryDataImpl implements CategoryData {
     }
 
     @Override
-    public List<CategoryDTO> getCategories(CategoryType type) {
+    public List<CategoryDTO> getCategories() {
         Long userId = transactionUtils.getCurrentUserId();
-
-        if (type != null) {
-            List<Category> categories = categoryRepository.findByUserIdAndIdentity_Type(userId, type);
-            logger.info("Retrieved {} categories for type {}", categories.size(), type);
-            return categories.stream().map(categoryMapper::toDto).toList();
-        }
 
         List<Category> categories = categoryRepository.findAllByUserId(userId);
         logger.info("Retrieved {} categories for", categories.size());
@@ -91,7 +85,7 @@ public class CategoryDataImpl implements CategoryData {
     @Transactional
     @Override
     public CategoryDTO updateCategory(Long categoryId, CategoryDTO categoryRequest) {
-        var existingOpt = categoryRepository.findByUserIdAndIdentity_NameAndIdentity_Type(transactionUtils.getCurrentUserId(), categoryRequest.name(), categoryRequest.type());
+        var existingOpt = categoryRepository.findByUserIdAndIdentity_Name(transactionUtils.getCurrentUserId(), categoryRequest.name());
         if (existingOpt.isPresent()) {
             var existing = existingOpt.get();
             logger.info("Category already exists with id={} for skipping update", existing.getId());
@@ -104,7 +98,7 @@ public class CategoryDataImpl implements CategoryData {
                 .orElseThrow(() -> new NotFoundException(ErrorCode.CATEGORY_NOT_FOUND));
         logger.info("Updating category id={} for", categoryId);
 
-        category.setIdentity(new CategoryVO(categoryRequest.name(), categoryRequest.type()));
+        category.setIdentity(new CategoryVO(categoryRequest.name()));
         category = categoryRepository.save(category);
         logger.info("Updated category id={} for", categoryId);
 

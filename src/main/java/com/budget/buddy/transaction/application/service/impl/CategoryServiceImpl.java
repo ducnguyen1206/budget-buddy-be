@@ -28,8 +28,8 @@ public class CategoryServiceImpl implements CategoryService {
 
 
     @Override
-    public List<CategoryDTO> getMyCategories(CategoryType type) {
-        return categoryData.getCategories(type);
+    public List<CategoryDTO> getMyCategories() {
+        return categoryData.getCategories();
     }
 
     @Override

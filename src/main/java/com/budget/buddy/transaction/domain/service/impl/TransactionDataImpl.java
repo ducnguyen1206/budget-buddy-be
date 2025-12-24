@@ -49,20 +49,22 @@ public class TransactionDataImpl implements TransactionData {
         Long userId = transactionUtils.getCurrentUserId();
         Account sourceAccount = getAccount(userId, transactionRequest.getAccountId());
         Category category = getCategory(userId, transactionRequest.getCategoryId());
+        CategoryType categoryType = transactionRequest.getCategoryType();
+        Direction direction =  CategoryType.INCOME.equals(categoryType) ? Direction.IN : Direction.OUT;
 
         logger.info("Creating transaction: userId='{}', amount='{}', categoryId='{}', sourceAccountId='{}'",
                 userId, transactionRequest.getAmount(), category.getId(), sourceAccount.getId());
 
         Transaction sourceTransaction = buildTransaction(userId, sourceAccount, category, transactionRequest,
-                CategoryType.INCOME.equals(category.getIdentity().getType()) ? Direction.IN : Direction.OUT);
+                direction, categoryType);
 
         List<Transaction> transactions = new ArrayList<>(2);
         transactions.add(sourceTransaction);
 
         // For transfer category, also record a transaction entry for the target account
-        if (CategoryType.TRANSFER.equals(category.getIdentity().getType())) {
+        if (CategoryType.TRANSFER.equals(categoryType)) {
             Account targetAccount = getAccount(userId, transactionRequest.getTargetAccountId());
-            transactions.add(buildTransaction(userId, targetAccount, category, transactionRequest, Direction.IN));
+            transactions.add(buildTransaction(userId, targetAccount, category, transactionRequest, Direction.IN, categoryType));
             logger.info("Creating transfer mirror transaction: userId='{}', amount='{}', categoryId='{}', targetAccountId='{}'",
                     userId, transactionRequest.getAmount(), category.getId(), targetAccount.getId());
         }
@@ -70,7 +72,7 @@ public class TransactionDataImpl implements TransactionData {
         transactionRepository.saveAll(transactions);
     }
 
-    private Transaction buildTransaction(Long userId, Account account, Category category, TransactionDTO dto, Direction direction) {
+    private Transaction buildTransaction(Long userId, Account account, Category category, TransactionDTO dto, Direction direction, CategoryType categoryType) {
         BigDecimal amount = direction.equals(Direction.OUT) ? dto.getAmount().abs().negate() : dto.getAmount().abs();
         return new Transaction(
                 userId,
@@ -79,7 +81,7 @@ public class TransactionDataImpl implements TransactionData {
                 dto.getName(),
                 amount,
                 dto.getDate(),
-                category.getIdentity().getType(),
+                categoryType,
                 dto.getRemarks()
         );
     }
@@ -137,7 +139,7 @@ public class TransactionDataImpl implements TransactionData {
                 .sourceAccountName(sourceAccount.getName())
                 .categoryName(transaction.getCategory().getIdentity().getName())
                 .currency(sourceAccount.getMoney().getCurrency())
-                .categoryType(transaction.getCategory().getIdentity().getType())
+                .categoryType(transaction.getType())
                 .accountId(transaction.getSourceAccount().getId())
                 .sourceAccountType(transaction.getSourceAccount().getAccountTypeGroup().getName())
                 .categoryId(transaction.getCategory().getId())

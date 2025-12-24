@@ -10,7 +10,7 @@ public interface CategoryService {
 
     CategoryDTO getCategory(Long categoryId);
 
-    List<CategoryDTO> getMyCategories(CategoryType type);
+    List<CategoryDTO> getMyCategories();
 
     void deleteCategory(Long categoryId);
 

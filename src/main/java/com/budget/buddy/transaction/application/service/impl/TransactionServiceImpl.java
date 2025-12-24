@@ -3,7 +3,7 @@ package com.budget.buddy.transaction.application.service.impl;
 import com.budget.buddy.core.config.exception.BadRequestException;
 import com.budget.buddy.core.config.exception.ConflictException;
 import com.budget.buddy.core.config.exception.ErrorCode;
-import com.budget.buddy.transaction.application.dto.category.CategoryDTO;
+import com.budget.buddy.transaction.application.dto.account.AccountFlatView;
 import com.budget.buddy.transaction.application.dto.transaction.RetrieveTransactionsParams;
 import com.budget.buddy.transaction.application.dto.transaction.TransactionDTO;
 import com.budget.buddy.transaction.application.dto.transaction.TransactionFilterCriteria;
@@ -11,9 +11,7 @@ import com.budget.buddy.transaction.application.dto.transaction.TransactionPagin
 import com.budget.buddy.transaction.application.service.TransactionService;
 import com.budget.buddy.transaction.domain.enums.CategoryType;
 import com.budget.buddy.transaction.domain.service.AccountData;
-import com.budget.buddy.transaction.domain.service.CategoryData;
 import com.budget.buddy.transaction.domain.service.TransactionData;
-import com.budget.buddy.transaction.application.dto.account.AccountFlatView;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -28,35 +26,37 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class TransactionServiceImpl implements TransactionService {
     private final TransactionData transactionData;
-    private final CategoryData categoryData;
     private final AccountData accountData;
     private static final Logger logger = LogManager.getLogger(TransactionServiceImpl.class);
 
     @Override
     public void createTransaction(TransactionDTO transactionRequest) {
-        CategoryDTO categoryDTO = categoryData.getCategory(transactionRequest.getCategoryId());
         accountData.checkAccountExists(transactionRequest.getAccountId());
 
         // save transaction
-        validateTransferInfo(categoryDTO, transactionRequest);
+        validateTransferInfo(transactionRequest);
         transactionData.createTransaction(transactionRequest);
 
         // Deduct balance from an account
         BigDecimal amount = transactionRequest.getAmount().abs();
 
-        if (CategoryType.TRANSFER.equals(categoryDTO.type())) {
+        CategoryType categoryType = transactionRequest.getCategoryType();
+
+        if (CategoryType.TRANSFER.equals(categoryType)) {
             Long sourceAccountId = transactionRequest.getAccountId();
             Long targetAccountId = transactionRequest.getTargetAccountId();
             accountData.transferMoney(sourceAccountId, targetAccountId, amount);
             return;
         }
 
-        BigDecimal finalAmount = CategoryType.EXPENSE.equals(categoryDTO.type()) ? amount.negate() : amount;
+        BigDecimal finalAmount = CategoryType.EXPENSE.equals(categoryType) ? amount.negate() : amount;
         accountData.updateAvailableBalance(transactionRequest.getAccountId(), finalAmount);
     }
 
-    private void validateTransferInfo(CategoryDTO categoryDTO, TransactionDTO transactionRequest) {
-        if (!CategoryType.TRANSFER.equals(categoryDTO.type())) {
+    private void validateTransferInfo(TransactionDTO transactionRequest) {
+        CategoryType categoryType = transactionRequest.getCategoryType();
+
+        if (!CategoryType.TRANSFER.equals(categoryType)) {
             return;
         }
 

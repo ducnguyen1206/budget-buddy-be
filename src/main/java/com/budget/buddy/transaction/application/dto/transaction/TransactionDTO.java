@@ -61,7 +61,7 @@ public class TransactionDTO {
     @Schema(description = "Currency code", example = "SGD", accessMode = Schema.AccessMode.READ_ONLY)
     private String currency;
 
-    @Schema(description = "Category type", example = "EXPENSE", accessMode = Schema.AccessMode.READ_ONLY)
+    @Schema(description = "Category type", example = "EXPENSE")
     private CategoryType categoryType;
 
     @Schema(description = "Source account type", example = "SAVINGS", accessMode = Schema.AccessMode.READ_ONLY)
