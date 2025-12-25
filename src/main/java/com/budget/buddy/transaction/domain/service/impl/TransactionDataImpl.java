@@ -50,6 +50,10 @@ public class TransactionDataImpl implements TransactionData {
     public void createTransaction(TransactionDTO transactionRequest) {
         Long userId = transactionUtils.getCurrentUserId();
         Account sourceAccount = getAccount(userId, transactionRequest.getAccountId());
+        if (sourceAccount == null) {
+            throw new NotFoundException(ErrorCode.ACCOUNT_NOT_FOUND);
+        }
+
         Category category = getCategory(userId, transactionRequest.getCategoryId());
         CategoryType categoryType = transactionRequest.getCategoryType();
         Direction direction =  CategoryType.INCOME.equals(categoryType) ? Direction.IN : Direction.OUT;

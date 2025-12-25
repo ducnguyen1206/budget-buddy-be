@@ -3,6 +3,7 @@ package com.budget.buddy.transaction.domain.service.impl;
 import com.budget.buddy.core.config.exception.ErrorCode;
 import com.budget.buddy.core.config.exception.NotFoundException;
 import com.budget.buddy.transaction.application.dto.account.AccountDTO;
+import com.budget.buddy.transaction.application.dto.account.AccountFlatView;
 import com.budget.buddy.transaction.application.dto.account.AccountRetrieveResponse;
 import com.budget.buddy.transaction.application.dto.account.AccountTypeRetrieveResponse;
 import com.budget.buddy.transaction.domain.enums.Currency;
@@ -10,11 +11,9 @@ import com.budget.buddy.transaction.domain.model.account.Account;
 import com.budget.buddy.transaction.domain.model.account.AccountTypeGroup;
 import com.budget.buddy.transaction.domain.service.AccountData;
 import com.budget.buddy.transaction.domain.utils.TransactionUtils;
-import com.budget.buddy.transaction.domain.vo.MoneyVO;
 import com.budget.buddy.transaction.infrastructure.repository.AccountRepository;
 import com.budget.buddy.transaction.infrastructure.repository.AccountTypeGroupRepository;
 import com.budget.buddy.transaction.infrastructure.repository.TransactionRepository;
-import com.budget.buddy.transaction.application.dto.account.AccountFlatView;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -174,7 +173,6 @@ public class AccountDataImpl implements AccountData {
             throw new NotFoundException(ErrorCode.ACCOUNT_NOT_FOUND);
         }
 
-        MoneyVO moneyVO = new MoneyVO(accountDTO.balance(), accountDTO.currency());
         AccountTypeGroup accountTypeGroup = account.getAccountTypeGroup();
 
         if (!accountTypeGroup.getName().equals(accountDTO.type())) {

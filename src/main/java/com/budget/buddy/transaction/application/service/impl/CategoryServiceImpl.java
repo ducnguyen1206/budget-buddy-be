@@ -1,10 +1,7 @@
 package com.budget.buddy.transaction.application.service.impl;
 
-import com.budget.buddy.core.config.exception.ConflictException;
-import com.budget.buddy.core.config.exception.ErrorCode;
 import com.budget.buddy.transaction.application.dto.category.CategoryDTO;
 import com.budget.buddy.transaction.application.service.CategoryService;
-import com.budget.buddy.transaction.domain.enums.CategoryType;
 import com.budget.buddy.transaction.domain.service.BudgetData;
 import com.budget.buddy.transaction.domain.service.CategoryData;
 import com.budget.buddy.transaction.domain.service.TransactionData;

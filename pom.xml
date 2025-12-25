@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.3</version>
+        <version>3.5.9</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.budget.buddy</groupId>
@@ -70,7 +70,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
-            <version>3.5.3</version>
         </dependency>
         <dependency>
             <groupId>com.h2database</groupId>
@@ -112,12 +111,10 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>42.7.7</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.18.0</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.mapstruct/mapstruct -->
         <dependency>
@@ -161,13 +158,6 @@
                 <groupId>org.springframework.modulith</groupId>
                 <artifactId>spring-modulith-bom</artifactId>
                 <version>${spring-modulith.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-framework-bom</artifactId>
-                <version>6.2.10</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -232,6 +222,8 @@
                                 <exclude>**/model/**</exclude>
                                 <exclude>**/controller/**</exclude>
                                 <exclude>**/enums/**</exclude>
+                                <exclude>**/repository/**</exclude>
+                                <exclude>**/utils/**</exclude>
                             </excludes>
                         </configuration>
                     </execution>

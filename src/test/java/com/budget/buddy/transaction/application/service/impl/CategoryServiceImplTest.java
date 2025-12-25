@@ -1,58 +1,67 @@
-//package com.budget.buddy.transaction.application.service.impl;
-//
-//import com.budget.buddy.transaction.application.dto.category.CategoryDTO;
-//import com.budget.buddy.transaction.domain.enums.CategoryType;
-//import com.budget.buddy.transaction.domain.service.CategoryData;
-//import org.junit.jupiter.api.Test;
-//import org.junit.jupiter.api.extension.ExtendWith;
-//import org.mockito.InjectMocks;
-//import org.mockito.Mock;
-//import org.mockito.MockitoAnnotations;
-//import org.mockito.junit.jupiter.MockitoExtension;
-//
-//import static org.junit.jupiter.api.Assertions.assertEquals;
-//import static org.junit.jupiter.api.Assertions.assertNotNull;
-//import static org.mockito.ArgumentMatchers.any;
-//import static org.mockito.Mockito.when;
-//
-//@ExtendWith(MockitoExtension.class)
-//class CategoryServiceImplTest {
-//
-//    @Mock
-//    private CategoryData categoryData;
-//
-//    @InjectMocks
-//    private CategoryServiceImpl categoryService;
-//
-//    @Test
-//    void createCategory_ShouldReturnCategoryDTO_WhenValidRequestProvided() {
-//        // Arrange
-//        CategoryDTO request = new CategoryDTO(null, "Food", CategoryType.EXPENSE);
-//        CategoryDTO expectedResponse = new CategoryDTO(1L, "Food", CategoryType.EXPENSE);
-//
-//        when(categoryData.createCategory(any()))
-//                .thenReturn(expectedResponse);
-//
-//        // Act
-//        CategoryDTO actualResponse = categoryService.createCategory(request);
-//
-//        // Assert
-//        assertNotNull(actualResponse);
-//        assertEquals(expectedResponse.id(), actualResponse.id());
-//        assertEquals(expectedResponse.name(), actualResponse.name());
-//        assertEquals(expectedResponse.type(), actualResponse.type());
-//    }
-//
-//    @Test
-//    void createCategory_ShouldThrowException_WhenInvalidRequestProvided() {
-//        // Arrange
-//        CategoryDTO invalidRequest = new CategoryDTO(null, "", null);
-//
-//        // Act & Assert
-//        try {
-//            categoryService.createCategory(invalidRequest);
-//        } catch (Exception e) {
-//            assertNotNull(e);
-//        }
-//    }
-//}
+package com.budget.buddy.transaction.application.service.impl;
+
+import com.budget.buddy.transaction.application.dto.category.CategoryDTO;
+import com.budget.buddy.transaction.domain.service.CategoryData;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+class CategoryServiceImplTest {
+
+    /**
+     * Test class for CategoryServiceImpl, specifically the createCategory method.
+     * The createCategory method is responsible for delegating category creation
+     * requests to CategoryData and returning the created category details.
+     */
+
+    @Mock
+    private CategoryData categoryData;
+
+    @InjectMocks
+    private CategoryServiceImpl categoryService;
+
+    public CategoryServiceImplTest() {
+        MockitoAnnotations.openMocks(this);
+    }
+
+    @Test
+    void testCreateCategory_SuccessfulCreation() {
+        // Arrange
+        CategoryDTO categoryRequest = new CategoryDTO(null, "Food");
+        CategoryDTO createdCategory = new CategoryDTO(1L, "Food");
+
+        when(categoryData.createCategory(any(CategoryDTO.class))).thenReturn(createdCategory);
+
+        // Act
+        CategoryDTO result = categoryService.createCategory(categoryRequest);
+
+        // Assert
+        verify(categoryData, times(1)).createCategory(categoryRequest);
+        assertEquals(createdCategory.id(), result.id());
+        assertEquals(createdCategory.name(), result.name());
+    }
+
+    @Test
+    void testCreateCategory_InvalidCategoryName() {
+        // Arrange
+        CategoryDTO categoryRequest = new CategoryDTO(null, "");
+
+        when(categoryData.createCategory(any(CategoryDTO.class)))
+                .thenThrow(new IllegalArgumentException("Category name is required"));
+
+        try {
+            // Act
+            categoryService.createCategory(categoryRequest);
+        } catch (IllegalArgumentException ex) {
+            // Assert
+            assertEquals("Category name is required", ex.getMessage());
+        }
+
+        verify(categoryData, times(1)).createCategory(categoryRequest);
+    }
+}
