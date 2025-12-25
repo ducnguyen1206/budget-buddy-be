@@ -65,3 +65,5 @@ jwt:
   access-ttl: 1h
   refresh-ttl: 7d
   clock-skew-seconds: 30
+cors:
+  app: ${APP_CORS}
