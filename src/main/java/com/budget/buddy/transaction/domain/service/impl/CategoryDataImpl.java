@@ -4,7 +4,6 @@ import com.budget.buddy.core.config.exception.ErrorCode;
 import com.budget.buddy.core.config.exception.NotFoundException;
 import com.budget.buddy.transaction.application.dto.category.CategoryDTO;
 import com.budget.buddy.transaction.application.mapper.CategoryMapper;
-import com.budget.buddy.transaction.domain.enums.CategoryType;
 import com.budget.buddy.transaction.domain.model.category.Category;
 import com.budget.buddy.transaction.domain.service.CategoryData;
 import com.budget.buddy.transaction.domain.utils.TransactionUtils;
@@ -108,6 +107,7 @@ public class CategoryDataImpl implements CategoryData {
     @Transactional(readOnly = true)
     @Override
     public boolean isTransactionExistedByCategoryId(Long accountId) {
-        return transactionRepository.existsByCategoryId(accountId);
+        Long userId = transactionUtils.getCurrentUserId();
+        return transactionRepository.existsByCategoryIdAndUserId(accountId, userId);
     }
 }

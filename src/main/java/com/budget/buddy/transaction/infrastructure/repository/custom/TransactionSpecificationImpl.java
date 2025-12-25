@@ -41,7 +41,7 @@ public class TransactionSpecificationImpl implements TransactionSpecification {
                 addCategoryFilter(criteria, root, predicates);
                 addNameFilter(criteria, root, builder, predicates);
                 addDateFilter(criteria, root, builder, predicates);
-                addAmountFilter(criteria, root, builder, predicates);
+//                addAmountFilter(criteria, root, builder, predicates);
                 addCurrenciesFilter(criteria, root, predicates);
                 addTypesFilter(criteria, root, predicates);
                 addRemarksFilter(criteria, root, builder, predicates);

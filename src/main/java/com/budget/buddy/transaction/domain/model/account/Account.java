@@ -1,5 +1,6 @@
 package com.budget.buddy.transaction.domain.model.account;
 
+import com.budget.buddy.transaction.domain.enums.Currency;
 import com.budget.buddy.transaction.domain.model.base.BaseEntity;
 import com.budget.buddy.transaction.domain.vo.MoneyVO;
 import jakarta.persistence.*;
@@ -26,8 +27,7 @@ public class Account extends BaseEntity {
     @Size(max = 100)
     private String name;
 
-    @AttributeOverride(name = "amount", column = @Column(name = "available_balance", precision = 19, scale = 2, nullable = false))
-    @AttributeOverride(name = "currency", column = @Column(name = "currency", length = 3, nullable = false))
-    @Embedded
-    private MoneyVO money;
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Currency currency;
 }

@@ -5,9 +5,12 @@ import com.budget.buddy.core.config.exception.ErrorCode;
 import com.budget.buddy.transaction.application.dto.category.CategoryDTO;
 import com.budget.buddy.transaction.application.service.CategoryService;
 import com.budget.buddy.transaction.domain.enums.CategoryType;
+import com.budget.buddy.transaction.domain.service.BudgetData;
 import com.budget.buddy.transaction.domain.service.CategoryData;
+import com.budget.buddy.transaction.domain.service.TransactionData;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -15,6 +18,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CategoryServiceImpl implements CategoryService {
     private final CategoryData categoryData;
+    private final TransactionData transactionData;
+    private final BudgetData budgetData;
 
     @Override
     public CategoryDTO createCategory(CategoryDTO categoryRequest) {
@@ -32,12 +37,11 @@ public class CategoryServiceImpl implements CategoryService {
         return categoryData.getCategories();
     }
 
+    @Transactional
     @Override
     public void deleteCategory(Long categoryId) {
-        if (categoryData.isTransactionExistedByCategoryId(categoryId)) {
-            throw new ConflictException(ErrorCode.TRANSACTION_EXISTED_FOR_CATEGORY_ID);
-        }
-
+        transactionData.deleteTransactionByCategoryId(categoryId);
+        budgetData.deleteBudgetByCategoryId(categoryId);
         categoryData.deleteCategory(categoryId);
     }
 

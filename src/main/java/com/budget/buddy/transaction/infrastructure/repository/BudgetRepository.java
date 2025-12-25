@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface BudgetRepository extends JpaRepository<Budget, Long> {
-    boolean existsByCategoryIdAndMoney_Currency(Long categoryId, String currency);
+    boolean existsByCategoryIdAndMoney_CurrencyAndUserId(Long categoryId, String currency, Long userId);
 
     @Query("""
             SELECT b.id                                                                 AS id,
@@ -23,7 +23,7 @@ public interface BudgetRepository extends JpaRepository<Budget, Long> {
                    b.lastModifiedDate                                                   AS updatedAt
             FROM Budget b
                      JOIN Category c ON c.id = b.category.id
-                     LEFT JOIN Transaction t ON t.category.id = c.id AND t.sourceAccount.money.currency = b.money.currency
+                     LEFT JOIN Transaction t ON t.category.id = c.id AND t.sourceAccount.currency = b.money.currency
                      LEFT JOIN Account a ON a.id = t.sourceAccount.id
             WHERE b.userId = :userId
             GROUP BY b.id, b.category.id, c.identity.name, b.money.currency
@@ -44,10 +44,12 @@ public interface BudgetRepository extends JpaRepository<Budget, Long> {
                    b.money.currency                                                     AS currency
             FROM Budget b
                      JOIN Category c ON c.id = b.category.id
-                     LEFT JOIN Transaction t ON t.category.id = c.id AND t.sourceAccount.money.currency = b.money.currency
+                     LEFT JOIN Transaction t ON t.category.id = c.id AND t.sourceAccount.currency = b.money.currency
                      LEFT JOIN Account a ON a.id = t.sourceAccount.id
             WHERE b.id = :id AND b.userId = :userId
             GROUP BY b.id, b.category.id, c.identity.name, b.money.currency
             """)
     Optional<BudgetDTO> findBudgetDTOByIdAndUserId(Long id, Long userId);
+
+    List<Budget> findAllByUserIdAndCategoryId(Long userId, Long categoryId);
 }

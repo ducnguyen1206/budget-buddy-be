@@ -31,14 +31,15 @@ public class BudgetDataImpl implements BudgetData {
 
     @Override
     public void saveBudget(BudgetDTO budgetDTO) {
-        boolean budgetExists = budgetRepository.existsByCategoryIdAndMoney_Currency(budgetDTO.categoryId(), budgetDTO.currency());
+        Long userId = transactionUtils.getCurrentUserId();
+
+        boolean budgetExists = budgetRepository.existsByCategoryIdAndMoney_CurrencyAndUserId(budgetDTO.categoryId(), budgetDTO.currency(), userId);
         logger.info("Checking if budget exists for categoryId='{}': {}", budgetDTO.categoryId(), budgetExists);
 
         if (budgetExists) {
-            throw new ConflictException(ErrorCode.BUDGET_EXISTED_FOR_CATEGORY_ID);
+            logger.info("Budget already exists for categoryId='{}'", budgetDTO.categoryId());
+            return;
         }
-
-        Long userId = transactionUtils.getCurrentUserId();
 
         Category category = categoryRepository.findBydId(budgetDTO.categoryId(), userId)
                 .orElseThrow(() -> new ConflictException(ErrorCode.CATEGORY_NOT_FOUND));
@@ -100,6 +101,21 @@ public class BudgetDataImpl implements BudgetData {
 
         budgetRepository.deleteById(budgetId);
         logger.info("Budget deleted successfully for budgetId='{}'", budgetId);
+    }
+
+    @Override
+    public void deleteBudgetByCategoryId(Long categoryId) {
+        Long userId = transactionUtils.getCurrentUserId();
+
+        List<Budget> budgetOptional = budgetRepository.findAllByUserIdAndCategoryId(userId, categoryId);
+        logger.info("Checking delete request how many budgets exist for userId='{}', categoryId='{}': {} budget(s)", userId, categoryId, budgetOptional.size());
+
+        if (budgetOptional.isEmpty()) {
+            return;
+        }
+
+        budgetRepository.deleteAll(budgetOptional);
+        logger.info("Budgets deleted successfully for categoryId='{}'", categoryId);
     }
 
 

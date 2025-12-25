@@ -89,7 +89,16 @@ public class TransactionDataImpl implements TransactionData {
     @Transactional
     @Override
     public void deleteTransactionByAccountId(List<Long> accountIds) {
-        List<Transaction> transactions = transactionRepository.findTransactionBySourceAccountIdIn(accountIds);
+        Long userId = transactionUtils.getCurrentUserId();
+        List<Transaction> transactions = transactionRepository.findTransactionBySourceAccountIdInAndUserId(accountIds, userId);
+        transactionRepository.deleteAll(transactions);
+    }
+
+    @Transactional
+    @Override
+    public void deleteTransactionByCategoryId(Long categoryId) {
+        Long userId = transactionUtils.getCurrentUserId();
+        List<Transaction> transactions = transactionRepository.findTransactionByCategoryIdAndUserId(categoryId, userId);
         transactionRepository.deleteAll(transactions);
     }
 
@@ -138,7 +147,7 @@ public class TransactionDataImpl implements TransactionData {
                 .formattedDate(formattedDate)
                 .sourceAccountName(sourceAccount.getName())
                 .categoryName(transaction.getCategory().getIdentity().getName())
-                .currency(sourceAccount.getMoney().getCurrency())
+                .currency(sourceAccount.getCurrency().name())
                 .categoryType(transaction.getType())
                 .accountId(transaction.getSourceAccount().getId())
                 .sourceAccountType(transaction.getSourceAccount().getAccountTypeGroup().getName())

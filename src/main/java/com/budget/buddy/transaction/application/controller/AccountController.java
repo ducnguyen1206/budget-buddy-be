@@ -57,7 +57,7 @@ public class AccountController {
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content())
     })
     @GetMapping("/{accountId}")
-    public ResponseEntity<AccountRetrieveResponse> retrieveAccount(@PathVariable("accountId") Long accountId) {
+    public ResponseEntity<AccountRetrieveResponse> retrieveAccount(@PathVariable Long accountId) {
         return ResponseEntity.ok(accountService.retrieveAccount(accountId));
     }
 
@@ -67,7 +67,7 @@ public class AccountController {
             @ApiResponse(responseCode = "400", description = "Invalid input data", content = @Content())
     })
     @PutMapping("/{accountId}")
-    public ResponseEntity<Void> updateAccount(@PathVariable("accountId") Long accountId, @Valid @RequestBody AccountDTO request) {
+    public ResponseEntity<Void> updateAccount(@PathVariable Long accountId, @Valid @RequestBody AccountDTO request) {
         accountService.updateAccount(accountId, request);
         return ResponseEntity.noContent().build();
     }
@@ -77,7 +77,7 @@ public class AccountController {
             @ApiResponse(responseCode = "404", description = "Account not found", content = @Content())
     })
     @DeleteMapping("/{accountId}")
-    public ResponseEntity<Void> deleteAccount(@PathVariable("accountId") Long accountId) {
+    public ResponseEntity<Void> deleteAccount(@PathVariable Long accountId) {
         accountService.deleteAccount(accountId);
         return ResponseEntity.noContent().build();
     }
@@ -98,7 +98,7 @@ public class AccountController {
             @ApiResponse(responseCode = "404", description = "Account type group not found", content = @Content())
     })
     @DeleteMapping("/groups/{groupId}")
-    public ResponseEntity<Void> deleteAccountTypeGroup(@PathVariable("groupId") Long groupId) {
+    public ResponseEntity<Void> deleteAccountTypeGroup(@PathVariable Long groupId) {
         accountService.deleteAccountTypeGroup(groupId);
         return ResponseEntity.noContent().build();
     }

@@ -11,6 +11,8 @@ public interface BudgetData {
 
     void deleteBudget(Long budgetId);
 
+    void deleteBudgetByCategoryId(Long categoryId);
+
     List<BudgetDTO> getAllBudgetsForCurrentUser();
 
     BudgetDTO getBudgetById(Long budgetId);

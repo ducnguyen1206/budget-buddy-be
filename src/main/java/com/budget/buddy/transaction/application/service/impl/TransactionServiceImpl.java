@@ -36,21 +36,6 @@ public class TransactionServiceImpl implements TransactionService {
         // save transaction
         validateTransferInfo(transactionRequest);
         transactionData.createTransaction(transactionRequest);
-
-        // Deduct balance from an account
-        BigDecimal amount = transactionRequest.getAmount().abs();
-
-        CategoryType categoryType = transactionRequest.getCategoryType();
-
-        if (CategoryType.TRANSFER.equals(categoryType)) {
-            Long sourceAccountId = transactionRequest.getAccountId();
-            Long targetAccountId = transactionRequest.getTargetAccountId();
-            accountData.transferMoney(sourceAccountId, targetAccountId, amount);
-            return;
-        }
-
-        BigDecimal finalAmount = CategoryType.EXPENSE.equals(categoryType) ? amount.negate() : amount;
-        accountData.updateAvailableBalance(transactionRequest.getAccountId(), finalAmount);
     }
 
     private void validateTransferInfo(TransactionDTO transactionRequest) {

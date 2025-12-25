@@ -205,11 +205,6 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
-                  name: available_balance
-                  type: decimal(19,2)
-                  constraints:
-                    nullable: false
-              - column:
                   name: currency
                   type: varchar(5)
                   constraints:

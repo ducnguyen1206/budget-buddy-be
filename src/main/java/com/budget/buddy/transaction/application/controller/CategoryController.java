@@ -46,7 +46,7 @@ public class CategoryController {
             @ApiResponse(responseCode = "400", description = "Invalid input data", content = @Content())
     })
     @PutMapping("/{id}")
-    public ResponseEntity<CategoryDTO> updateCategory(@PathVariable("id") Long id, @Valid @RequestBody CategoryDTO request) {
+    public ResponseEntity<CategoryDTO> updateCategory(@PathVariable Long id, @Valid @RequestBody CategoryDTO request) {
         return ResponseEntity.ok(categoryService.updateCategory(id, request));
     }
 
@@ -76,7 +76,7 @@ public class CategoryController {
             @ApiResponse(responseCode = "404", description = "Category not found", content = @Content())
     })
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCategory(@PathVariable("id") Long id) {
+    public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {
         categoryService.deleteCategory(id);
         return ResponseEntity.noContent().build();
     }

@@ -9,11 +9,13 @@ import java.util.List;
 
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, Long>, JpaSpecificationExecutor<Transaction> {
-    boolean existsBySourceAccountId(Long accountId);
+    boolean existsBySourceAccountIdAndUserId(Long accountId, Long userId);
 
-    boolean existsBySourceAccountIdIn(List<Long> accountIds);
+    boolean existsBySourceAccountIdInAndUserId(List<Long> accountIds, Long userId);
 
-    boolean existsByCategoryId(Long categoryId);
+    boolean existsByCategoryIdAndUserId(Long categoryId, Long userId);
 
-    List<Transaction> findTransactionBySourceAccountIdIn(List<Long> accountId);
+    List<Transaction> findTransactionBySourceAccountIdInAndUserId(List<Long> accountId, Long userId);
+
+    List<Transaction> findTransactionByCategoryIdAndUserId(Long categoryId, Long userId);
 }

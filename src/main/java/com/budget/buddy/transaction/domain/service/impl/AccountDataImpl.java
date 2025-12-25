@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -43,7 +42,6 @@ public class AccountDataImpl implements AccountData {
     public void createAccount(AccountDTO accountDTO) {
         logger.info("Creating account: name='{}', type='{}'", accountDTO.name(), accountDTO.type());
 
-        MoneyVO moneyVO = new MoneyVO(accountDTO.balance(), accountDTO.currency());
         AccountTypeGroup accountTypeGroup = createOrGetAccountTypeGroup(accountDTO.type());
         List<Account> accounts = accountTypeGroup.getAccounts();
         logger.info("Found {} existing accounts in group '{}'", accounts.size(), accountDTO.type());
@@ -58,7 +56,7 @@ public class AccountDataImpl implements AccountData {
         Account newAccount = new Account(
                 accountTypeGroup,
                 accountDTO.name(),
-                moneyVO);
+                accountDTO.currency());
         accountRepository.save(newAccount);
     }
 
@@ -82,8 +80,8 @@ public class AccountDataImpl implements AccountData {
         String currency = accountTypeGroup.getAccounts()
                 .stream()
                 .findFirst()
-                .map(Account::getMoney)
-                .map(MoneyVO::getCurrency)
+                .map(Account::getCurrency)
+                .map(Enum::name)
                 .orElse(null);
         logger.info("Found currency for account: type='{}': '{}'", accountDTO.type(), currency);
         return currency != null && !currency.equals(accountDTO.currency().name());
@@ -178,7 +176,7 @@ public class AccountDataImpl implements AccountData {
             account.setAccountTypeGroup(accountTypeGroup);
         }
 
-        account.setMoney(moneyVO);
+        account.setCurrency(accountDTO.currency());
         account.setName(accountDTO.name());
         accountRepository.save(account);
         logger.info("Account updated successfully: id='{}'", accountId);
@@ -221,69 +219,11 @@ public class AccountDataImpl implements AccountData {
         }
     }
 
-    @Transactional
-    @Override
-    public void updateAvailableBalance(Long accountId, BigDecimal newBalance) {
-        Long userId = transactionUtils.getCurrentUserId();
-
-        Account account = accountRepository.findAccountByUserIdAndAccountId(userId, accountId);
-        if (account == null) {
-            throw new NotFoundException(ErrorCode.ACCOUNT_NOT_FOUND);
-        }
-
-        MoneyVO moneyVO = account.getMoney();
-        BigDecimal oldBalance = moneyVO.getAmount();
-        newBalance = oldBalance.add(newBalance);
-        logger.info("Updating available balance for account with id='{}': {} -> {}", accountId, oldBalance, newBalance);
-
-        MoneyVO newMoney = new MoneyVO(newBalance, Currency.valueOf(moneyVO.getCurrency()));
-        account.setMoney(newMoney);
-        accountRepository.save(account);
-        logger.info("Updated available balance for account with id='{}'", accountId);
-    }
-
-    @Transactional
-    @Override
-    public void transferMoney(Long sourceAccountId, Long targetAccountId, BigDecimal newBalance) {
-        List<Long> accountIds = List.of(sourceAccountId, targetAccountId);
-        List<Account> accounts = accountRepository.findByIdIn(accountIds);
-        Map<Long, Account> accountMap = accounts.stream().collect(Collectors.toMap(Account::getId, a -> a));
-
-        logger.info("Transfer money from account with id='{}' to account with id='{}': {}", sourceAccountId, targetAccountId, newBalance);
-
-        // Source account
-        Account sourceAccount = accountMap.get(sourceAccountId);
-
-        MoneyVO sourceMoney = sourceAccount.getMoney();
-        BigDecimal sourceBalance = sourceMoney.getAmount();
-
-        String currency = sourceMoney.getCurrency();
-
-        BigDecimal newSourceBalance = sourceBalance.subtract(newBalance);
-        MoneyVO newSourceMoney = new MoneyVO(newSourceBalance, Currency.valueOf(currency));
-
-        sourceAccount.setMoney(newSourceMoney);
-        accountRepository.save(sourceAccount);
-
-        // Target account
-        Account targetAccount = accountMap.get(targetAccountId);
-
-        MoneyVO currentTargetMoney = targetAccount.getMoney();
-        BigDecimal currentTargetBalance = currentTargetMoney.getAmount();
-
-        BigDecimal newTargetAccountBalance = currentTargetBalance.add(newBalance);
-        MoneyVO newTargetMoney = new MoneyVO(newTargetAccountBalance, Currency.valueOf(currency));
-
-        targetAccount.setMoney(newTargetMoney);
-        accountRepository.save(targetAccount);
-
-        logger.info("New balances for accounts: from account ='{}', to account ='{}'", newSourceBalance, newTargetAccountBalance);
-    }
-
     @Transactional(readOnly = true)
     @Override
     public boolean isTransactionExistedByAccountId(Long accountId) {
-        return transactionRepository.existsBySourceAccountId(accountId);
+        Long userId = transactionUtils.getCurrentUserId();
+        return transactionRepository.existsBySourceAccountIdAndUserId(accountId, userId);
     }
 
     @Transactional(readOnly = true)
@@ -295,7 +235,7 @@ public class AccountDataImpl implements AccountData {
                 .orElseThrow(() -> new NotFoundException(ErrorCode.ACCOUNT_TYPE_GROUP_NOT_FOUND));
         List<Account> accounts = groups.getAccounts();
         List<Long> accountIds = accounts.stream().map(Account::getId).toList();
-        return transactionRepository.existsBySourceAccountIdIn(accountIds);
+        return transactionRepository.existsBySourceAccountIdInAndUserId(accountIds, userId);
     }
 
     @Transactional(readOnly = true)
