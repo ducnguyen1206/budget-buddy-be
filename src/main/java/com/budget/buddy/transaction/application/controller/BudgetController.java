@@ -40,7 +40,7 @@ public class BudgetController {
             @ApiResponse(responseCode = "401", description = "Budget not found", content = @Content)
     })
     @PutMapping("/{id}")
-    public ResponseEntity<Void> updateBudget(@Valid @RequestBody BudgetDTO budgetDTO, @PathVariable("id") Long id) {
+    public ResponseEntity<Void> updateBudget(@Valid @RequestBody BudgetDTO budgetDTO, @PathVariable Long id) {
         budgetService.updateBudget(budgetDTO, id);
         return ResponseEntity.status(201).build();
     }
@@ -51,7 +51,7 @@ public class BudgetController {
             @ApiResponse(responseCode = "401", description = "Budget not found", content = @Content)
     })
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteBudget(@PathVariable("id") Long id) {
+    public ResponseEntity<Void> deleteBudget(@PathVariable Long id) {
         budgetService.deleteBudget(id);
         return ResponseEntity.status(204).build();
     }
@@ -73,7 +73,7 @@ public class BudgetController {
             @ApiResponse(responseCode = "404", description = "Budget not found", content = @Content())
     })
     @GetMapping("/{id}")
-    public ResponseEntity<Object> getBudget(@PathVariable("id") Long id) {
+    public ResponseEntity<Object> getBudget(@PathVariable Long id) {
         return ResponseEntity.status(200).body(budgetService.getBudgetById(id));
     }
 }

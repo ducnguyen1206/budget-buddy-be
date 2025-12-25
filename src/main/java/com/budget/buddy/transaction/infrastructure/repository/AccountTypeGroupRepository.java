@@ -10,13 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface AccountTypeGroupRepository extends JpaRepository<AccountTypeGroup, Long> {
-    Optional<AccountTypeGroup> findByName(String name);
-
     Optional<AccountTypeGroup> findByNameAndUserId(String name, Long userId);
-
-    @EntityGraph(attributePaths = {"accounts"})
-    @NonNull
-    List<AccountTypeGroup> findAll();
 
     @Query("SELECT a FROM AccountTypeGroup a WHERE a.id = :id AND a.userId = :userId")
     Optional<AccountTypeGroup> findBydId(Long id, Long userId);

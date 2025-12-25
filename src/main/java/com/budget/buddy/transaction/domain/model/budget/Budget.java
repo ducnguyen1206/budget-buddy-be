@@ -17,7 +17,6 @@ import org.hibernate.annotations.Filter;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
-@Filter(name = "userFilter", condition = "user_id = :userId")
 public class Budget extends BaseEntity {
 
     @Column(name = "user_id", nullable = false, updatable = false)

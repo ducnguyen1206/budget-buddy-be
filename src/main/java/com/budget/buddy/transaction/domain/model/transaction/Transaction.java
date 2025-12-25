@@ -21,7 +21,6 @@ import java.time.LocalDate;
 @Table(
         name = "transaction"
 )
-@Filter(name = "userFilter", condition = "user_id = :userId")
 public class Transaction extends BaseEntity {
     @Column(name = "user_id", nullable = false, updatable = false)
     private Long userId;

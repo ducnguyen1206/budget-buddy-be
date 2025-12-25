@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -96,6 +97,9 @@ public class AccountDataImpl implements AccountData {
         logger.info("Retrieving all accounts for current user");
         List<AccountFlatView> flatList = accountRepository.retrieveAllAccounts(userId);
 
+        List<Long> accountIds = flatList.stream().map(AccountFlatView::getId).toList();
+        Map<Long, BigDecimal> accountBalances = getAccountBalances(accountIds, userId);
+
         List<AccountRetrieveResponse> results = flatList.stream()
                 .collect(Collectors.groupingBy(AccountFlatView::getGroupName, TreeMap::new, Collectors.toList()))
                 .entrySet()
@@ -103,7 +107,7 @@ public class AccountDataImpl implements AccountData {
                 .map(entry -> {
                     String groupName = entry.getKey();
                     List<AccountDTO> accounts = entry.getValue().stream()
-                            .map(this::buildAccountDTO)
+                            .map(accountFlatView -> buildAccountDTO(accountFlatView, accountBalances))
                             .toList();
                     return new AccountRetrieveResponse(groupName, accounts);
                 })
@@ -125,7 +129,9 @@ public class AccountDataImpl implements AccountData {
             throw new NotFoundException(ErrorCode.ACCOUNT_NOT_FOUND);
         }
 
-        AccountDTO accountDTO = buildAccountDTO(accounts);
+        Map<Long, BigDecimal> accountBalances = getAccountBalances(List.of(accountId), userId);
+
+        AccountDTO accountDTO = buildAccountDTO(accounts, accountBalances);
 
         AccountRetrieveResponse response = new AccountRetrieveResponse();
         response.setAccountType(accounts.getGroupName());
@@ -303,11 +309,11 @@ public class AccountDataImpl implements AccountData {
         return accounts.stream().map(Account::getId).toList();
     }
 
-    private AccountDTO buildAccountDTO(AccountFlatView view) {
+    private AccountDTO buildAccountDTO(AccountFlatView view, Map<Long, BigDecimal> accountBalances) {
         return new AccountDTO(
                 view.getId(),
                 view.getName(),
-                view.getAmount(),
+                accountBalances.getOrDefault(view.getId(), BigDecimal.ZERO),
                 Currency.valueOf(view.getCurrency()),
                 null,
                 view.getGroupId()
@@ -323,5 +329,17 @@ public class AccountDataImpl implements AccountData {
                     logger.info("Creating new account type group: name='{}' for userId='{}'", name, userId);
                     return accountTypeGroupRepository.save(newGroup);
                 });
+    }
+
+    private Map<Long, BigDecimal> getAccountBalances(List<Long> accountIds, Long userId) {
+        List<AccountFlatView> accountBalances = accountRepository.retrieveAccountBalance(accountIds, userId);
+        logger.info("Retrieving account balances for current user {} account IDs {}: {}", userId, accountIds, accountBalances.size());
+
+        return accountBalances.stream()
+                .collect(Collectors.toMap(
+                        AccountFlatView::getId,      // The Key
+                        AccountFlatView::getAmount   // The Value
+                        , (oldValue, newValue) -> oldValue
+                ));
     }
 }

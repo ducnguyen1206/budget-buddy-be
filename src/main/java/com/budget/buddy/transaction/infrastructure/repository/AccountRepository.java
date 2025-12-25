@@ -9,34 +9,46 @@ import java.util.List;
 import java.util.Optional;
 
 public interface AccountRepository extends JpaRepository<Account, Long> {
-    @Query("select a.id as id, a.name as name, a.money.amount as amount, a.money.currency as currency, g.name as groupName, g.id as groupId " +
-            "from Account a join a.accountTypeGroup g " +
-            "where g.userId = :userId " +
-            "order by g.name, a.name")
+    @Query("""
+            SELECT a.id AS id, a.name AS name, a.money.amount AS amount, a.money.currency AS currency, g.name AS groupName, g.id AS groupId
+            FROM Account a JOIN a.accountTypeGroup g
+            WHERE g.userId = :userId
+            ORDER BY g.name, a.name
+            """)
     List<AccountFlatView> retrieveAllAccounts(Long userId);
 
-    @Query("select a.id as id, a.name as name, a.money.amount as amount, a.money.currency as currency, g.name as groupName, g.id as groupId " +
-            "from Account a join a.accountTypeGroup g " +
-            "where g.userId = :userId and a.id = :accountId " +
-            "order by g.name, a.name")
+    @Query("""
+            SELECT a.id AS id, COALESCE(SUM(t.amount), 0) AS amount
+            FROM Account a JOIN a.accountTypeGroup g
+                        LEFT JOIN Transaction t ON a.id = t.sourceAccount.id
+            WHERE g.userId = :userId AND a.id IN (:accountIds)
+            GROUP BY a.id
+            ORDER BY a.id
+            """)
+    List<AccountFlatView> retrieveAccountBalance(List<Long> accountIds, Long userId);
+
+    @Query("SELECT a.id AS id, a.name AS name, a.money.amount AS amount, a.money.currency AS currency, g.name AS groupName, g.id AS groupId " +
+            "FROM Account a JOIN a.accountTypeGroup g " +
+            "WHERE g.userId = :userId AND a.id = :accountId " +
+            "ORDER BY g.name, a.name")
     AccountFlatView retrieveByAccountId(Long userId, Long accountId);
 
 
-    @Query("select (count(a) > 0) " +
-            "from Account a join a.accountTypeGroup g " +
-            "where g.userId = :userId and a.id = :accountId")
+    @Query("SELECT (COUNT(a) > 0) " +
+            "FROM Account a JOIN a.accountTypeGroup g " +
+            "WHERE g.userId = :userId AND a.id = :accountId")
     boolean existsAccountBy(Long userId, Long accountId);
 
-    @Query("select a " +
-            "from Account a join a.accountTypeGroup g " +
-            "where g.userId = :userId and a.id = :accountId " +
-            "order by g.name, a.name")
+    @Query("SELECT a " +
+            "FROM Account a JOIN a.accountTypeGroup g " +
+            "WHERE g.userId = :userId AND a.id = :accountId " +
+            "ORDER BY g.name, a.name")
     Account findAccountByUserIdAndAccountId(Long userId, Long accountId);
 
-    @Query("select a.id as id, a.name as name, a.money.amount as amount, a.money.currency as currency, g.name as groupName, g.id as groupId " +
-            "from Account a join a.accountTypeGroup g " +
-            "where g.userId = :userId and a.id IN (:accountId) " +
-            "order by g.name, a.name")
+    @Query("SELECT a.id AS id, a.name AS name, a.money.amount AS amount, a.money.currency AS currency, g.name AS groupName, g.id AS groupId " +
+            "FROM Account a JOIN a.accountTypeGroup g " +
+            "WHERE g.userId = :userId AND a.id IN (:accountId) " +
+            "ORDER BY g.name, a.name")
     List<AccountFlatView> retrieveByAccountIdIn(Long userId, List<Long> accountId);
 
     List<Account> findByIdIn(List<Long> accountIds);

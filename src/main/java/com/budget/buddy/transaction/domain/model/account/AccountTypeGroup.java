@@ -16,7 +16,6 @@ import java.util.List;
 @NoArgsConstructor(access =  AccessLevel.PROTECTED)
 @EqualsAndHashCode(callSuper = false)
 @Entity
-@Filter(name = "userFilter", condition = "user_id = :userId")
 @Table(name = "account_type_group")
 public class AccountTypeGroup extends BaseEntity {
     @Column(name = "user_id", nullable = false, updatable = false)

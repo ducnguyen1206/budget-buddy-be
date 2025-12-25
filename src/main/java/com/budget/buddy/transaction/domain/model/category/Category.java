@@ -16,7 +16,6 @@ import org.hibernate.annotations.Filter;
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Filter(name = "userFilter", condition = "user_id = :userId")
 @AllArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class Category extends BaseEntity {
