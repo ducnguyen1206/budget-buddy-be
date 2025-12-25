@@ -37,6 +37,8 @@ public class UserDataImpl implements UserData {
 
     @Override
     public void saveNewUserVerificationToken(User user, VerificationTokenVO token) {
+        userVerificationRepository.findByUserId(user.getId()).ifPresent(userVerificationRepository::delete);
+        userVerificationRepository.flush();
         UserVerification verification = new UserVerification(user, token, false);
         userVerificationRepository.save(verification);
     }
