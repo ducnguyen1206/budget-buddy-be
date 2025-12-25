@@ -50,6 +50,8 @@ spring:
           auth: true
           starttls:
             enable: true
+          ssl: false
+
 logging:
   level:
     org.hibernate.SQL: INFO
