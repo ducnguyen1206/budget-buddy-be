@@ -41,7 +41,7 @@ spring:
       enabled: false  # Disable in dev/local profiles
   mail:
     host: smtp.gmail.com
-    port: 587
+    port: ${EMAIL_PORT}
     username: ${EMAIL_USERNAME}
     password: ${EMAIL_PASSWORD}
     properties:
