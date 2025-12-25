@@ -59,4 +59,17 @@ public class TransactionController {
         RetrieveTransactionsParams request = new RetrieveTransactionsParams(page, size);
         return ResponseEntity.ok(transactionService.retrieveTransactions(request, filterCriteria));
     }
+
+    @Operation(summary = "Update a transaction", description = "Updates an existing transaction for the authenticated user.", responses = {
+            @ApiResponse(responseCode = "204", description = "Transaction updated successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid input data", content = @Content()),
+            @ApiResponse(responseCode = "404", description = "Transaction not found", content = @Content())
+    })
+    @PutMapping(path = "/{id}")
+    public ResponseEntity<Void> updateTransaction(
+            @PathVariable("id") Long transactionId,
+            @Valid @RequestBody TransactionDTO request) {
+        transactionService.updateTransaction(transactionId, request);
+        return ResponseEntity.noContent().build();
+    }
 }

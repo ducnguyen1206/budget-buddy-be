@@ -3,7 +3,8 @@ package com.budget.buddy.transaction.application.service.impl;
 import com.budget.buddy.core.config.exception.BadRequestException;
 import com.budget.buddy.core.config.exception.ConflictException;
 import com.budget.buddy.core.config.exception.ErrorCode;
-import com.budget.buddy.transaction.application.dto.account.AccountFlatView;
+import com.budget.buddy.transaction.application.dto.account.AccountDTO;
+import com.budget.buddy.transaction.application.dto.account.AccountRetrieveResponse;
 import com.budget.buddy.transaction.application.dto.transaction.RetrieveTransactionsParams;
 import com.budget.buddy.transaction.application.dto.transaction.TransactionDTO;
 import com.budget.buddy.transaction.application.dto.transaction.TransactionFilterCriteria;
@@ -53,24 +54,29 @@ public class TransactionServiceImpl implements TransactionService {
             throw new BadRequestException(ErrorCode.INVALID_REQUEST_DATA);
         }
 
-        List<AccountFlatView> accounts = accountData.retrieveAccountByIdList(List.of(sourceAccountId, targetAccountId));
-        if (accounts.size() != 2) {
-            logger.info("Invalid account ID list. To account doesn't exist {}", targetAccountId);
+        List<AccountRetrieveResponse> accounts = accountData.retrieveAccountByIdList(List.of(sourceAccountId, targetAccountId));
+
+        // Flatten accounts by type into a map of accountId -> AccountDTO
+        Map<Long, AccountDTO> accountMap = accounts.stream()
+                .flatMap(resp -> resp.getAccounts().stream())
+                .collect(Collectors.toMap(AccountDTO::id, a -> a));
+
+        AccountDTO fromAccount = accountMap.get(sourceAccountId);
+        AccountDTO toAccount = accountMap.get(targetAccountId);
+
+        if (fromAccount == null || toAccount == null) {
+            logger.info("Invalid account ID list. One or both accounts do not exist. fromId='{}', toId='{}'", sourceAccountId, targetAccountId);
             throw new BadRequestException(ErrorCode.INVALID_REQUEST_DATA);
         }
 
-        Map<Long, AccountFlatView> accountMap = accounts.stream().collect(Collectors.toMap(AccountFlatView::getId, a -> a));
-        AccountFlatView fromAccount = accountMap.get(sourceAccountId);
-        AccountFlatView toAccount = accountMap.get(targetAccountId);
-
         // Ensure the same currency for transfer
-        if (!fromAccount.getCurrency().equals(toAccount.getCurrency())) {
-            logger.info("Transfer failed: currency mismatch. from='{}', to='{}'", fromAccount.getCurrency(), toAccount.getCurrency());
+        if (!fromAccount.currency().equals(toAccount.currency())) {
+            logger.info("Transfer failed: currency mismatch. from='{}', to='{}'", fromAccount.currency(), toAccount.currency());
             throw new ConflictException(ErrorCode.CURRENCY_TRANSFER_SHOULD_BE_THE_SAME);
         }
 
         // Check valid balance
-        BigDecimal sourceBalance = fromAccount.getAmount();
+        BigDecimal sourceBalance = fromAccount.balance();
         BigDecimal requestAmount = transactionRequest.getAmount();
         if (sourceBalance.compareTo(requestAmount) < 0) {
             throw new ConflictException(ErrorCode.SOURCE_ACCOUNT_BALANCE_NOT_ENOUGH_MONEY);
@@ -82,5 +88,19 @@ public class TransactionServiceImpl implements TransactionService {
     public TransactionPagination retrieveTransactions(RetrieveTransactionsParams params, TransactionFilterCriteria filterCriteria) {
         logger.info("Retrieving transactions with params: {}", params);
         return transactionData.retrieveTransactions(params, filterCriteria);
+    }
+
+    @Override
+    public void updateTransaction(Long transactionId, TransactionDTO transactionRequest) {
+        // For transfers, updating requires handling mirror entries which is not supported at the moment
+        if (CategoryType.TRANSFER.equals(transactionRequest.getCategoryType())) {
+            throw new BadRequestException(ErrorCode.INVALID_REQUEST_DATA);
+        }
+
+        // Validate account exists
+        accountData.checkAccountExists(transactionRequest.getAccountId());
+
+        // Delegate to the domain layer for persistence and ownership checks
+        transactionData.updateTransaction(transactionId, transactionRequest);
     }
 }

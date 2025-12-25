@@ -17,7 +17,7 @@ public interface AccountData {
 
     AccountRetrieveResponse retrieveAccount(Long accountId);
 
-    List<AccountFlatView> retrieveAccountByIdList(List<Long> accountIds);
+    List<AccountRetrieveResponse> retrieveAccountByIdList(List<Long> accountIds);
 
     void deleteAccount(Long accountId);
 

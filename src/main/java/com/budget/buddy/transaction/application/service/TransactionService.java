@@ -9,4 +9,6 @@ public interface TransactionService {
     void createTransaction(TransactionDTO transactionRequest);
 
     TransactionPagination retrieveTransactions(RetrieveTransactionsParams params, TransactionFilterCriteria filterCriteria);
+
+    void updateTransaction(Long transactionId, TransactionDTO transactionRequest);
 }

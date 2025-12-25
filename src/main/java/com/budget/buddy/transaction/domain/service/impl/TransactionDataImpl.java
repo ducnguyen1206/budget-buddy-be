@@ -1,6 +1,7 @@
 package com.budget.buddy.transaction.domain.service.impl;
 
 import com.budget.buddy.core.config.exception.ErrorCode;
+import com.budget.buddy.core.config.exception.ConflictException;
 import com.budget.buddy.core.config.exception.NotFoundException;
 import com.budget.buddy.transaction.application.dto.transaction.RetrieveTransactionsParams;
 import com.budget.buddy.transaction.application.dto.transaction.TransactionDTO;
@@ -130,6 +131,51 @@ public class TransactionDataImpl implements TransactionData {
         );
 
         return new TransactionPagination(pagination, transactionDTOList);
+    }
+
+    @Transactional
+    @Override
+    public void updateTransaction(Long transactionId, TransactionDTO transactionRequest) {
+        Long userId = transactionUtils.getCurrentUserId();
+
+        logger.info("Updating transaction: transactionId='{}', userId='{}'", transactionId, userId);
+
+        Transaction existing = transactionRepository.findByIdAndUserId(transactionId, userId)
+                .orElseThrow(() -> new ConflictException(ErrorCode.TRANSACTION_IS_NOT_BELONG_TO_USER));
+
+        logger.info("Found existing transaction: id='{}', oldAmount='{}', oldCategoryId='{}', oldAccountId='{}'",
+                existing.getId(), existing.getAmount(), existing.getCategory().getId(), existing.getSourceAccount().getId());
+
+        Account sourceAccount = getAccount(userId, transactionRequest.getAccountId());
+        Category category = getCategory(userId, transactionRequest.getCategoryId());
+
+        logger.info("Fetched account and category: accountId='{}', categoryId='{}'",
+                sourceAccount.getId(), category.getId());
+
+        CategoryType categoryType = transactionRequest.getCategoryType();
+        Direction direction = CategoryType.INCOME.equals(categoryType) ? Direction.IN : Direction.OUT;
+
+        BigDecimal signedAmount = direction.equals(Direction.OUT)
+                ? transactionRequest.getAmount().abs().negate()
+                : transactionRequest.getAmount().abs();
+
+        logger.info("Calculated update values: categoryType='{}', direction='{}', newAmount='{}', signedAmount='{}'",
+                categoryType, direction, transactionRequest.getAmount(), signedAmount);
+
+        existing.setSourceAccount(sourceAccount);
+        existing.setCategory(category);
+        existing.setName(transactionRequest.getName());
+        existing.setAmount(signedAmount);
+        existing.setDate(transactionRequest.getDate());
+        existing.setType(categoryType);
+        existing.setRemarks(transactionRequest.getRemarks());
+
+        logger.info("Updated transaction fields: name='{}', date='{}', remarks='{}'",
+                transactionRequest.getName(), transactionRequest.getDate(), transactionRequest.getRemarks());
+
+        transactionRepository.save(existing);
+
+        logger.info("Successfully saved updated transaction: transactionId='{}', userId='{}'", transactionId, userId);
     }
 
     private TransactionDTO toDto(Transaction transaction) {

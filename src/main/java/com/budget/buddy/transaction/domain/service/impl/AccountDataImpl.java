@@ -98,18 +98,7 @@ public class AccountDataImpl implements AccountData {
         List<Long> accountIds = flatList.stream().map(AccountFlatView::getId).toList();
         Map<Long, BigDecimal> accountBalances = getAccountBalances(accountIds, userId);
 
-        List<AccountRetrieveResponse> results = flatList.stream()
-                .collect(Collectors.groupingBy(AccountFlatView::getGroupName, TreeMap::new, Collectors.toList()))
-                .entrySet()
-                .stream()
-                .map(entry -> {
-                    String groupName = entry.getKey();
-                    List<AccountDTO> accounts = entry.getValue().stream()
-                            .map(accountFlatView -> buildAccountDTO(accountFlatView, accountBalances))
-                            .toList();
-                    return new AccountRetrieveResponse(groupName, accounts);
-                })
-                .toList();
+        List<AccountRetrieveResponse> results = buildAccountRes(flatList, accountBalances);
 
         logger.info("Retrieved {} account groups", results.size());
         return results;
@@ -141,11 +130,30 @@ public class AccountDataImpl implements AccountData {
 
     @Transactional(readOnly = true)
     @Override
-    public List<AccountFlatView> retrieveAccountByIdList(List<Long> accountIds) {
+    public List<AccountRetrieveResponse> retrieveAccountByIdList(List<Long> accountIds) {
         Long userId = transactionUtils.getCurrentUserId();
 
         logger.info("Retrieving accounts with id='{}' for user with id='{}'", accountIds, userId);
-        return accountRepository.retrieveByAccountIdIn(userId, accountIds);
+        List<AccountFlatView> accountFlatViews = accountRepository.retrieveByAccountIdIn(userId, accountIds);
+
+        Map<Long, BigDecimal> accountBalances = getAccountBalances(accountIds, userId);
+
+        return buildAccountRes(accountFlatViews, accountBalances);
+    }
+
+    private List<AccountRetrieveResponse> buildAccountRes(List<AccountFlatView> accountFlatViews, Map<Long, BigDecimal> accountBalances) {
+        return accountFlatViews.stream()
+                .collect(Collectors.groupingBy(AccountFlatView::getGroupName, TreeMap::new, Collectors.toList()))
+                .entrySet()
+                .stream()
+                .map(entry -> {
+                    String groupName = entry.getKey();
+                    List<AccountDTO> accounts = entry.getValue().stream()
+                            .map(accountFlatView -> buildAccountDTO(accountFlatView, accountBalances))
+                            .toList();
+                    return new AccountRetrieveResponse(groupName, accounts);
+                })
+                .toList();
     }
 
     @Transactional

@@ -16,4 +16,6 @@ public interface TransactionData {
     void deleteTransactionByCategoryId(Long categoryId);
 
     TransactionPagination retrieveTransactions(RetrieveTransactionsParams params, TransactionFilterCriteria filterCriteria);
+
+    void updateTransaction(Long transactionId, TransactionDTO transactionRequest);
 }
