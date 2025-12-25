@@ -72,4 +72,15 @@ public class TransactionController {
         transactionService.updateTransaction(transactionId, request);
         return ResponseEntity.noContent().build();
     }
+
+    @Operation(summary = "Delete a transaction", description = "Deletes an existing transaction for the authenticated user.", responses = {
+            @ApiResponse(responseCode = "204", description = "Transaction deleted successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid request (e.g., cannot delete TRANSFER)", content = @Content()),
+            @ApiResponse(responseCode = "404", description = "Transaction not found", content = @Content())
+    })
+    @DeleteMapping(path = "/{id}")
+    public ResponseEntity<Void> deleteTransaction(@PathVariable("id") Long transactionId) {
+        transactionService.deleteTransaction(transactionId);
+        return ResponseEntity.noContent().build();
+    }
 }

@@ -103,4 +103,10 @@ public class TransactionServiceImpl implements TransactionService {
         // Delegate to the domain layer for persistence and ownership checks
         transactionData.updateTransaction(transactionId, transactionRequest);
     }
+
+    @Override
+    public void deleteTransaction(Long transactionId) {
+        logger.info("Request to delete transaction with id: {}", transactionId);
+        transactionData.deleteTransaction(transactionId);
+    }
 }

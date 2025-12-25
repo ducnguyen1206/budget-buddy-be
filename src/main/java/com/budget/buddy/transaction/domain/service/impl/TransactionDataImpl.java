@@ -1,6 +1,7 @@
 package com.budget.buddy.transaction.domain.service.impl;
 
 import com.budget.buddy.core.config.exception.ErrorCode;
+import com.budget.buddy.core.config.exception.BadRequestException;
 import com.budget.buddy.core.config.exception.ConflictException;
 import com.budget.buddy.core.config.exception.NotFoundException;
 import com.budget.buddy.transaction.application.dto.transaction.RetrieveTransactionsParams;
@@ -176,6 +177,24 @@ public class TransactionDataImpl implements TransactionData {
         transactionRepository.save(existing);
 
         logger.info("Successfully saved updated transaction: transactionId='{}', userId='{}'", transactionId, userId);
+    }
+
+    @Transactional
+    @Override
+    public void deleteTransaction(Long transactionId) {
+        Long userId = transactionUtils.getCurrentUserId();
+        logger.info("Deleting transaction: transactionId='{}', userId='{}'", transactionId, userId);
+
+        Transaction existing = transactionRepository.findByIdAndUserId(transactionId, userId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.TRANSACTION_NOT_FOUND));
+
+        if (CategoryType.TRANSFER.equals(existing.getType())) {
+            logger.info("Deletion rejected for transfer transaction: id='{}'", transactionId);
+            throw new BadRequestException(ErrorCode.INVALID_REQUEST_DATA);
+        }
+
+        transactionRepository.delete(existing);
+        logger.info("Successfully deleted transaction: transactionId='{}', userId='{}'", transactionId, userId);
     }
 
     private TransactionDTO toDto(Transaction transaction) {

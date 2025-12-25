@@ -133,7 +133,7 @@ public class TransactionSpecificationImpl implements TransactionSpecification {
         TransactionFilterCriteria.CurrenciesFilter currencies = criteria.getCurrencies();
         if (currencies != null && !CollectionUtils.isEmpty(currencies.getCurrencies())) {
             String op = normalize(currencies.getOperator());
-            Expression<?> path = root.get(FIELD_SOURCE_ACCOUNT).get("money").get(FIELD_CURRENCY);
+            Expression<?> path = root.get(FIELD_SOURCE_ACCOUNT).get(FIELD_CURRENCY);
             if (FIELD_IS.equals(op)) {
                 predicates.add(path.in(currencies.getCurrencies()));
             } else if (FIELD_IS_NOT.equals(op)) {
