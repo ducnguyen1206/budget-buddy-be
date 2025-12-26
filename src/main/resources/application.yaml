@@ -39,19 +39,6 @@ spring:
       default-async: true
     docs:
       enabled: false  # Disable in dev/local profiles
-  mail:
-    host: smtp.gmail.com
-    port: ${EMAIL_PORT}
-    username: ${EMAIL_USERNAME}
-    password: ${EMAIL_PASSWORD}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
-          ssl: false
-
 logging:
   level:
     org.hibernate.SQL: INFO
@@ -69,3 +56,9 @@ jwt:
   clock-skew-seconds: 30
 cors:
   app: ${APP_CORS}
+google:
+  gmail:
+    client-id: ${EMAIL_CLIENT_ID}
+    client-secret: ${EMAIL_CLIENT_SECRET}
+    refresh-token: ${EMAIL_REFRESH_TOKEN}
+    from-email: ${EMAIL_USERNAME}
