@@ -55,8 +55,8 @@ jwt:
   refresh-ttl: 7d
   clock-skew-seconds: 30
 cors:
-  app: http://localhost:5174/
-#  app: ${APP_CORS}
+#  app: http://localhost:5174/
+  app: ${APP_CORS}
 google:
     client-id: ${EMAIL_CLIENT_ID}
     client-secret: ${EMAIL_CLIENT_SECRET}
