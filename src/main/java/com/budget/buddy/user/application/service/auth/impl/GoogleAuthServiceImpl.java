@@ -46,9 +46,22 @@ public class GoogleAuthServiceImpl implements GoogleAuthService {
 
     @Override
     public LoginResponse login(String authCode) {
+        long flowStartNs = System.nanoTime();
+        logger.debug("Starting Google login flow");
+
         GoogleTokenResponse tokenResponse = exchangeCodeForToken(authCode);
+        if (tokenResponse == null || tokenResponse.accessToken() == null || tokenResponse.accessToken().isBlank()) {
+            logger.error("Token exchange returned empty response or access token");
+            throw new IllegalStateException("Failed to exchange authorization code for access token");
+        }
+
         GoogleUserInfo userInfo = getUserInfo(tokenResponse.accessToken());
+        if (userInfo == null || userInfo.email() == null || userInfo.email().isBlank()) {
+            logger.error("Google user info response is missing required email");
+            throw new IllegalStateException("Failed to retrieve Google user email");
+        }
         String email = userInfo.email();
+        logger.debug("Retrieved Google user info for email: {}", email);
 
         revokeAccessToken(email);
 
@@ -58,12 +71,15 @@ public class GoogleAuthServiceImpl implements GoogleAuthService {
         // Store access token JTI and refresh token in Redis with respective TTLs
         String accessJti = jwtUtil.extractJti(token);
         long accessTtlMs = jwtUtil.getAccessTtlMs();
+        long refreshTtlMs = jwtUtil.getRefreshTtlMs();
+        logger.debug("Storing tokens in Redis for email: {} (access TTL: {} ms, refresh TTL: {} ms)", email, accessTtlMs, refreshTtlMs);
         redisTokenService.storeAccessJti(email, accessJti, accessTtlMs);
         redisTokenService.setUserAccessJti(email, accessJti, accessTtlMs);
-        redisTokenService.storeRefreshToken(email, refreshToken, jwtUtil.getRefreshTtlMs());
+        redisTokenService.storeRefreshToken(email, refreshToken, refreshTtlMs);
 
         LoginResponse loginResponse = new LoginResponse(token, refreshToken);
-        logger.info("Login successful for email: {}, tokens generated and stored in Redis", email);
+        long totalMs = (System.nanoTime() - flowStartNs) / 1_000_000L;
+        logger.info("Login successful for email: {} in {} ms; tokens generated and stored in Redis", email, totalMs);
         return loginResponse;
     }
 
@@ -71,23 +87,34 @@ public class GoogleAuthServiceImpl implements GoogleAuthService {
         // Clear existing access JTI for this user (if any) before issuing a new one
         try {
             String existingJti = redisTokenService.getUserAccessJti(email);
-            if (existingJti != null) {
+            if (existingJti != null && !existingJti.isBlank()) {
                 redisTokenService.revokeAccessJti(existingJti);
                 redisTokenService.clearUserAccessJti(email);
                 logger.debug("Cleared existing JTI for email: {} -> {}", email, existingJti);
             }
 
         } catch (Exception e) {
-            logger.warn("Failed to clear existing JTI for email: {}", email);
+            logger.warn("Failed to clear existing JTI for email: {}", email, e);
         }
     }
 
     private GoogleUserInfo getUserInfo(String accessToken) {
-        return restClient.get()
-                .uri(googleUserInfoURI)
-                .header("Authorization", "Bearer " + accessToken)
-                .retrieve()
-                .body(GoogleUserInfo.class);
+        long startNs = System.nanoTime();
+        logger.debug("Requesting Google user info");
+        try {
+            GoogleUserInfo info = restClient.get()
+                    .uri(googleUserInfoURI)
+                    .header("Authorization", "Bearer " + accessToken)
+                    .retrieve()
+                    .body(GoogleUserInfo.class);
+            long elapsedMs = (System.nanoTime() - startNs) / 1_000_000L;
+            logger.debug("Google user info request completed in {} ms", elapsedMs);
+            return info;
+        } catch (Exception e) {
+            long elapsedMs = (System.nanoTime() - startNs) / 1_000_000L;
+            logger.error("Failed to fetch Google user info ({} ms)", elapsedMs, e);
+            throw new IllegalStateException("Failed to fetch Google user info", e);
+        }
     }
 
     @Override
@@ -101,11 +128,22 @@ public class GoogleAuthServiceImpl implements GoogleAuthService {
         params.add("grant_type", "authorization_code");
 
         // 2. Call Google's API
-        return restClient.post()
-                .uri(googleTokenURI)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .body(params)
-                .retrieve()
-                .body(GoogleTokenResponse.class);
+        long startNs = System.nanoTime();
+        logger.debug("Exchanging Google auth code for tokens");
+        try {
+            GoogleTokenResponse response = restClient.post()
+                    .uri(googleTokenURI)
+                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .body(params)
+                    .retrieve()
+                    .body(GoogleTokenResponse.class);
+            long elapsedMs = (System.nanoTime() - startNs) / 1_000_000L;
+            logger.debug("Token exchange completed in {} ms", elapsedMs);
+            return response;
+        } catch (Exception e) {
+            long elapsedMs = (System.nanoTime() - startNs) / 1_000_000L;
+            logger.error("Failed to exchange auth code for token ({} ms)", elapsedMs, e);
+            throw new IllegalStateException("Failed to exchange auth code for token", e);
+        }
     }
 }
