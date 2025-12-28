@@ -1,11 +1,16 @@
 package com.budget.buddy.user.application.service.auth.impl;
 
+import com.budget.buddy.core.config.exception.AuthException;
+import com.budget.buddy.core.config.exception.ErrorCode;
 import com.budget.buddy.core.utils.JwtUtil;
 import com.budget.buddy.core.utils.RedisTokenService;
 import com.budget.buddy.user.application.dto.GoogleTokenResponse;
 import com.budget.buddy.user.application.dto.GoogleUserInfo;
 import com.budget.buddy.user.application.dto.LoginResponse;
 import com.budget.buddy.user.application.service.auth.GoogleAuthService;
+import com.budget.buddy.user.domain.model.User;
+import com.budget.buddy.user.domain.service.UserData;
+import com.budget.buddy.user.domain.vo.EmailAddressVO;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,11 +42,13 @@ public class GoogleAuthServiceImpl implements GoogleAuthService {
 
     private final JwtUtil jwtUtil;
     private final RedisTokenService redisTokenService;
+    private final UserData userData;
 
-    public GoogleAuthServiceImpl(JwtUtil jwtUtil, RedisTokenService redisTokenService) {
+    public GoogleAuthServiceImpl(JwtUtil jwtUtil, RedisTokenService redisTokenService, UserData userData) {
         this.restClient = RestClient.create();
         this.jwtUtil = jwtUtil;
         this.redisTokenService = redisTokenService;
+        this.userData = userData;
     }
 
     @Override
@@ -62,6 +69,27 @@ public class GoogleAuthServiceImpl implements GoogleAuthService {
         }
         String email = userInfo.email();
         logger.debug("Retrieved Google user info for email: {}", email);
+
+        // Ensure user exists and status is valid
+        User user = userData.findUserByEmail(email).orElseGet(() -> {
+            // Create a new user with active email for Google sign-in
+            EmailAddressVO emailAddress = new EmailAddressVO(email, true);
+            User created = userData.saveNewUser(emailAddress);
+            logger.info("Created new user via Google sign-in for email: {} (id: {})", email, created.getId());
+            return created;
+        });
+
+        // For existing user, validate status
+        EmailAddressVO emailAddress = user.getEmailAddress();
+        if (!emailAddress.isActive()) {
+            logger.warn("Google login failed: Email {} is not active", email);
+            throw new AuthException(ErrorCode.LOGIN_FAILED);
+        }
+
+        if (user.isLocked()) {
+            logger.warn("Google login failed: Account is locked for email {}", email);
+            throw new AuthException(ErrorCode.ACCOUNT_LOCKED);
+        }
 
         revokeAccessToken(email);
 
