@@ -55,10 +55,10 @@ jwt:
   refresh-ttl: 7d
   clock-skew-seconds: 30
 cors:
-  app: ${APP_CORS}
+  app: http://localhost:5174/
+#  app: ${APP_CORS}
 google:
-  gmail:
     client-id: ${EMAIL_CLIENT_ID}
     client-secret: ${EMAIL_CLIENT_SECRET}
-    refresh-token: ${EMAIL_REFRESH_TOKEN}
-    from-email: ${EMAIL_USERNAME}
+    token-uri: ${GOOGLE_URL}
+    user-info-uri: ${GOOGLE_USER_INFO_URL}

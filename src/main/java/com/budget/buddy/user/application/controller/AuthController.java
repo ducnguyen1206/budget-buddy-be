@@ -2,6 +2,7 @@ package com.budget.buddy.user.application.controller;
 
 import com.budget.buddy.user.application.dto.*;
 import com.budget.buddy.user.application.service.auth.AuthenticationService;
+import com.budget.buddy.user.application.service.auth.GoogleAuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/auth")
 public class AuthController {
     private final AuthenticationService authenticationService;
+    private final GoogleAuthService googleAuthService;
 
     @Operation(summary = "Send token to user email", responses = {
             @ApiResponse(responseCode = "201", description = "User registered and logged in, email is sent to user"),
@@ -99,5 +101,10 @@ public class AuthController {
     public ResponseEntity<Void> resetPassword(@RequestBody ResetPasswordRequest request) {
         authenticationService.resetPassword(request);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/google")
+    public ResponseEntity<LoginResponse> loginWithGoogle(@RequestParam("code") String code) {
+        return ResponseEntity.ok(googleAuthService.login(code));
     }
 }

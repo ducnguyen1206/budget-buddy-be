@@ -36,6 +36,7 @@ public class SecurityConfig {
             "/api/v1/auth/login/oauth",
             "/api/v1/auth/forgot-password",
             "/api/v1/auth/token",
+            "/api/v1/auth/google",
             "/swagger-ui/**",
             "/v3/api-docs/**",
             "/actuator/**",
