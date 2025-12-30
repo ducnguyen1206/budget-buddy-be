@@ -62,8 +62,8 @@ public class BudgetController {
                             array = @ArraySchema(schema = @Schema(implementation = BudgetDTO.class))))
     })
     @GetMapping
-    public ResponseEntity<List<BudgetDTO>> getBudgets() {
-        return ResponseEntity.status(200).body(budgetService.getAllBudgetsForCurrentUser());
+    public ResponseEntity<List<BudgetDTO>> getBudgets(@RequestParam(required = false) String currency) {
+        return ResponseEntity.status(200).body(budgetService.getAllBudgetsForCurrentUser(currency));
     }
 
     @Operation(summary = "Get a budget by ID", responses = {

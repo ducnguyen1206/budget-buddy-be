@@ -29,8 +29,8 @@ public class BudgetServiceImpl implements BudgetService {
     }
 
     @Override
-    public List<BudgetDTO> getAllBudgetsForCurrentUser() {
-        return budgetData.getAllBudgetsForCurrentUser();
+    public List<BudgetDTO> getAllBudgetsForCurrentUser(String currency) {
+        return budgetData.getAllBudgetsForCurrentUser(currency);
     }
 
     @Override

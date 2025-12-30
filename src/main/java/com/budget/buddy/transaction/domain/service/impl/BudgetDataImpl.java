@@ -120,9 +120,16 @@ public class BudgetDataImpl implements BudgetData {
 
 
     @Override
-    public List<BudgetDTO> getAllBudgetsForCurrentUser() {
+    public List<BudgetDTO> getAllBudgetsForCurrentUser(String currency) {
         Long userId = transactionUtils.getCurrentUserId();
         logger.info("Retrieving all budgets for userId='{}'", userId);
+        if (currency != null) {
+            logger.info("Retrieving budgets for userId='{}' and currency='{}'", userId, currency);
+            List<BudgetDTO> budgets = budgetRepository.findAllBudgetsForUserAndCurrency(userId, currency);
+            logger.info("Retrieved {} budgets for userId='{}' and currency='{}'", budgets.size(), userId, currency);
+            return budgets;
+        }
+
         List<BudgetDTO> budgets = budgetRepository.findAllBudgetsForUser(userId);
         logger.info("Retrieved {} budgets for userId='{}'", budgets.size(), userId);
         return budgets;

@@ -13,7 +13,7 @@ public interface BudgetData {
 
     void deleteBudgetByCategoryId(Long categoryId);
 
-    List<BudgetDTO> getAllBudgetsForCurrentUser();
+    List<BudgetDTO> getAllBudgetsForCurrentUser(String currency);
 
     BudgetDTO getBudgetById(Long budgetId);
 }

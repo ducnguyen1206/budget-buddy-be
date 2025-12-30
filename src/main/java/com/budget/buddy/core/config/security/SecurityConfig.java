@@ -27,7 +27,7 @@ public class SecurityConfig {
     private final JwtFilter jwtFilter;
 
     @Value("${cors.app}")
-    private String appCors;
+    private List<String> appCors;
 
     private static final String[] PUBLIC_ENDPOINTS = {
             "/api/v1/auth/verify",
@@ -67,7 +67,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration cfg = new CorsConfiguration();
-        cfg.setAllowedOrigins(List.of(appCors)); // your Vite dev server
+        cfg.setAllowedOrigins(appCors); // your Vite dev server
         cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         cfg.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"));
         cfg.setExposedHeaders(List.of("Authorization"));

@@ -30,6 +30,26 @@ public interface BudgetRepository extends JpaRepository<Budget, Long> {
             """)
     List<BudgetDTO> findAllBudgetsForUser(Long userId);
 
+
+    @Query("""
+            SELECT b.id                                                                 AS id,
+                   b.category.id                                                        AS caegoryID,
+                   c.identity.name                                                      AS categoryName,
+                   MAX(b.money.amount)                                                  AS amount,
+                   COALESCE(SUM(CASE WHEN t.amount < 0 THEN t.amount ELSE 0 END), 0)    AS spentAmount,
+                   COALESCE(MAX(b.money.amount), 0) -
+                   COALESCE(SUM(CASE WHEN t.amount < 0 THEN -t.amount ELSE 0 END), 0)   AS remainingAmount,
+                   b.money.currency                                                     AS currency,
+                   b.lastModifiedDate                                                   AS updatedAt
+            FROM Budget b
+                     JOIN Category c ON c.id = b.category.id
+                     LEFT JOIN Transaction t ON t.category.id = c.id AND t.sourceAccount.currency = b.money.currency
+                     LEFT JOIN Account a ON a.id = t.sourceAccount.id
+            WHERE b.userId = :userId AND b.money.currency = :currency
+            GROUP BY b.id, b.category.id, c.identity.name, b.money.currency
+            """)
+    List<BudgetDTO> findAllBudgetsForUserAndCurrency(Long userId, String currency);
+
     // Secure, user-scoped entity lookup to enforce userFilter semantics
     Optional<Budget> findByIdAndUserId(Long id, Long userId);
 

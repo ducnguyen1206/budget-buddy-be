@@ -46,11 +46,19 @@ class BudgetServiceImplTest {
     }
 
     @Test
-    void getAllBudgetsForCurrentUser_delegates() {
+    void getAllBudgetsForCurrentUser_withCurrency_delegates() {
         List<BudgetDTO> expected = List.of(new BudgetDTO(1L, 2L, "Cat", new java.math.BigDecimal("10"), null, null, "SGD", null));
-        when(budgetData.getAllBudgetsForCurrentUser()).thenReturn(expected);
-        assertSame(expected, service.getAllBudgetsForCurrentUser());
-        verify(budgetData).getAllBudgetsForCurrentUser();
+        when(budgetData.getAllBudgetsForCurrentUser("SGD")).thenReturn(expected);
+        assertSame(expected, service.getAllBudgetsForCurrentUser("SGD"));
+        verify(budgetData).getAllBudgetsForCurrentUser("SGD");
+    }
+
+    @Test
+    void getAllBudgetsForCurrentUser_withoutCurrency_delegates() {
+        List<BudgetDTO> expected = List.of(new BudgetDTO(1L, 2L, "Cat", new java.math.BigDecimal("10"), null, null, "SGD", null));
+        when(budgetData.getAllBudgetsForCurrentUser(null)).thenReturn(expected);
+        assertSame(expected, service.getAllBudgetsForCurrentUser(null));
+        verify(budgetData).getAllBudgetsForCurrentUser(null);
     }
 
     @Test
