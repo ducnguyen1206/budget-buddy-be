@@ -3,10 +3,12 @@ package com.budget.buddy.transaction.infrastructure.repository.custom;
 import com.budget.buddy.transaction.application.dto.transaction.TransactionFilterCriteria;
 import com.budget.buddy.transaction.domain.model.transaction.Transaction;
 import com.budget.buddy.transaction.infrastructure.repository.TransactionSpecification;
+import com.budget.buddy.transaction.domain.utils.TransactionUtils;
 import jakarta.persistence.criteria.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
+import lombok.RequiredArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -15,6 +17,7 @@ import java.util.Locale;
 import java.util.Set;
 
 @Component
+@RequiredArgsConstructor
 public class TransactionSpecificationImpl implements TransactionSpecification {
     // Field names to avoid magic strings
     private static final String FIELD_SOURCE_ACCOUNT = "sourceAccount";
@@ -26,15 +29,22 @@ public class TransactionSpecificationImpl implements TransactionSpecification {
     private static final String FIELD_TYPE = "type";
     private static final String FIELD_REMARKS = "remarks";
     private static final String FIELD_CURRENCY = "currency";
+    private static final String FIELD_USER_ID = "userId";
     private static final String FIELD_IS_NOT = "is not";
     private static final String FIELD_IS = "is";
 
     private static final Set<String> VALID_SORT_FIELDS = Set.of(FIELD_DATE, FIELD_AMOUNT, FIELD_NAME, FIELD_ID);
 
+    private final TransactionUtils transactionUtils;
+
     @Override
     public Specification<Transaction> buildSpecification(TransactionFilterCriteria criteria, String sort) {
         return (root, query, builder) -> {
             List<Predicate> predicates = new ArrayList<>();
+
+            // Always restrict by current user
+            Long userId = transactionUtils.getCurrentUserId();
+            predicates.add(builder.equal(root.get(FIELD_USER_ID), userId));
 
             if (criteria != null) {
                 addAccountFilter(criteria, root, predicates);
