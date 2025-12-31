@@ -2,6 +2,8 @@ package com.budget.buddy.transaction.domain.service.impl;
 
 import com.budget.buddy.core.config.exception.ErrorCode;
 import com.budget.buddy.core.config.exception.BadRequestException;
+
+import org.apache.commons.lang3.StringUtils;
 import com.budget.buddy.core.config.exception.ConflictException;
 import com.budget.buddy.core.config.exception.NotFoundException;
 import com.budget.buddy.transaction.application.dto.transaction.RetrieveTransactionsParams;
@@ -58,8 +60,8 @@ public class TransactionDataImpl implements TransactionData {
         CategoryType categoryType = transactionRequest.getCategoryType();
         Direction direction =  CategoryType.INCOME.equals(categoryType) ? Direction.IN : Direction.OUT;
 
-        logger.info("Creating transaction: userId='{}', amount='{}', categoryId='{}', sourceAccountId='{}'",
-                userId, transactionRequest.getAmount(), category.getId(), sourceAccount.getId());
+        logger.info("Creating transaction: userId='{}', amount='{}', categoryId='{}', sourceAccountId='{}' date {}",
+                userId, transactionRequest.getAmount(), category.getId(), sourceAccount.getId(), transactionRequest.getDate());
 
         Transaction sourceTransaction = buildTransaction(userId, sourceAccount, category, transactionRequest,
                 direction, categoryType);
@@ -118,6 +120,10 @@ public class TransactionDataImpl implements TransactionData {
 
         String sort = filterCriteria.getSort();
         logger.info("Fetching transactions with page {} size {} sort {}", page, size, sort);
+
+        if (StringUtils.isBlank(sort)) {
+            sort = "id,desc";
+        }
 
         Specification<Transaction> specification = transactionSpecification.buildSpecification(filterCriteria, sort);
 

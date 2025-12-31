@@ -29,7 +29,7 @@ public class TransactionSpecificationImpl implements TransactionSpecification {
     private static final String FIELD_IS_NOT = "is not";
     private static final String FIELD_IS = "is";
 
-    private static final Set<String> VALID_SORT_FIELDS = Set.of(FIELD_DATE, FIELD_AMOUNT, FIELD_NAME);
+    private static final Set<String> VALID_SORT_FIELDS = Set.of(FIELD_DATE, FIELD_AMOUNT, FIELD_NAME, FIELD_ID);
 
     @Override
     public Specification<Transaction> buildSpecification(TransactionFilterCriteria criteria, String sort) {
@@ -41,7 +41,7 @@ public class TransactionSpecificationImpl implements TransactionSpecification {
                 addCategoryFilter(criteria, root, predicates);
                 addNameFilter(criteria, root, builder, predicates);
                 addDateFilter(criteria, root, builder, predicates);
-//                addAmountFilter(criteria, root, builder, predicates);
+                addAmountFilter(criteria, root, builder, predicates);
                 addCurrenciesFilter(criteria, root, predicates);
                 addTypesFilter(criteria, root, predicates);
                 addRemarksFilter(criteria, root, builder, predicates);
