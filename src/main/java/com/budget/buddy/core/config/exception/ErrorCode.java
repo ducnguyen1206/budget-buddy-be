@@ -12,6 +12,7 @@ public enum ErrorCode {
     USER_HAS_NOT_BEEN_VERIFIED("AUTH_005", "User hasn't been verified yet"),
     ID_TOKEN_INVALID("AUTH_006", "ID token invalid"),
     INVALID_REFRESH_TOKEN("AUTH_007", "Invalid or expired refresh token"),
+    MISSING_AUTH_COOKIE("AUTH_008", "Authentication cookie is missing"),
 
     // Bad request
     REENTER_PASSWORD_NOT_THE_SAME("BAD_001", "Password and re-enter password must be the same"),

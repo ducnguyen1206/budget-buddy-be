@@ -10,6 +10,9 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,6 +23,9 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
     private final AuthenticationService authenticationService;
     private final GoogleAuthService googleAuthService;
+
+    @Value("${application.security.cookie-secure}") // Read from application.properties
+    private boolean isCookieSecure;
 
     @Operation(summary = "Send token to user email", responses = {
             @ApiResponse(responseCode = "201", description = "User registered and logged in, email is sent to user"),
@@ -68,10 +74,20 @@ public class AuthController {
             }
     )
     @PostMapping("/refresh-token")
-    public ResponseEntity<LoginResponse> refreshToken(@RequestBody RefreshTokenRequest request) {
-        return ResponseEntity.ok(
-                authenticationService.refreshToken(request.refreshToken())
-        );
+    public ResponseEntity<LoginResponse> refreshToken(@CookieValue(name = "refresh_token", required = true) String refreshToken) {
+
+        LoginResponse loginResponse = authenticationService.refreshToken(refreshToken);
+
+        ResponseCookie cookie = ResponseCookie.from("refresh_token", loginResponse.refreshToken())
+                .httpOnly(true)
+                .secure(isCookieSecure) // 👈 Uses the config!
+                .path("/")
+                .maxAge(7 * 24 * 60 * 60)
+                .sameSite("Lax")
+                .build();
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(loginResponse);
     }
 
     @Operation(
@@ -105,6 +121,19 @@ public class AuthController {
 
     @GetMapping("/google")
     public ResponseEntity<LoginResponse> loginWithGoogle(@RequestParam("code") String code) {
-        return ResponseEntity.ok(googleAuthService.login(code));
+
+        LoginResponse loginResponse = googleAuthService.login(code);
+
+        ResponseCookie cookie = ResponseCookie.from("refresh_token", loginResponse.refreshToken())
+                .httpOnly(true)
+                .secure(isCookieSecure) // 👈 Uses the config!
+                .path("/")
+                .maxAge(7 * 24 * 60 * 60)
+                .sameSite("Lax")
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString()) // Attach the "stamp"
+                .body(loginResponse);
     }
 }

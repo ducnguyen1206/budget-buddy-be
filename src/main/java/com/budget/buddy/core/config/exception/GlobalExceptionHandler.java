@@ -8,6 +8,7 @@ import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestCookieException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -88,5 +89,18 @@ public class GlobalExceptionHandler {
         logger.warn("Bad request error: {} - {}", ex.getErrorCode(), ex.getMessage());
         ErrorResponse error = new ErrorResponse(ex.getErrorCode(), ex.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    @ExceptionHandler(MissingRequestCookieException.class)
+    public ResponseEntity<ErrorResponse> handleMissingRequestCookieException(MissingRequestCookieException ex) {
+        // Log specifically which cookie is missing
+        logger.warn("Authentication failed: Missing cookie '{}'", ex.getCookieName());
+
+        ErrorResponse error = new ErrorResponse(
+                ErrorCode.MISSING_AUTH_COOKIE.getCode(),
+                ErrorCode.MISSING_AUTH_COOKIE.getMessage()
+        );
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }
 }

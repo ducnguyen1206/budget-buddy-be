@@ -62,3 +62,6 @@ google:
     client-secret: ${EMAIL_CLIENT_SECRET}
     token-uri: ${GOOGLE_URL}
     user-info-uri: ${GOOGLE_USER_INFO_URL}
+application:
+  security:
+    cookie-secure: ${COOKIES}
