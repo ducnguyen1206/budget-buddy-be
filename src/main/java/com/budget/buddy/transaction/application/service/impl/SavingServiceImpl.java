@@ -41,7 +41,7 @@ public class SavingServiceImpl implements SavingService {
     }
 
     @Override
-    public List<SavingDTO> getAll() {
-        return savingData.getAll();
+    public List<SavingDTO> getAll(String currency) {
+        return savingData.getAll(currency);
     }
 }

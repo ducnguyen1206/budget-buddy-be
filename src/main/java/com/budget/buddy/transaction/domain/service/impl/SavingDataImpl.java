@@ -40,8 +40,8 @@ public class SavingDataImpl implements SavingData {
             throw new BadRequestException(ErrorCode.INVALID_REQUEST_DATA);
         }
 
-        MoneyVO target = new MoneyVO(request.targetAmount(), Currency.valueOf(request.currency()));
-        Saving saving = new Saving(userId, account, request.name(), target, request.dueDate(), request.notes());
+        MoneyVO money = new MoneyVO(request.amount(), Currency.valueOf(request.currency()));
+        Saving saving = new Saving(userId, account, request.name(), money, request.date(), request.notes());
         savingRepository.save(saving);
     }
 
@@ -50,7 +50,7 @@ public class SavingDataImpl implements SavingData {
         Long userId = transactionUtils.getCurrentUserId();
         logger.info("Updating saving id='{}' for userId='{}'", id, userId);
 
-        Saving saving = savingRepository.findByIdAndUserId(id, userId)
+        Saving saving = savingRepository.findByIdAndUserIdOrderByIdAsc(id, userId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.SAVING_NOT_FOUND));
 
         if (!saving.getAccount().getId().equals(request.accountId())) {
@@ -59,8 +59,8 @@ public class SavingDataImpl implements SavingData {
         }
 
         saving.setName(request.name());
-        saving.setTargetMoney(new MoneyVO(request.targetAmount(), Currency.valueOf(request.currency())));
-        saving.setDueDate(request.dueDate());
+        saving.setMoney(new MoneyVO(request.amount(), Currency.valueOf(request.currency())));
+        saving.setDate(request.date());
         saving.setNotes(request.notes());
         savingRepository.save(saving);
     }
@@ -69,7 +69,7 @@ public class SavingDataImpl implements SavingData {
     public void delete(Long id) {
         Long userId = transactionUtils.getCurrentUserId();
         logger.info("Deleting saving id='{}' for userId='{}'", id, userId);
-        Saving saving = savingRepository.findByIdAndUserId(id, userId)
+        Saving saving = savingRepository.findByIdAndUserIdOrderByIdAsc(id, userId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.SAVING_NOT_FOUND));
         savingRepository.delete(saving);
     }
@@ -84,15 +84,23 @@ public class SavingDataImpl implements SavingData {
     @Override
     public SavingDTO getById(Long id) {
         Long userId = transactionUtils.getCurrentUserId();
-        Saving saving = savingRepository.findByIdAndUserId(id, userId)
+        Saving saving = savingRepository.findByIdAndUserIdOrderByIdAsc(id, userId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.SAVING_NOT_FOUND));
         return toDTO(saving);
     }
 
     @Override
-    public List<SavingDTO> getAll() {
+    public List<SavingDTO> getAll(String currency) {
         Long userId = transactionUtils.getCurrentUserId();
-        return savingRepository.findAllByUserId(userId).stream().map(this::toDTO).toList();
+        List<Saving> savings;
+        if (currency != null) {
+            logger.info("Retrieving savings for userId='{}' and currency='{}'", userId, currency);
+            savings = savingRepository.findAllByUserIdAndMoney_CurrencyOrderByDateAscIdAsc(userId, currency);
+        } else {
+            logger.info("Retrieving all savings for userId='{}'", userId);
+            savings = savingRepository.findAllByUserIdOrderByDateAscIdAsc(userId);
+        }
+        return savings.stream().map(this::toDTO).toList();
     }
 
     private Account validateAndGetOwnedAccount(Long userId, Long accountId) {
@@ -108,9 +116,9 @@ public class SavingDataImpl implements SavingData {
                 s.getAccount().getId(),
                 s.getAccount().getName(),
                 s.getName(),
-                s.getTargetMoney().getAmount(),
-                s.getTargetMoney().getCurrency(),
-                s.getDueDate(),
+                s.getMoney().getAmount(),
+                s.getMoney().getCurrency(),
+                s.getDate(),
                 s.getNotes(),
                 s.getLastModifiedDate()
         );

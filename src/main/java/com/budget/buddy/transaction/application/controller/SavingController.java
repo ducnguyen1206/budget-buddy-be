@@ -70,8 +70,8 @@ public class SavingController {
                             array = @ArraySchema(schema = @Schema(implementation = SavingDTO.class))))
     })
     @GetMapping
-    public ResponseEntity<List<SavingDTO>> getAll() {
-        return ResponseEntity.ok(savingService.getAll());
+    public ResponseEntity<List<SavingDTO>> getAll(@RequestParam(required = false) String currency) {
+        return ResponseEntity.ok(savingService.getAll(currency));
     }
 
     @Operation(summary = "Get a saving by ID", responses = {

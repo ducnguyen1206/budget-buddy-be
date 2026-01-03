@@ -1,0 +1,24 @@
+databaseChangeLog:
+  - objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+  - changeSet:
+      id: 010-add-saving-date
+      author: junie
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            columnExists:
+              tableName: saving
+              columnName: date
+      changes:
+        - addColumn:
+            tableName: saving
+            columns:
+              - column:
+                  name: date
+                  type: date
+                  defaultValueComputed: CURRENT_DATE
+                  constraints:
+                    nullable: false
+        - dropDefaultValue:
+            tableName: saving
+            columnName: date

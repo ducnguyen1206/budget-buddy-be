@@ -16,5 +16,5 @@ public interface SavingService {
 
     SavingDTO getById(Long id);
 
-    List<SavingDTO> getAll();
+    List<SavingDTO> getAll(String currency);
 }

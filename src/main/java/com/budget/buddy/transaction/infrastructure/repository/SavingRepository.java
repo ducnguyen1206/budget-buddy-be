@@ -10,10 +10,13 @@ import java.util.Optional;
 
 public interface SavingRepository extends JpaRepository<Saving, Long> {
 
-    Optional<Saving> findByIdAndUserId(Long id, Long userId);
+    Optional<Saving> findByIdAndUserIdOrderByIdAsc(Long id, Long userId);
 
     @EntityGraph(attributePaths = {"account", "account.accountTypeGroup"})
-    List<Saving> findAllByUserId(Long userId);
+    List<Saving> findAllByUserIdOrderByDateAscIdAsc(Long userId);
+
+    @EntityGraph(attributePaths = {"account", "account.accountTypeGroup"})
+    List<Saving> findAllByUserIdAndMoney_CurrencyOrderByDateAscIdAsc(Long userId, String currency);
 
     void deleteAllByIdInAndUserId(Collection<Long> ids, Long userId);
 }

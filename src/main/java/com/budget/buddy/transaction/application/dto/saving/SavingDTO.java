@@ -27,17 +27,18 @@ public record SavingDTO(
         @Schema(description = "Saving name", example = "Vacation Fund")
         String name,
 
-        @NotNull(message = "Target amount is required")
-        @Schema(description = "Target amount", example = "2000.00")
-        BigDecimal targetAmount,
+        @NotNull(message = "Amount is required")
+        @Schema(description = "Saving amount", example = "2000.00")
+        BigDecimal amount,
 
         @NotNull(message = "Currency is required")
         @Pattern(regexp = "^(VND|SGD)$", message = "Currency must be either VND or SGD")
         @Schema(description = "Currency", example = "SGD")
         String currency,
 
-        @Schema(description = "Due date", example = "2026-06-01")
-        LocalDate dueDate,
+        @NotNull(message = "Date is required")
+        @Schema(description = "Date of the saving goal", example = "2026-01-15")
+        LocalDate date,
 
         @Schema(description = "Notes", example = "Save monthly from salary")
         String notes,

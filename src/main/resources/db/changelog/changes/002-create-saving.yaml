@@ -1,7 +1,7 @@
 databaseChangeLog:
   - objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
   - changeSet:
-      id: 002-create-saving
+      id: 009-create-saving
       author: junie
       preConditions:
         - onFail: MARK_RAN
@@ -36,7 +36,7 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
-                  name: target_amount
+                  name: amount
                   type: decimal(19,2)
                   constraints:
                     nullable: false
@@ -45,9 +45,6 @@ databaseChangeLog:
                   type: varchar(3)
                   constraints:
                     nullable: false
-              - column:
-                  name: due_date
-                  type: date
               - column:
                   name: notes
                   type: varchar(1000)

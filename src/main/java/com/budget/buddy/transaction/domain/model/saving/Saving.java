@@ -11,6 +11,7 @@ import lombok.*;
 
 import java.time.LocalDate;
 
+
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -33,13 +34,13 @@ public class Saving extends BaseEntity {
     @Size(max = 150)
     private String name;
 
-    @AttributeOverride(name = "amount", column = @Column(name = "target_amount", precision = 19, scale = 2, nullable = false))
+    @AttributeOverride(name = "amount", column = @Column(name = "amount", precision = 19, scale = 2, nullable = false))
     @AttributeOverride(name = "currency", column = @Column(name = "currency", length = 3, nullable = false))
     @Embedded
-    private MoneyVO targetMoney;
+    private MoneyVO money;
 
-    @Column(name = "due_date")
-    private LocalDate dueDate;
+    @Column(name = "date", nullable = false)
+    private LocalDate date;
 
     @Column(name = "notes", length = 1000)
     private String notes;
