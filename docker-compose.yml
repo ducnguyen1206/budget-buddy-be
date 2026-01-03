@@ -1,47 +1,83 @@
-version: "3.8"
+version: "3.9"
 
 services:
-  db:
-    image: postgres:16
-    container_name: budget-buddy-postgres
-    environment:
-      POSTGRES_DB: budget-buddy
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: admin
-    # Ports removed for security (app connects internally)
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    restart: always
-
-  redis:
-    image: redis:7
-    container_name: budget-buddy-redis
-    # Ports removed for security (app connects internally)
-    restart: always
-
   app:
     build:
       context: .
       dockerfile: Dockerfile
+    image: budget-buddy-be:latest
     container_name: budget-buddy-app
-    depends_on:
-      - db
-      - redis
-    ports:
-      - "8080:8080"
+    restart: unless-stopped
+    env_file:
+      - .env
     environment:
-      SPRING_PROFILES_ACTIVE: local
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/budget-buddy
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: admin
-      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
-      SPRING_DATA_REDIS_HOST: redis
-      SPRING_DATA_REDIS_PORT: 6379
-      EMAIL_USERNAME: minhduc.nguyennn25@gmail.com
-      # These pull from the .env file we just created
-      EMAIL_PASSWORD: ${EMAIL_PASSWORD}
+      # Use values from .env when provided, otherwise fall back to local containers
+      DB_URL: ${DB_URL:-jdbc:postgresql://postgres:5432/budgetbuddy}
+      DB_USERNAME: ${DB_USERNAME:-budgetbuddy}
+      DB_PASSWORD: ${DB_PASSWORD:-password}
+      REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      APP_CORS: ${APP_CORS:-http://localhost:5174}
       JWT_SECRET: ${JWT_SECRET}
-    restart: always
+      EMAIL_USERNAME: ${EMAIL_USERNAME}
+      EMAIL_PASSWORD: ${EMAIL_PASSWORD}
+      EMAIL_CLIENT_ID: ${EMAIL_CLIENT_ID}
+      EMAIL_CLIENT_SECRET: ${EMAIL_CLIENT_SECRET}
+      GOOGLE_URL: ${GOOGLE_URL}
+      GOOGLE_USER_INFO_URL: ${GOOGLE_USER_INFO_URL}
+      COOKIES: ${COOKIES:-false}
+    ports:
+      - "8081:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - appnet
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: budget-buddy-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-budgetbuddy}
+      POSTGRES_USER: ${DB_USERNAME:-budgetbuddy}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - appnet
+
+  redis:
+    image: redis:7-alpine
+    container_name: budget-buddy-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - redisdata:/data
+    networks:
+      - appnet
 
 volumes:
   pgdata:
+  redisdata:
+
+networks:
+  appnet:
+    driver: bridge

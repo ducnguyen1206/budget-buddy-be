@@ -1,32 +1,36 @@
-# Multi-stage build for BudgetBuddy Spring Boot app
-FROM eclipse-temurin:21-jdk AS build
+## Multi-stage Dockerfile for BudgetBuddy (Spring Boot, Java 21)
 
-WORKDIR /app
+# 1) Build stage
+FROM maven:3.9.9-eclipse-temurin-21 AS builder
+WORKDIR /workspace
 
-# Leverage Docker layer caching
+# Leverage Docker layer caching for dependencies
 COPY pom.xml ./
-COPY mvnw .
 COPY .mvn .mvn
+COPY mvnw ./mvnw
+RUN chmod +x ./mvnw
+RUN ./mvnw -q -B -DskipTests dependency:go-offline
 
-# Pre-fetch dependencies (optional, will continue if wrapper not executable on host)
-RUN chmod +x mvnw || true
-RUN ./mvnw -q -DskipTests dependency:go-offline || true
-
-# Copy sources and build the jar
+# Copy sources and build
 COPY src ./src
-RUN ./mvnw -q -DskipTests package
+RUN ./mvnw -q -B -DskipTests package
 
-# Runtime image
-FROM eclipse-temurin:21-jre AS runtime
+# 2) Runtime stage
+FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
-# Copy the fat jar from the builder stage
-COPY --from=build /app/target/*.jar /app/app.jar
+# Copy fat jar from builder (artifact name may vary); copy into /app directory
+# We intentionally copy with wildcard to handle versioned artifact names
+COPY --from=builder /workspace/target/*SNAPSHOT.jar /app/
 
-# Default JVM and Spring profile (can be overridden at runtime)
-ENV JAVA_OPTS=""
-ENV SPRING_PROFILES_ACTIVE=cloud
+# Non-root user for better security
+RUN addgroup -S spring && adduser -S spring -G spring
+USER spring
 
 EXPOSE 8080
 
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar /app/app.jar"]
+# Allow custom JVM options via JAVA_OPTS
+ENV JAVA_OPTS=""
+
+# Run any jar in /app (boot jar) — avoids hardcoding artifact name
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar /app/*.jar"]
