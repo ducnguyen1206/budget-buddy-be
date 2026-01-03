@@ -65,3 +65,5 @@ google:
 application:
   security:
     cookie-secure: ${COOKIES}
+server:
+  port: 8082
