@@ -5,7 +5,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      pull: true
     image: budget-buddy-be:latest
+    pull_policy: build
     container_name: budget-buddy-app
     restart: unless-stopped
     env_file:
@@ -28,7 +30,7 @@ services:
       GOOGLE_USER_INFO_URL: ${GOOGLE_USER_INFO_URL}
       COOKIES: ${COOKIES:-false}
     ports:
-      - "8081:8080"
+      - "8080:8080"
     depends_on:
       postgres:
         condition: service_healthy

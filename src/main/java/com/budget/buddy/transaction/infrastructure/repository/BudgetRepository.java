@@ -36,9 +36,9 @@ public interface BudgetRepository extends JpaRepository<Budget, Long> {
                    b.category.id                                                        AS caegoryID,
                    c.identity.name                                                      AS categoryName,
                    MAX(b.money.amount)                                                  AS amount,
-                   COALESCE(SUM(CASE WHEN t.amount < 0 THEN t.amount ELSE 0 END), 0)    AS spentAmount,
-                   COALESCE(MAX(b.money.amount), 0) -
-                   COALESCE(SUM(CASE WHEN t.amount < 0 THEN -t.amount ELSE 0 END), 0)   AS remainingAmount,
+                   COALESCE(SUM(t.amount), 0)                                           AS spentAmount,
+                   COALESCE(MAX(b.money.amount), 0) +
+                   COALESCE(SUM(t.amount), 0)                                           AS remainingAmount,
                    b.money.currency                                                     AS currency,
                    b.lastModifiedDate                                                   AS updatedAt
             FROM Budget b
