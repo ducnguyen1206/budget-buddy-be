@@ -42,7 +42,7 @@ public class BudgetController {
     @PutMapping("/{id}")
     public ResponseEntity<Void> updateBudget(@Valid @RequestBody BudgetDTO budgetDTO, @PathVariable Long id) {
         budgetService.updateBudget(budgetDTO, id);
-        return ResponseEntity.status(201).build();
+        return ResponseEntity.status(204).build();
     }
 
     @Operation(summary = "Delete a existed budget", description = "Delete a existed for the authenticated user.", responses = {
