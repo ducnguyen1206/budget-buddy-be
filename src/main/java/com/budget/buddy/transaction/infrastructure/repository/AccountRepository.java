@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface AccountRepository extends JpaRepository<Account, Long> {
     @Query("""
-            SELECT a.id AS id, a.name AS name, a.currency AS currency, g.name AS groupName, g.id AS groupId
+            SELECT a.id AS id, a.name AS name, a.currency AS currency, g.name AS groupName, g.id AS groupId, a.savingAccount as savingAccount
             FROM Account a JOIN a.accountTypeGroup g
             WHERE g.userId = :userId
             ORDER BY g.name, a.name
@@ -17,7 +17,15 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
     List<AccountFlatView> retrieveAllAccounts(Long userId);
 
     @Query("""
-            SELECT a.id AS id, COALESCE(SUM(t.amount), 0) AS amount
+            SELECT a.id AS id, a.name AS name, a.currency AS currency, g.name AS groupName, g.id AS groupId, a.savingAccount as savingAccount
+            FROM Account a JOIN a.accountTypeGroup g
+            WHERE g.userId = :userId AND a.savingAccount = :savingAccount
+            ORDER BY g.name, a.name
+            """)
+    List<AccountFlatView> retrieveAllAccountsBySavingAccount(Long userId, Boolean savingAccount);
+
+    @Query("""
+            SELECT a.id AS id, COALESCE(SUM(t.amount), 0) AS amount, a.savingAccount
             FROM Account a JOIN a.accountTypeGroup g
                         LEFT JOIN Transaction t ON a.id = t.sourceAccount.id
             WHERE g.userId = :userId AND a.id IN (:accountIds)
@@ -26,7 +34,7 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
             """)
     List<AccountFlatView> retrieveAccountBalance(List<Long> accountIds, Long userId);
 
-    @Query("SELECT a.id AS id, a.name AS name, a.currency AS currency, g.name AS groupName, g.id AS groupId " +
+    @Query("SELECT a.id AS id, a.name AS name, a.currency AS currency, g.name AS groupName, g.id AS groupId, a.savingAccount " +
             "FROM Account a JOIN a.accountTypeGroup g " +
             "WHERE g.userId = :userId AND a.id = :accountId " +
             "ORDER BY g.name, a.name")
@@ -44,7 +52,7 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
             "ORDER BY g.name, a.name")
     Account findAccountByUserIdAndAccountId(Long userId, Long accountId);
 
-    @Query("SELECT a.id AS id, a.name AS name, a.currency AS currency, g.name AS groupName, g.id AS groupId " +
+    @Query("SELECT a.id AS id, a.name AS name, a.currency AS currency, g.name AS groupName, g.id AS groupId , a.savingAccount " +
             "FROM Account a JOIN a.accountTypeGroup g " +
             "WHERE g.userId = :userId AND a.id IN (:accountId) " +
             "ORDER BY g.name, a.name")

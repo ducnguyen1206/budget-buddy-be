@@ -29,8 +29,8 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public List<AccountRetrieveResponse> retrieveAccounts() {
-        return accountData.retrieveAccounts();
+    public List<AccountRetrieveResponse> retrieveAccounts(Boolean savingAccount) {
+        return accountData.retrieveAccounts(savingAccount);
     }
 
     @Override

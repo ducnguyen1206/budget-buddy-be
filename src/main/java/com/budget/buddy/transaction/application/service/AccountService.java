@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface AccountService {
     void creteAccount(AccountDTO accountDTO);
-    List<AccountRetrieveResponse> retrieveAccounts();
+    List<AccountRetrieveResponse> retrieveAccounts(Boolean savingAccount);
 
     AccountRetrieveResponse retrieveAccount(Long accountId);
 

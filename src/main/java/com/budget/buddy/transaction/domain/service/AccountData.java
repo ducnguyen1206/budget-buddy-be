@@ -13,7 +13,7 @@ public interface AccountData {
 
     boolean isAccountCurrencyInvalid(AccountDTO accountDTO, Long accountId);
 
-    List<AccountRetrieveResponse> retrieveAccounts();
+    List<AccountRetrieveResponse> retrieveAccounts(Boolean savingAccount);
 
     AccountRetrieveResponse retrieveAccount(Long accountId);
 

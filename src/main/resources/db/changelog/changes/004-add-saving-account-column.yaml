@@ -1,0 +1,24 @@
+databaseChangeLog:
+  - objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+  - changeSet:
+      id: 011-add-saving-account-column
+      author: junie
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            columnExists:
+              tableName: account
+              columnName: saving_account
+      changes:
+        - addColumn:
+            tableName: account
+            columns:
+              - column:
+                  name: saving_account
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+        - dropDefaultValue:
+            tableName: account
+            columnName: saving_account

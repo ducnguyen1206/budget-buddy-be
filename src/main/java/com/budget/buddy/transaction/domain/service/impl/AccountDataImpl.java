@@ -55,7 +55,8 @@ public class AccountDataImpl implements AccountData {
         Account newAccount = new Account(
                 accountTypeGroup,
                 accountDTO.name(),
-                accountDTO.currency());
+                accountDTO.currency(),
+                accountDTO.savingAccount());
         accountRepository.save(newAccount);
     }
 
@@ -88,11 +89,17 @@ public class AccountDataImpl implements AccountData {
 
     @Transactional(readOnly = true)
     @Override
-    public List<AccountRetrieveResponse> retrieveAccounts() {
+    public List<AccountRetrieveResponse> retrieveAccounts(Boolean savingAccount) {
         Long userId = transactionUtils.getCurrentUserId();
 
         logger.info("Retrieving all accounts for current user");
-        List<AccountFlatView> flatList = accountRepository.retrieveAllAccounts(userId);
+        List<AccountFlatView> flatList = new ArrayList<>();
+
+        if (savingAccount != null) {
+            flatList = accountRepository.retrieveAllAccountsBySavingAccount(userId, savingAccount);
+        } else {
+            flatList = accountRepository.retrieveAllAccounts(userId);
+        }
 
         List<Long> accountIds = flatList.stream().map(AccountFlatView::getId).toList();
         Map<Long, BigDecimal> accountBalances = getAccountBalances(accountIds, userId);
@@ -184,6 +191,7 @@ public class AccountDataImpl implements AccountData {
 
         account.setCurrency(accountDTO.currency());
         account.setName(accountDTO.name());
+        account.setSavingAccount(accountDTO.savingAccount());
         accountRepository.save(account);
         logger.info("Account updated successfully: id='{}'", accountId);
     }
@@ -262,7 +270,8 @@ public class AccountDataImpl implements AccountData {
                 accountBalances.getOrDefault(view.getId(), BigDecimal.ZERO),
                 Currency.valueOf(view.getCurrency()),
                 null,
-                view.getGroupId()
+                view.getGroupId(),
+                Boolean.TRUE.equals(view.getSavingAccount())
         );
     }
 

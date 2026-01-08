@@ -37,7 +37,7 @@ class AccountServiceImplTest {
 
     @Test
     void createAccount_valid_callsCreate() {
-        AccountDTO dto = new AccountDTO(null, "Main", BigDecimal.ZERO, Currency.SGD, null, null);
+        AccountDTO dto = new AccountDTO(null, "Main", BigDecimal.ZERO, Currency.SGD, null, null, false);
         when(accountData.isAccountCurrencyInvalid(dto, null)).thenReturn(false);
 
         service.creteAccount(dto);
@@ -47,7 +47,7 @@ class AccountServiceImplTest {
 
     @Test
     void createAccount_invalidCurrency_throwsConflict() {
-        AccountDTO dto = new AccountDTO(null, "Main", BigDecimal.ZERO, Currency.SGD, null, null);
+        AccountDTO dto = new AccountDTO(null, "Main", BigDecimal.ZERO, Currency.SGD, null, null, false);
         when(accountData.isAccountCurrencyInvalid(dto, null)).thenReturn(true);
 
         ConflictException ex = assertThrows(ConflictException.class, () -> service.creteAccount(dto));
@@ -57,11 +57,11 @@ class AccountServiceImplTest {
 
     @Test
     void retrieveAccounts_delegates() {
-        when(accountData.retrieveAccounts()).thenReturn(List.of(new AccountRetrieveResponse("CASH", List.of())));
+        when(accountData.retrieveAccounts(any())).thenReturn(List.of(new AccountRetrieveResponse("CASH", List.of())));
 
-        List<AccountRetrieveResponse> res = service.retrieveAccounts();
+        List<AccountRetrieveResponse> res = service.retrieveAccounts(false);
         assertEquals(1, res.size());
-        verify(accountData).retrieveAccounts();
+        verify(accountData).retrieveAccounts(false);
     }
 
     @Test
@@ -97,7 +97,7 @@ class AccountServiceImplTest {
 
     @Test
     void updateAccount_valid_updates() {
-        AccountDTO dto = new AccountDTO(1L, "A", BigDecimal.ONE, Currency.VND, null, 2L);
+        AccountDTO dto = new AccountDTO(1L, "A", BigDecimal.ONE, Currency.VND, null, 2L, false);
         when(accountData.isAccountCurrencyInvalid(dto, 9L)).thenReturn(false);
 
         service.updateAccount(9L, dto);
@@ -108,7 +108,7 @@ class AccountServiceImplTest {
 
     @Test
     void updateAccount_invalidCurrency_throwsConflict() {
-        AccountDTO dto = new AccountDTO(1L, "A", BigDecimal.ONE, Currency.VND, null, 2L);
+        AccountDTO dto = new AccountDTO(1L, "A", BigDecimal.ONE, Currency.VND, null, 2L, false);
         when(accountData.isAccountCurrencyInvalid(dto, 9L)).thenReturn(true);
 
         ConflictException ex = assertThrows(ConflictException.class, () -> service.updateAccount(9L, dto));

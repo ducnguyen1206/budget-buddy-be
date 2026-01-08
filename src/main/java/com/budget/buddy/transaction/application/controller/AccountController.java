@@ -44,8 +44,8 @@ public class AccountController {
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content())
     })
     @GetMapping
-    public ResponseEntity<List<AccountRetrieveResponse>> retrieveAccounts() {
-        List<AccountRetrieveResponse> accounts = accountService.retrieveAccounts();
+    public ResponseEntity<List<AccountRetrieveResponse>> retrieveAccounts(@RequestParam(required = false) Boolean savingAccount) {
+        List<AccountRetrieveResponse> accounts = accountService.retrieveAccounts(savingAccount);
         return ResponseEntity.ok(accounts);
     }
 

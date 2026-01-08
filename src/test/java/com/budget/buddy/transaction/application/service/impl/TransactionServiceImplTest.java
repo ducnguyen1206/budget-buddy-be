@@ -97,8 +97,8 @@ class TransactionServiceImplTest {
 
         when(accountData.retrieveAccountByIdList(List.of(1L, 2L))).thenReturn(List.of(
                 new AccountRetrieveResponse("1", List.of(
-                        new AccountDTO(1L, "Account1", BigDecimal.valueOf(1000), Currency.SGD, "", 1L),
-                        new AccountDTO(2L, "Account2", BigDecimal.valueOf(500), Currency.VND, "1", 1L)
+                        new AccountDTO(1L, "Account1", BigDecimal.valueOf(1000), Currency.SGD, "", 1L, false),
+                        new AccountDTO(2L, "Account2", BigDecimal.valueOf(500), Currency.VND, "1", 1L, false)
                 ))
         ));
 
@@ -122,8 +122,8 @@ class TransactionServiceImplTest {
 
         when(accountData.retrieveAccountByIdList(List.of(1L, 2L))).thenReturn(List.of(
                 new AccountRetrieveResponse("1", List.of(
-                        new AccountDTO(1L, "Account1", BigDecimal.valueOf(150), Currency.SGD, "1", 1L),
-                        new AccountDTO(2L, "Account2", BigDecimal.valueOf(500), Currency.SGD, "1", 1L)
+                        new AccountDTO(1L, "Account1", BigDecimal.valueOf(150), Currency.SGD, "1", 1L, false),
+                        new AccountDTO(2L, "Account2", BigDecimal.valueOf(500), Currency.SGD, "1", 1L, false)
                 ))
         ));
 
@@ -147,8 +147,8 @@ class TransactionServiceImplTest {
 
         when(accountData.retrieveAccountByIdList(List.of(1L, 2L))).thenReturn(List.of(
                 new AccountRetrieveResponse("1", List.of(
-                        new AccountDTO(1L, "Account1", BigDecimal.valueOf(150), Currency.SGD, "1", 1L),
-                        new AccountDTO(2L, "Account2", BigDecimal.valueOf(500), Currency.SGD, "1", 1L)
+                        new AccountDTO(1L, "Account1", BigDecimal.valueOf(150), Currency.SGD, "1", 1L, false),
+                        new AccountDTO(2L, "Account2", BigDecimal.valueOf(500), Currency.SGD, "1", 1L, false)
                 ))
         ));
 

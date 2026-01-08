@@ -54,7 +54,7 @@ class AccountDataImplTest {
         when(accountTypeGroupRepository.findByNameAndUserId(accountTypeName, userId))
                 .thenReturn(Optional.of(accountTypeGroup));
 
-        AccountDTO accountDTO = new AccountDTO(null, accountName, null, currency, accountTypeName, null);
+        AccountDTO accountDTO = new AccountDTO(null, accountName, null, currency, accountTypeName, null, false);
 
         // Act
         assertDoesNotThrow(() -> accountDataImpl.createAccount(accountDTO));
@@ -85,7 +85,7 @@ class AccountDataImplTest {
         when(accountTypeGroupRepository.findByNameAndUserId(accountTypeName, userId))
                 .thenReturn(Optional.of(accountTypeGroup));
 
-        AccountDTO accountDTO = new AccountDTO(null, accountName, null, currency, accountTypeName, null);
+        AccountDTO accountDTO = new AccountDTO(null, accountName, null, currency, accountTypeName, null, false);
 
         // Act
         accountDataImpl.createAccount(accountDTO);
@@ -113,7 +113,7 @@ class AccountDataImplTest {
 
         when(accountTypeGroupRepository.save(any(AccountTypeGroup.class))).thenReturn(newGroup);
 
-        AccountDTO accountDTO = new AccountDTO(null, accountName, null, currency, accountTypeName, null);
+        AccountDTO accountDTO = new AccountDTO(null, accountName, null, currency, accountTypeName, null, false);
 
         // Act
         assertDoesNotThrow(() -> accountDataImpl.createAccount(accountDTO));

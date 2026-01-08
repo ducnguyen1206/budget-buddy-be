@@ -30,4 +30,7 @@ public class Account extends BaseEntity {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private Currency currency;
+
+    @Column(nullable = false)
+    private Boolean savingAccount = false;
 }

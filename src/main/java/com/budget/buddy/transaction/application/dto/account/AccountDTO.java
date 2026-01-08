@@ -28,6 +28,9 @@ public record AccountDTO(
         String type,
 
         @Schema(description = "Account group ID", example = "1")
-        Long accountGroupId
+        Long accountGroupId,
+
+        @Schema(description = "Is this account a saving account?", example = "true")
+        boolean savingAccount
 ) {
 }

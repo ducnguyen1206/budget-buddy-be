@@ -14,4 +14,6 @@ public interface AccountFlatView {
     String getGroupName();
 
     Long getGroupId();
+
+    Boolean getSavingAccount();
 }
