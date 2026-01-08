@@ -17,6 +17,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -123,14 +124,27 @@ public class BudgetDataImpl implements BudgetData {
     public List<BudgetDTO> getAllBudgetsForCurrentUser(String currency) {
         Long userId = transactionUtils.getCurrentUserId();
         logger.info("Retrieving all budgets for userId='{}'", userId);
+
+        // Calculate cycle window: from 5th of current cycle to 5th of next cycle (inclusive)
+        LocalDate today = LocalDate.now();
+        LocalDate startDate;
+        LocalDate endDate;
+        if (today.getDayOfMonth() >= 5) {
+            startDate = today.withDayOfMonth(5);
+            endDate = today.plusMonths(1).withDayOfMonth(5);
+        } else {
+            startDate = today.minusMonths(1).withDayOfMonth(5);
+            endDate = today.withDayOfMonth(5);
+        }
+
         if (currency != null) {
             logger.info("Retrieving budgets for userId='{}' and currency='{}'", userId, currency);
-            List<BudgetDTO> budgets = budgetRepository.findAllBudgetsForUserAndCurrency(userId, currency);
+            List<BudgetDTO> budgets = budgetRepository.findAllBudgetsForUserAndCurrency(userId, currency, startDate, endDate);
             logger.info("Retrieved {} budgets for userId='{}' and currency='{}'", budgets.size(), userId, currency);
             return budgets;
         }
 
-        List<BudgetDTO> budgets = budgetRepository.findAllBudgetsForUser(userId);
+        List<BudgetDTO> budgets = budgetRepository.findAllBudgetsForUser(userId, startDate, endDate);
         logger.info("Retrieved {} budgets for userId='{}'", budgets.size(), userId);
         return budgets;
     }

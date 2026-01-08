@@ -1,0 +1,112 @@
+[
+  {
+    "id": 2,
+    "categoryId": 2,
+    "categoryName": "Rent",
+    "amount": 850,
+    "spentAmount": 0,
+    "remainingAmount": 850,
+    "currency": "SGD",
+    "updatedAt": "2025-12-28T14:02:09.101458"
+  },
+  {
+    "id": 3,
+    "categoryId": 3,
+    "categoryName": "Food",
+    "amount": 850,
+    "spentAmount": -53.96,
+    "remainingAmount": 796.04,
+    "currency": "SGD",
+    "updatedAt": "2025-12-28T14:02:16.164859"
+  },
+  {
+    "id": 4,
+    "categoryId": 4,
+    "categoryName": "Transport",
+    "amount": 120,
+    "spentAmount": -5.12,
+    "remainingAmount": 114.88,
+    "currency": "SGD",
+    "updatedAt": "2025-12-28T14:02:27.837506"
+  },
+  {
+    "id": 5,
+    "categoryId": 5,
+    "categoryName": "Phone/Internet",
+    "amount": 88.8,
+    "spentAmount": -70.6,
+    "remainingAmount": 18.2,
+    "currency": "SGD",
+    "updatedAt": "2026-01-06T16:28:32.228542"
+  },
+  {
+    "id": 6,
+    "categoryId": 6,
+    "categoryName": "Other",
+    "amount": 400,
+    "spentAmount": 0,
+    "remainingAmount": 400,
+    "currency": "SGD",
+    "updatedAt": "2025-12-28T14:02:54.839666"
+  },
+  {
+    "id": 7,
+    "categoryId": 7,
+    "categoryName": "Hometown",
+    "amount": 1500,
+    "spentAmount": -1370,
+    "remainingAmount": 130,
+    "currency": "SGD",
+    "updatedAt": "2026-01-05T15:05:03.686094"
+  },
+  {
+    "id": 8,
+    "categoryId": 8,
+    "categoryName": "Debt",
+    "amount": 1256,
+    "spentAmount": -1500,
+    "remainingAmount": -244,
+    "currency": "SGD",
+    "updatedAt": "2026-01-05T15:05:14.451636"
+  },
+  {
+    "id": 9,
+    "categoryId": 9,
+    "categoryName": "Sport",
+    "amount": 444,
+    "spentAmount": 0,
+    "remainingAmount": 444,
+    "currency": "SGD",
+    "updatedAt": "2026-01-05T15:13:44.593234"
+  },
+  {
+    "id": 10,
+    "categoryId": 10,
+    "categoryName": "Saving",
+    "amount": 0,
+    "spentAmount": -200,
+    "remainingAmount": -200,
+    "currency": "SGD",
+    "updatedAt": "2026-01-05T15:12:09.227063"
+  },
+  {
+    "id": 12,
+    "categoryId": 11,
+    "categoryName": "Payment installment",
+    "amount": 800,
+    "spentAmount": 0,
+    "remainingAmount": 800,
+    "currency": "SGD",
+    "updatedAt": "2026-01-05T14:10:29.85277"
+  },
+  {
+    "id": 13,
+    "categoryId": 15,
+    "categoryName": "Remaining",
+    "amount": 567.66,
+    "spentAmount": 0,
+    "remainingAmount": 567.66,
+    "currency": "SGD",
+    "updatedAt": "2026-01-06T16:28:45.88836"
+  }
+]

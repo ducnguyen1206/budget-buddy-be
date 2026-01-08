@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
+import java.time.LocalDate;
 import java.util.Optional;
 
 public interface BudgetRepository extends JpaRepository<Budget, Long> {
@@ -23,12 +24,12 @@ public interface BudgetRepository extends JpaRepository<Budget, Long> {
                    b.lastModifiedDate                                                   AS updatedAt
             FROM Budget b
                      JOIN Category c ON c.id = b.category.id
-                     LEFT JOIN Transaction t ON t.category.id = c.id AND t.sourceAccount.currency = b.money.currency
+                     LEFT JOIN Transaction t ON t.category.id = c.id AND t.sourceAccount.currency = b.money.currency AND t.date >= :startDate AND t.date <= :endDate
                      LEFT JOIN Account a ON a.id = t.sourceAccount.id
             WHERE b.userId = :userId
             GROUP BY b.id, b.category.id, c.identity.name, b.money.currency
             """)
-    List<BudgetDTO> findAllBudgetsForUser(Long userId);
+    List<BudgetDTO> findAllBudgetsForUser(Long userId, LocalDate startDate, LocalDate endDate);
 
 
     @Query("""
@@ -43,12 +44,12 @@ public interface BudgetRepository extends JpaRepository<Budget, Long> {
                    b.lastModifiedDate                                                   AS updatedAt
             FROM Budget b
                      JOIN Category c ON c.id = b.category.id
-                     LEFT JOIN Transaction t ON t.category.id = c.id AND t.sourceAccount.currency = b.money.currency
+                     LEFT JOIN Transaction t ON t.category.id = c.id AND t.sourceAccount.currency = b.money.currency AND t.date >= :startDate AND t.date <= :endDate
                      LEFT JOIN Account a ON a.id = t.sourceAccount.id
             WHERE b.userId = :userId AND b.money.currency = :currency
             GROUP BY b.id, b.category.id, c.identity.name, b.money.currency
             """)
-    List<BudgetDTO> findAllBudgetsForUserAndCurrency(Long userId, String currency);
+    List<BudgetDTO> findAllBudgetsForUserAndCurrency(Long userId, String currency, LocalDate startDate, LocalDate endDate);
 
     // Secure, user-scoped entity lookup to enforce userFilter semantics
     Optional<Budget> findByIdAndUserId(Long id, Long userId);
