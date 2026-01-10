@@ -11,6 +11,8 @@ import java.util.List;
 public interface TransactionData {
     void createTransaction(TransactionDTO transactionRequest);
 
+    void createTransactions(List<TransactionDTO> transactionRequests);
+
     void deleteTransactionByAccountId(List<Long> accountIds);
 
     void deleteTransactionByCategoryId(Long categoryId);

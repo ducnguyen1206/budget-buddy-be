@@ -39,6 +39,11 @@ public class TransactionServiceImpl implements TransactionService {
         transactionData.createTransaction(transactionRequest);
     }
 
+    @Override
+    public void createTransactions(List<TransactionDTO> transactionRequests) {
+        transactionData.createTransactions(transactionRequests);
+    }
+
     private void validateTransferInfo(TransactionDTO transactionRequest) {
         CategoryType categoryType = transactionRequest.getCategoryType();
 

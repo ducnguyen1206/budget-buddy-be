@@ -35,7 +35,10 @@ import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -75,6 +78,59 @@ public class TransactionDataImpl implements TransactionData {
             transactions.add(buildTransaction(userId, targetAccount, category, transactionRequest, Direction.IN, categoryType));
             logger.info("Creating transfer mirror transaction: userId='{}', amount='{}', categoryId='{}', targetAccountId='{}'",
                     userId, transactionRequest.getAmount(), category.getId(), targetAccount.getId());
+        }
+
+        transactionRepository.saveAll(transactions);
+    }
+
+    @Transactional
+    @Override
+    public void createTransactions(List<TransactionDTO> transactionRequests) {
+        Long userId = transactionUtils.getCurrentUserId();
+
+        List<Long> accountIds = transactionRequests.stream().map(TransactionDTO::getAccountId).toList();
+        logger.info("Creating transaction: userId='{}', accountIds='{}'", userId, accountIds);
+
+        List<Account> accounts = getAccounts(userId, accountIds);
+        if (accounts.isEmpty()) {
+            throw new NotFoundException(ErrorCode.ACCOUNT_NOT_FOUND);
+        }
+
+        List<Long> categoryIds = transactionRequests.stream().map(TransactionDTO::getCategoryId).toList();
+        logger.info("Creating transaction: userId='{}', categoryIds='{}'", userId, categoryIds);
+
+        List<Category> categories = getCategories(userId, categoryIds);
+        if (categories.isEmpty()) {
+            throw new NotFoundException(ErrorCode.CATEGORY_NOT_FOUND);
+        }
+
+        Map<Long, Account> accountMap = accounts.stream().collect(Collectors.toMap(Account::getId, Function.identity()));
+        Map<Long, Category> categoryMap = categories.stream().collect(Collectors.toMap(Category::getId, Function.identity()));
+
+        List<Transaction> transactions = new ArrayList<>();
+
+        for (TransactionDTO transactionRequest : transactionRequests) {
+            Category sourceCategory = categoryMap.get(transactionRequest.getCategoryId());
+            Account sourceAccount = accountMap.get(transactionRequest.getAccountId());
+            if (sourceCategory == null || sourceAccount == null) {
+                throw new NotFoundException(ErrorCode.CATEGORY_NOT_FOUND);
+            } 
+
+            CategoryType categoryType = transactionRequest.getCategoryType();
+            Direction direction = CategoryType.INCOME.equals(categoryType) ? Direction.IN : Direction.OUT;
+
+            Transaction sourceTransaction = buildTransaction(userId, sourceAccount, sourceCategory, transactionRequest,
+                    direction, categoryType);
+            transactions.add(sourceTransaction);
+
+            if (CategoryType.TRANSFER.equals(categoryType)) {
+                Account targetAccount = accountMap.get(transactionRequest.getTargetAccountId());
+                if (targetAccount == null) {
+                    throw new NotFoundException(ErrorCode.ACCOUNT_NOT_FOUND);
+                }
+                Transaction targetTransaction = buildTransaction(userId, targetAccount, sourceCategory, transactionRequest, Direction.IN, categoryType);
+                transactions.add(targetTransaction);
+            }
         }
 
         transactionRepository.saveAll(transactions);
@@ -234,8 +290,16 @@ public class TransactionDataImpl implements TransactionData {
         return accountRepository.findAccountByUserIdAndAccountId(userId, accountId);
     }
 
+    private List<Account> getAccounts(Long userId, List<Long> accountIds) {
+        return accountRepository.findAccountByUserIdAndAccountIdIn(userId, accountIds);
+    }
+
     private Category getCategory(Long userId, Long category) {
         return categoryRepository.findBydId(category, userId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.CATEGORY_NOT_FOUND));
+    }
+
+    private List<Category> getCategories(Long userId, List<Long> categories) {
+        return categoryRepository.findByIdInAndUserId(categories, userId);
     }
 }

@@ -52,6 +52,12 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
             "ORDER BY g.name, a.name")
     Account findAccountByUserIdAndAccountId(Long userId, Long accountId);
 
+    @Query("SELECT a " +
+            "FROM Account a JOIN a.accountTypeGroup g " +
+            "WHERE g.userId = :userId AND a.id IN (:accountIds) " +
+            "ORDER BY g.name, a.name")
+    List<Account> findAccountByUserIdAndAccountIdIn(Long userId, List<Long> accountIds);
+
     @Query("SELECT a.id AS id, a.name AS name, a.currency AS currency, g.name AS groupName, g.id AS groupId , a.savingAccount " +
             "FROM Account a JOIN a.accountTypeGroup g " +
             "WHERE g.userId = :userId AND a.id IN (:accountId) " +
