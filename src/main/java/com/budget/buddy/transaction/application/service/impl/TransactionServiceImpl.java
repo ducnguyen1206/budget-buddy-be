@@ -36,7 +36,7 @@ public class TransactionServiceImpl implements TransactionService {
 
         // save transaction
         validateTransferInfo(transactionRequest);
-        transactionData.createTransaction(transactionRequest);
+        transactionData.createTransactions(List.of(transactionRequest));
     }
 
     @Override
@@ -54,7 +54,7 @@ public class TransactionServiceImpl implements TransactionService {
         Long sourceAccountId = transactionRequest.getAccountId();
         Long targetAccountId = transactionRequest.getTargetAccountId();
 
-        if (targetAccountId == null || sourceAccountId.equals(targetAccountId)) {
+        if (targetAccountId == null) {
             logger.info("toAccountId is null for transaction type transfer");
             throw new BadRequestException(ErrorCode.INVALID_REQUEST_DATA);
         }

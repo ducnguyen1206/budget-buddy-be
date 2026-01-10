@@ -52,6 +52,9 @@ public class TransactionDTO {
     @Schema(description = "Target account ID (for transfers)", example = "1")
     private Long targetAccountId;
 
+    @Schema(description = "Target category ID", example = "1")
+    private Long targetCategoryId;
+
     @Schema(description = "Account name", example = "Live Fresh", accessMode = Schema.AccessMode.READ_ONLY)
     private String sourceAccountName;
 

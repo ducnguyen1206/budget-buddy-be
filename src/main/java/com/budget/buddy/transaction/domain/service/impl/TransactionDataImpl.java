@@ -33,12 +33,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -53,34 +51,7 @@ public class TransactionDataImpl implements TransactionData {
     @Transactional
     @Override
     public void createTransaction(TransactionDTO transactionRequest) {
-        Long userId = transactionUtils.getCurrentUserId();
-        Account sourceAccount = getAccount(userId, transactionRequest.getAccountId());
-        if (sourceAccount == null) {
-            throw new NotFoundException(ErrorCode.ACCOUNT_NOT_FOUND);
-        }
-
-        Category category = getCategory(userId, transactionRequest.getCategoryId());
-        CategoryType categoryType = transactionRequest.getCategoryType();
-        Direction direction =  CategoryType.INCOME.equals(categoryType) ? Direction.IN : Direction.OUT;
-
-        logger.info("Creating transaction: userId='{}', amount='{}', categoryId='{}', sourceAccountId='{}' date {}",
-                userId, transactionRequest.getAmount(), category.getId(), sourceAccount.getId(), transactionRequest.getDate());
-
-        Transaction sourceTransaction = buildTransaction(userId, sourceAccount, category, transactionRequest,
-                direction, categoryType);
-
-        List<Transaction> transactions = new ArrayList<>(2);
-        transactions.add(sourceTransaction);
-
-        // For transfer category, also record a transaction entry for the target account
-        if (CategoryType.TRANSFER.equals(categoryType)) {
-            Account targetAccount = getAccount(userId, transactionRequest.getTargetAccountId());
-            transactions.add(buildTransaction(userId, targetAccount, category, transactionRequest, Direction.IN, categoryType));
-            logger.info("Creating transfer mirror transaction: userId='{}', amount='{}', categoryId='{}', targetAccountId='{}'",
-                    userId, transactionRequest.getAmount(), category.getId(), targetAccount.getId());
-        }
-
-        transactionRepository.saveAll(transactions);
+        createTransactions(List.of(transactionRequest));
     }
 
     @Transactional
@@ -88,21 +59,21 @@ public class TransactionDataImpl implements TransactionData {
     public void createTransactions(List<TransactionDTO> transactionRequests) {
         Long userId = transactionUtils.getCurrentUserId();
 
-        List<Long> accountIds = transactionRequests.stream().map(TransactionDTO::getAccountId).toList();
-        logger.info("Creating transaction: userId='{}', accountIds='{}'", userId, accountIds);
+        Set<Long> allAccountIds = transactionRequests.stream()
+                .flatMap(dto -> Stream.of(dto.getAccountId(), dto.getTargetAccountId()))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        logger.info("Creating transaction: userId='{}', accountIds='{}'", userId, allAccountIds);
 
-        List<Account> accounts = getAccounts(userId, accountIds);
-        if (accounts.isEmpty()) {
-            throw new NotFoundException(ErrorCode.ACCOUNT_NOT_FOUND);
-        }
+        List<Account> accounts = validateAndGetAccounts(userId, new ArrayList<>(allAccountIds));
 
-        List<Long> categoryIds = transactionRequests.stream().map(TransactionDTO::getCategoryId).toList();
-        logger.info("Creating transaction: userId='{}', categoryIds='{}'", userId, categoryIds);
+        Set<Long> allCategoryIds = transactionRequests.stream()
+                .flatMap(dto -> Stream.of(dto.getCategoryId(), dto.getTargetCategoryId()))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        logger.info("Creating transaction: userId='{}', categoryIds='{}'", userId, allCategoryIds);
 
-        List<Category> categories = getCategories(userId, categoryIds);
-        if (categories.isEmpty()) {
-            throw new NotFoundException(ErrorCode.CATEGORY_NOT_FOUND);
-        }
+        List<Category> categories = validateAndGetCategories(userId, new ArrayList<>(allCategoryIds));
 
         Map<Long, Account> accountMap = accounts.stream().collect(Collectors.toMap(Account::getId, Function.identity()));
         Map<Long, Category> categoryMap = categories.stream().collect(Collectors.toMap(Category::getId, Function.identity()));
@@ -128,7 +99,13 @@ public class TransactionDataImpl implements TransactionData {
                 if (targetAccount == null) {
                     throw new NotFoundException(ErrorCode.ACCOUNT_NOT_FOUND);
                 }
-                Transaction targetTransaction = buildTransaction(userId, targetAccount, sourceCategory, transactionRequest, Direction.IN, categoryType);
+
+                Category targetCategory = categoryMap.get(transactionRequest.getTargetCategoryId());
+                if (targetCategory == null) {
+                    throw new NotFoundException(ErrorCode.CATEGORY_NOT_FOUND);
+                }
+
+                Transaction targetTransaction = buildTransaction(userId, targetAccount, targetCategory, transactionRequest, Direction.IN, categoryType);
                 transactions.add(targetTransaction);
             }
         }
@@ -301,5 +278,21 @@ public class TransactionDataImpl implements TransactionData {
 
     private List<Category> getCategories(Long userId, List<Long> categories) {
         return categoryRepository.findByIdInAndUserId(categories, userId);
+    }
+
+    private List<Account> validateAndGetAccounts(Long userId, List<Long> accountIds) {
+        List<Account> accounts = getAccounts(userId, accountIds);
+        if (accounts.isEmpty()) {
+            throw new NotFoundException(ErrorCode.ACCOUNT_NOT_FOUND);
+        }
+        return accounts;
+    }
+
+    private List<Category> validateAndGetCategories(Long userId, List<Long> categoryIds) {
+        List<Category> categories = getCategories(userId, categoryIds);
+        if (categories.isEmpty()) {
+            throw new NotFoundException(ErrorCode.CATEGORY_NOT_FOUND);
+        }
+        return categories;
     }
 }
