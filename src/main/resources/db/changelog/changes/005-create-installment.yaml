@@ -1,0 +1,82 @@
+databaseChangeLog:
+  - objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+  - changeSet:
+      id: 012-create-installment
+      author: cascade
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            tableExists:
+              tableName: installment
+      changes:
+        - createTable:
+            tableName: installment
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: user_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: account_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_installment_account
+                    references: account(id)
+              - column:
+                  name: name
+                  type: varchar(150)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: total_amount
+                  type: decimal(19,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: amount_paid
+                  type: decimal(19,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: due_date
+                  type: date
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_date
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_by
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_modified_date
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: last_modified_by
+                  type: varchar(255)
+        - createIndex:
+            indexName: idx_installment_user_id
+            tableName: installment
+            columns:
+              - column:
+                  name: user_id
+        - createIndex:
+            indexName: idx_installment_account_id
+            tableName: installment
+            columns:
+              - column:
+                  name: account_id

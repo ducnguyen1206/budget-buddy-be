@@ -29,6 +29,7 @@ public enum ErrorCode {
     BUDGET_NOT_FOUND("NOT_FOUND_006", "Budget not found"),
     TRANSACTION_NOT_FOUND("NOT_FOUND_007", "Transaction not found"),
     SAVING_NOT_FOUND("NOT_FOUND_008", "Saving not found"),
+    INSTALLMENT_NOT_FOUND("NOT_FOUND_009", "Installment not found"),
 
     // Conflict
     FAILED_TO_UPDATE_CATEGORY("CONFLICT_001", "Failed to save/update category"),
