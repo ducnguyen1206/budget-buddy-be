@@ -11,18 +11,22 @@ import com.budget.buddy.transaction.domain.vo.CategoryVO;
 import com.budget.buddy.transaction.infrastructure.repository.AccountRepository;
 import com.budget.buddy.transaction.infrastructure.repository.CategoryRepository;
 import com.budget.buddy.transaction.infrastructure.repository.TransactionRepository;
+import com.budget.buddy.transaction.infrastructure.repository.TransactionSpecification;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Collections;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
-@DataJpaTest
+@ExtendWith(MockitoExtension.class)
 class TransactionDataImplTest {
 
     @InjectMocks
@@ -40,9 +44,11 @@ class TransactionDataImplTest {
     @Mock
     private TransactionUtils transactionUtils;
 
+    @Mock
+    private TransactionSpecification transactionSpecification;
+
     @Test
     void testCreateTransaction_withValidIncomeTransaction_shouldSaveTransaction() {
-        // Arrange
         Long userId = 1L;
         Long accountId = 10L;
         Long categoryId = 100L;
@@ -64,30 +70,29 @@ class TransactionDataImplTest {
         category.setId(categoryId);
 
         when(transactionUtils.getCurrentUserId()).thenReturn(userId);
-        when(accountRepository.findAccountByUserIdAndAccountId(userId, accountId)).thenReturn(account);
-        when(categoryRepository.findBydId(categoryId, userId)).thenReturn(java.util.Optional.of(category));
+        when(accountRepository.findAccountByUserIdAndAccountIdIn(eq(userId), anyList())).thenReturn(List.of(account));
+        when(categoryRepository.findByIdInAndUserId(anyList(), eq(userId))).thenReturn(List.of(category));
 
-        // Act
         transactionData.createTransaction(transactionDTO);
 
-        // Assert
         verify(transactionRepository, times(1)).saveAll(anyList());
     }
 
     @Test
     void testCreateTransaction_withTransferTransaction_shouldSaveBothTransactions() {
-        // Arrange
         Long userId = 2L;
         Long sourceAccountId = 20L;
         Long targetAccountId = 30L;
-        Long categoryId = 200L;
+        Long sourceCategoryId = 200L;
+        Long targetCategoryId = 201L;
 
         TransactionDTO transactionDTO = TransactionDTO.builder()
                 .name("Transfer to Savings")
                 .amount(BigDecimal.valueOf(1000))
                 .accountId(sourceAccountId)
                 .targetAccountId(targetAccountId)
-                .categoryId(categoryId)
+                .categoryId(sourceCategoryId)
+                .targetCategoryId(targetCategoryId)
                 .date(LocalDate.now())
                 .categoryType(CategoryType.TRANSFER)
                 .remarks("Savings transfer")
@@ -99,24 +104,25 @@ class TransactionDataImplTest {
         Account targetAccount = new Account();
         targetAccount.setId(targetAccountId);
 
-        Category category = new Category(new CategoryVO("TEST"), 1L);
-        category.setId(categoryId);
+        Category sourceCategory = new Category(new CategoryVO("Transfer Out"), userId);
+        sourceCategory.setId(sourceCategoryId);
+
+        Category targetCategory = new Category(new CategoryVO("Transfer In"), userId);
+        targetCategory.setId(targetCategoryId);
 
         when(transactionUtils.getCurrentUserId()).thenReturn(userId);
-        when(accountRepository.findAccountByUserIdAndAccountId(userId, sourceAccountId)).thenReturn(sourceAccount);
-        when(accountRepository.findAccountByUserIdAndAccountId(userId, targetAccountId)).thenReturn(targetAccount);
-        when(categoryRepository.findBydId(categoryId, userId)).thenReturn(java.util.Optional.of(category));
+        when(accountRepository.findAccountByUserIdAndAccountIdIn(eq(userId), anyList()))
+                .thenReturn(List.of(sourceAccount, targetAccount));
+        when(categoryRepository.findByIdInAndUserId(anyList(), eq(userId)))
+                .thenReturn(List.of(sourceCategory, targetCategory));
 
-        // Act
         transactionData.createTransaction(transactionDTO);
 
-        // Assert
         verify(transactionRepository, times(1)).saveAll(anyList());
     }
 
     @Test
     void testCreateTransaction_withNonExistingAccount_shouldThrowException() {
-        // Arrange
         Long userId = 3L;
         Long accountId = 999L;
         Long categoryId = 300L;
@@ -132,16 +138,14 @@ class TransactionDataImplTest {
                 .build();
 
         when(transactionUtils.getCurrentUserId()).thenReturn(userId);
-        when(accountRepository.findAccountByUserIdAndAccountId(userId, accountId)).thenReturn(null);
+        when(accountRepository.findAccountByUserIdAndAccountIdIn(eq(userId), anyList())).thenReturn(Collections.emptyList());
 
-        // Act & Assert
         assertThrows(NotFoundException.class, () -> transactionData.createTransaction(transactionDTO));
-        verify(transactionRepository, never()).save(any(Transaction.class));
+        verify(transactionRepository, never()).saveAll(anyList());
     }
 
     @Test
     void testCreateTransaction_withInvalidCategory_shouldThrowException() {
-        // Arrange
         Long userId = 4L;
         Long accountId = 40L;
         Long categoryId = 400L;
@@ -160,11 +164,10 @@ class TransactionDataImplTest {
         account.setId(accountId);
 
         when(transactionUtils.getCurrentUserId()).thenReturn(userId);
-        when(accountRepository.findAccountByUserIdAndAccountId(userId, accountId)).thenReturn(account);
-        when(categoryRepository.findBydId(categoryId, userId)).thenReturn(java.util.Optional.empty());
+        when(accountRepository.findAccountByUserIdAndAccountIdIn(eq(userId), anyList())).thenReturn(List.of(account));
+        when(categoryRepository.findByIdInAndUserId(anyList(), eq(userId))).thenReturn(Collections.emptyList());
 
-        // Act & Assert
-        assertThrows(RuntimeException.class, () -> transactionData.createTransaction(transactionDTO));
-        verify(transactionRepository, never()).save(any(Transaction.class));
+        assertThrows(NotFoundException.class, () -> transactionData.createTransaction(transactionDTO));
+        verify(transactionRepository, never()).saveAll(anyList());
     }
 }

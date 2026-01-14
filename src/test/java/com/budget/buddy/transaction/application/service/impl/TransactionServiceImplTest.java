@@ -4,30 +4,39 @@ import com.budget.buddy.core.config.exception.BadRequestException;
 import com.budget.buddy.core.config.exception.ConflictException;
 import com.budget.buddy.transaction.application.dto.account.AccountDTO;
 import com.budget.buddy.transaction.application.dto.account.AccountRetrieveResponse;
+import com.budget.buddy.transaction.application.dto.transaction.RetrieveTransactionsParams;
 import com.budget.buddy.transaction.application.dto.transaction.TransactionDTO;
+import com.budget.buddy.transaction.application.dto.transaction.TransactionFilterCriteria;
+import com.budget.buddy.transaction.application.dto.transaction.TransactionPagination;
 import com.budget.buddy.transaction.domain.enums.CategoryType;
 import com.budget.buddy.transaction.domain.enums.Currency;
 import com.budget.buddy.transaction.domain.service.AccountData;
 import com.budget.buddy.transaction.domain.service.TransactionData;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class TransactionServiceImplTest {
 
-    /**
-     * Test class for TransactionServiceImpl, focused on verifying the behavior
-     * of the `createTransaction` method under various scenarios.
-     */
-
-    private final TransactionData transactionData = mock(TransactionData.class);
-    private final AccountData accountData = mock(AccountData.class);
-    private final TransactionServiceImpl transactionServiceImpl = new TransactionServiceImpl(transactionData, accountData);
+    @Mock
+    private TransactionData transactionData;
+    
+    @Mock
+    private AccountData accountData;
+    
+    @InjectMocks
+    private TransactionServiceImpl transactionServiceImpl;
 
     @Test
     void createTransaction_shouldThrowBadRequestException_whenTargetAccountIdIsNullForTransfer() {
@@ -156,6 +165,90 @@ class TransactionServiceImplTest {
 
         verify(accountData, times(1)).checkAccountExists(1L);
         verify(accountData, times(1)).retrieveAccountByIdList(List.of(1L, 2L));
-        verify(transactionData, times(1)).createTransaction(transactionDTO);
+        verify(transactionData, times(1)).createTransactions(List.of(transactionDTO));
+    }
+
+    @Test
+    void createTransaction_shouldSucceed_forNonTransferType() {
+        TransactionDTO transactionDTO = TransactionDTO.builder()
+                .name("Salary")
+                .amount(BigDecimal.valueOf(5000))
+                .accountId(1L)
+                .date(LocalDate.now())
+                .categoryId(1001L)
+                .categoryType(CategoryType.INCOME)
+                .build();
+
+        transactionServiceImpl.createTransaction(transactionDTO);
+
+        verify(accountData, times(1)).checkAccountExists(1L);
+        verify(transactionData, times(1)).createTransactions(List.of(transactionDTO));
+    }
+
+    @Test
+    void createTransactions_delegatesToData() {
+        List<TransactionDTO> transactions = List.of(
+                TransactionDTO.builder().name("T1").amount(BigDecimal.valueOf(100)).build(),
+                TransactionDTO.builder().name("T2").amount(BigDecimal.valueOf(200)).build()
+        );
+
+        transactionServiceImpl.createTransactions(transactions);
+
+        verify(transactionData, times(1)).createTransactions(transactions);
+    }
+
+    @Test
+    void retrieveTransactions_delegatesToData() {
+        RetrieveTransactionsParams params = new RetrieveTransactionsParams();
+        TransactionFilterCriteria filterCriteria = new TransactionFilterCriteria();
+        TransactionPagination expected = new TransactionPagination(
+                new TransactionPagination.Pagination(0, 20, 0, 0),
+                List.of()
+        );
+        when(transactionData.retrieveTransactions(params, filterCriteria)).thenReturn(expected);
+
+        TransactionPagination result = transactionServiceImpl.retrieveTransactions(params, filterCriteria);
+
+        assertSame(expected, result);
+        verify(transactionData, times(1)).retrieveTransactions(params, filterCriteria);
+    }
+
+    @Test
+    void updateTransaction_shouldThrowBadRequest_forTransferType() {
+        Long transactionId = 1L;
+        TransactionDTO transactionDTO = TransactionDTO.builder()
+                .name("Update Transfer")
+                .amount(BigDecimal.valueOf(100))
+                .accountId(1L)
+                .categoryType(CategoryType.TRANSFER)
+                .build();
+
+        assertThrows(BadRequestException.class, () -> transactionServiceImpl.updateTransaction(transactionId, transactionDTO));
+        verifyNoInteractions(transactionData);
+    }
+
+    @Test
+    void updateTransaction_shouldSucceed_forNonTransferType() {
+        Long transactionId = 1L;
+        TransactionDTO transactionDTO = TransactionDTO.builder()
+                .name("Update Expense")
+                .amount(BigDecimal.valueOf(100))
+                .accountId(1L)
+                .categoryType(CategoryType.EXPENSE)
+                .build();
+
+        transactionServiceImpl.updateTransaction(transactionId, transactionDTO);
+
+        verify(accountData, times(1)).checkAccountExists(1L);
+        verify(transactionData, times(1)).updateTransaction(transactionId, transactionDTO);
+    }
+
+    @Test
+    void deleteTransaction_delegatesToData() {
+        Long transactionId = 5L;
+
+        transactionServiceImpl.deleteTransaction(transactionId);
+
+        verify(transactionData, times(1)).deleteTransaction(transactionId);
     }
 }

@@ -123,6 +123,66 @@ class SavingDataImplTest {
     }
 
     @Test
+    void update_success_sameAccount() {
+        when(transactionUtils.getCurrentUserId()).thenReturn(USER_ID);
+        Long accountId = 100L;
+        Account account = buildAccount(accountId, Currency.SGD, "Main");
+        Saving existing = buildSaving(5L, USER_ID, account);
+        when(savingRepository.findByIdAndUserIdOrderByIdAsc(5L, USER_ID)).thenReturn(Optional.of(existing));
+
+        SavingDTO req = new SavingDTO(null, accountId, null, "Updated Trip", new BigDecimal("600.00"), "SGD", LocalDate.of(2026, 6, 15), "new notes", null);
+
+        savingData.update(5L, req);
+
+        verify(savingRepository).save(existing);
+        assertEquals("Updated Trip", existing.getName());
+        assertEquals(new BigDecimal("600.00"), existing.getMoney().getAmount());
+        assertEquals(LocalDate.of(2026, 6, 15), existing.getDate());
+        assertEquals("new notes", existing.getNotes());
+    }
+
+    @Test
+    void update_success_differentAccount() {
+        when(transactionUtils.getCurrentUserId()).thenReturn(USER_ID);
+        Long oldAccountId = 100L;
+        Long newAccountId = 200L;
+        Account oldAccount = buildAccount(oldAccountId, Currency.SGD, "Old Account");
+        Account newAccount = buildAccount(newAccountId, Currency.SGD, "New Account");
+        Saving existing = buildSaving(5L, USER_ID, oldAccount);
+        
+        when(savingRepository.findByIdAndUserIdOrderByIdAsc(5L, USER_ID)).thenReturn(Optional.of(existing));
+        when(accountRepository.existsAccountBy(USER_ID, newAccountId)).thenReturn(true);
+        when(accountRepository.findAccountByUserIdAndAccountId(USER_ID, newAccountId)).thenReturn(newAccount);
+
+        SavingDTO req = new SavingDTO(null, newAccountId, null, "Trip", new BigDecimal("500.00"), "SGD", LocalDate.of(2026, 1, 15), "notes", null);
+
+        savingData.update(5L, req);
+
+        verify(savingRepository).save(existing);
+        assertEquals(newAccountId, existing.getAccount().getId());
+    }
+
+    @Test
+    void delete_success() {
+        when(transactionUtils.getCurrentUserId()).thenReturn(USER_ID);
+        Account account = buildAccount(100L, Currency.SGD, "Main");
+        Saving saving = buildSaving(5L, USER_ID, account);
+        when(savingRepository.findByIdAndUserIdOrderByIdAsc(5L, USER_ID)).thenReturn(Optional.of(saving));
+
+        savingData.delete(5L);
+
+        verify(savingRepository).delete(saving);
+    }
+
+    @Test
+    void getById_shouldThrow_whenNotFound() {
+        when(transactionUtils.getCurrentUserId()).thenReturn(USER_ID);
+        when(savingRepository.findByIdAndUserIdOrderByIdAsc(99L, USER_ID)).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class, () -> savingData.getById(99L));
+    }
+
+    @Test
     void getById_success_mapsToDTO() {
         when(transactionUtils.getCurrentUserId()).thenReturn(USER_ID);
         Account account = buildAccount(100L, Currency.SGD, "Main");
