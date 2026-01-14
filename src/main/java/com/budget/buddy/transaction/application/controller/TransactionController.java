@@ -68,7 +68,7 @@ public class TransactionController {
             @Parameter(description = "Zero-based page index for pagination", example = "0")
             @RequestParam(value = "page", required = false) @Min(0) Integer page,
             @Parameter(description = "Page size (min 1, max 20)", example = "20")
-            @RequestParam(value = "size", required = false) @Min(1) @Max(20) Integer size,
+            @RequestParam(value = "size", required = false) @Min(1) @Max(50) Integer size,
             @Valid @RequestBody(required = false) TransactionFilterCriteria filterCriteria) {
         RetrieveTransactionsParams request = new RetrieveTransactionsParams(page, size);
         return ResponseEntity.ok(transactionService.retrieveTransactions(request, filterCriteria));
