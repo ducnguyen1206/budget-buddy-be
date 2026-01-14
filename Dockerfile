@@ -22,10 +22,10 @@ WORKDIR /app
 # Copy fat jar from builder (artifact name may vary); copy into /app directory
 # We intentionally copy with wildcard to handle versioned artifact names
 COPY --from=builder /workspace/target/*SNAPSHOT.jar /app/
-
-# Non-root user for better security
-RUN addgroup -S spring && adduser -S spring -G spring
-USER spring
+#
+## Non-root user for better security
+#RUN addgroup -S spring && adduser -S spring -G spring
+#USER spring
 
 EXPOSE 8080
 
