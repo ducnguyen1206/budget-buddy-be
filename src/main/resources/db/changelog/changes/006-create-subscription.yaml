@@ -1,0 +1,77 @@
+databaseChangeLog:
+  - objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+  - changeSet:
+      id: 013-create-subscription
+      author: cascade
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            tableExists:
+              tableName: subscription
+      changes:
+        - createTable:
+            tableName: subscription
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: user_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: account_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_subscription_account
+                    references: account(id)
+              - column:
+                  name: name
+                  type: varchar(150)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: amount
+                  type: decimal(19,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: pay_day
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_date
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_by
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_modified_date
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: last_modified_by
+                  type: varchar(255)
+        - createIndex:
+            indexName: idx_subscription_user_id
+            tableName: subscription
+            columns:
+              - column:
+                  name: user_id
+        - createIndex:
+            indexName: idx_subscription_account_id
+            tableName: subscription
+            columns:
+              - column:
+                  name: account_id

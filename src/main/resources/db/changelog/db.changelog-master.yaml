@@ -9,3 +9,5 @@ databaseChangeLog:
       file: db/changelog/changes/004-add-saving-account-column.yaml
   - include:
       file: db/changelog/changes/005-create-installment.yaml
+  - include:
+      file: db/changelog/changes/006-create-subscription.yaml
