@@ -1,5 +1,7 @@
 package com.budget.buddy.transaction.application.controller;
 
+import com.budget.buddy.transaction.application.dto.threshold.ThresholdTransactionRequestDTO;
+import com.budget.buddy.transaction.application.dto.threshold.ThresholdTransactionResponseDTO;
 import com.budget.buddy.transaction.application.dto.transaction.RetrieveTransactionsParams;
 import com.budget.buddy.transaction.application.dto.transaction.TransactionDTO;
 import com.budget.buddy.transaction.application.dto.transaction.TransactionFilterCriteria;
@@ -96,5 +98,20 @@ public class TransactionController {
     public ResponseEntity<Void> deleteTransaction(@PathVariable("id") Long transactionId) {
         transactionService.deleteTransaction(transactionId);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Get transactions with threshold comparison",
+            description = "Retrieves transactions for a category within a date range and compares daily totals against the configured threshold.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Threshold transactions retrieved successfully",
+                            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(implementation = ThresholdTransactionResponseDTO.class))),
+                    @ApiResponse(responseCode = "400", description = "Invalid input data", content = @Content()),
+                    @ApiResponse(responseCode = "404", description = "Threshold not found for category", content = @Content())
+            })
+    @PostMapping("/threshold")
+    public ResponseEntity<ThresholdTransactionResponseDTO> getThresholdTransactions(
+            @Valid @RequestBody ThresholdTransactionRequestDTO request) {
+        return ResponseEntity.ok(transactionService.getThresholdTransactions(request));
     }
 }

@@ -84,6 +84,15 @@ public class ThresholdDataServiceImpl implements ThresholdDataService {
         thresholdRepository.delete(existing);
     }
 
+    @Override
+    public ThresholdDTO getByCategoryIdAndCurrency(Long categoryId, String currency) {
+        Long userId = transactionUtils.getCurrentUserId();
+        logger.info("Getting threshold for userId='{}', categoryId='{}', currency='{}'", userId, categoryId, currency);
+        Threshold threshold = thresholdRepository.findByCategoryIdAndUserIdAndCurrency(categoryId, userId, Currency.valueOf(currency))
+                .orElse(null);
+        return threshold == null ? null : toDTO(threshold);
+    }
+
     private Category validateAndGetOwnedCategory(Long userId, Long categoryId) {
         return categoryRepository.findByIdAndUserId(categoryId, userId)
                 .orElseThrow(() -> new ConflictException(ErrorCode.CATEGORY_NOT_FOUND));

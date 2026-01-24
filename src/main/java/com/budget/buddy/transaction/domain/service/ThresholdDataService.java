@@ -16,4 +16,6 @@ public interface ThresholdDataService {
     ThresholdDTO update(Long id, Long categoryId, BigDecimal threshold, String currency);
 
     void delete(Long id);
+
+    ThresholdDTO getByCategoryIdAndCurrency(Long categoryId, String currency);
 }

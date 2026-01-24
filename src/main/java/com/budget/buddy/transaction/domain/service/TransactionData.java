@@ -1,10 +1,11 @@
 package com.budget.buddy.transaction.domain.service;
 
+import com.budget.buddy.transaction.application.dto.threshold.ThresholdTransactionQuery;
+import com.budget.buddy.transaction.application.dto.threshold.ThresholdTransactionResponseDTO;
 import com.budget.buddy.transaction.application.dto.transaction.RetrieveTransactionsParams;
 import com.budget.buddy.transaction.application.dto.transaction.TransactionDTO;
 import com.budget.buddy.transaction.application.dto.transaction.TransactionFilterCriteria;
 import com.budget.buddy.transaction.application.dto.transaction.TransactionPagination;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -22,4 +23,6 @@ public interface TransactionData {
     void updateTransaction(Long transactionId, TransactionDTO transactionRequest);
 
     void deleteTransaction(Long transactionId);
+
+    List<ThresholdTransactionResponseDTO.DailyThresholdSummary> getTransactionsByDateGrouped(ThresholdTransactionQuery query);
 }

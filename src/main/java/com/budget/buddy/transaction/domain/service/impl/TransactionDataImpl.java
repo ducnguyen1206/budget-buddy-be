@@ -6,6 +6,8 @@ import com.budget.buddy.core.config.exception.BadRequestException;
 import org.apache.commons.lang3.StringUtils;
 import com.budget.buddy.core.config.exception.ConflictException;
 import com.budget.buddy.core.config.exception.NotFoundException;
+import com.budget.buddy.transaction.application.dto.threshold.ThresholdTransactionQuery;
+import com.budget.buddy.transaction.application.dto.threshold.ThresholdTransactionResponseDTO;
 import com.budget.buddy.transaction.application.dto.transaction.RetrieveTransactionsParams;
 import com.budget.buddy.transaction.application.dto.transaction.TransactionDTO;
 import com.budget.buddy.transaction.application.dto.transaction.TransactionFilterCriteria;
@@ -32,6 +34,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.Function;
@@ -294,5 +297,52 @@ public class TransactionDataImpl implements TransactionData {
             throw new NotFoundException(ErrorCode.CATEGORY_NOT_FOUND);
         }
         return categories;
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<ThresholdTransactionResponseDTO.DailyThresholdSummary> getTransactionsByDateGrouped(ThresholdTransactionQuery query) {
+        Long userId = transactionUtils.getCurrentUserId();
+        logger.info("Getting transactions grouped by date: userId='{}', categoryId='{}', startDate='{}', endDate='{}', currency='{}'",
+                userId, query.categoryId(), query.startDate(), query.endDate(), query.currency());
+
+        TransactionFilterCriteria filterCriteria = new TransactionFilterCriteria();
+
+        TransactionFilterCriteria.IdsFilter categoriesFilter = new TransactionFilterCriteria.IdsFilter();
+        categoriesFilter.setOperator("is");
+        categoriesFilter.setIds(List.of(query.categoryId()));
+        filterCriteria.setCategories(categoriesFilter);
+
+        TransactionFilterCriteria.DateFilter dateFilter = new TransactionFilterCriteria.DateFilter();
+        dateFilter.setOperator("is between");
+        dateFilter.setStartDate(query.startDate());
+        dateFilter.setEndDate(query.endDate());
+        filterCriteria.setDate(dateFilter);
+
+        TransactionFilterCriteria.CurrenciesFilter currenciesFilter = new TransactionFilterCriteria.CurrenciesFilter();
+        currenciesFilter.setOperator("is");
+        currenciesFilter.setCurrencies(List.of(query.currency()));
+        filterCriteria.setCurrencies(currenciesFilter);
+
+        Specification<Transaction> specification = transactionSpecification.buildSpecification(filterCriteria, "date,asc");
+        List<Transaction> transactions = transactionRepository.findAll(specification);
+
+        Map<LocalDate, BigDecimal> dailyTotals = transactions.stream()
+                .collect(Collectors.groupingBy(
+                        Transaction::getDate,
+                        TreeMap::new,
+                        Collectors.reducing(BigDecimal.ZERO, Transaction::getAmount, BigDecimal::add)
+                ));
+
+        return dailyTotals.entrySet().stream()
+                .map(entry -> {
+                    LocalDate date = entry.getKey();
+                    BigDecimal totalAmount = entry.getValue();
+                    BigDecimal exceededAmount = query.threshold().compareTo(BigDecimal.ZERO) == 0  ? BigDecimal.ZERO : query.threshold().add(totalAmount);
+                    return new ThresholdTransactionResponseDTO.DailyThresholdSummary(
+                            date, totalAmount, query.threshold(), exceededAmount
+                    );
+                })
+                .toList();
     }
 }

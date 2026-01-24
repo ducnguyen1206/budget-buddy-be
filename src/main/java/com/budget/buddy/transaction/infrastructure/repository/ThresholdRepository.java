@@ -18,4 +18,7 @@ public interface ThresholdRepository extends JpaRepository<Threshold, Long> {
     void deleteByIdAndUserId(Long id, Long userId);
 
     boolean existsByCategoryIdAndUserId(Long categoryId, Long userId);
+
+    @EntityGraph(attributePaths = {"category"})
+    Optional<Threshold> findByCategoryIdAndUserIdAndCurrency(Long categoryId, Long userId, com.budget.buddy.transaction.domain.enums.Currency currency);
 }

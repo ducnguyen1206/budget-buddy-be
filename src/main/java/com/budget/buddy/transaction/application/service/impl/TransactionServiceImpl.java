@@ -5,6 +5,11 @@ import com.budget.buddy.core.config.exception.ConflictException;
 import com.budget.buddy.core.config.exception.ErrorCode;
 import com.budget.buddy.transaction.application.dto.account.AccountDTO;
 import com.budget.buddy.transaction.application.dto.account.AccountRetrieveResponse;
+import com.budget.buddy.transaction.application.dto.category.CategoryDTO;
+import com.budget.buddy.transaction.application.dto.threshold.ThresholdDTO;
+import com.budget.buddy.transaction.application.dto.threshold.ThresholdTransactionQuery;
+import com.budget.buddy.transaction.application.dto.threshold.ThresholdTransactionRequestDTO;
+import com.budget.buddy.transaction.application.dto.threshold.ThresholdTransactionResponseDTO;
 import com.budget.buddy.transaction.application.dto.transaction.RetrieveTransactionsParams;
 import com.budget.buddy.transaction.application.dto.transaction.TransactionDTO;
 import com.budget.buddy.transaction.application.dto.transaction.TransactionFilterCriteria;
@@ -12,6 +17,8 @@ import com.budget.buddy.transaction.application.dto.transaction.TransactionPagin
 import com.budget.buddy.transaction.application.service.TransactionService;
 import com.budget.buddy.transaction.domain.enums.CategoryType;
 import com.budget.buddy.transaction.domain.service.AccountData;
+import com.budget.buddy.transaction.domain.service.CategoryData;
+import com.budget.buddy.transaction.domain.service.ThresholdDataService;
 import com.budget.buddy.transaction.domain.service.TransactionData;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
@@ -21,6 +28,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,7 +36,9 @@ import java.util.stream.Collectors;
 public class TransactionServiceImpl implements TransactionService {
     private final TransactionData transactionData;
     private final AccountData accountData;
+    private final ThresholdDataService thresholdDataService;
     private static final Logger logger = LogManager.getLogger(TransactionServiceImpl.class);
+    private final CategoryData categoryData;
 
     @Override
     public void createTransaction(TransactionDTO transactionRequest) {
@@ -113,5 +123,37 @@ public class TransactionServiceImpl implements TransactionService {
     public void deleteTransaction(Long transactionId) {
         logger.info("Request to delete transaction with id: {}", transactionId);
         transactionData.deleteTransaction(transactionId);
+    }
+
+    @Override
+    public ThresholdTransactionResponseDTO getThresholdTransactions(ThresholdTransactionRequestDTO request) {
+        logger.info("Getting threshold transactions: categoryId='{}', startDate='{}', endDate='{}', currency='{}'",
+                request.categoryId(), request.startDate(), request.endDate(), request.currency());
+
+        BigDecimal threshold = Optional.ofNullable(thresholdDataService.getByCategoryIdAndCurrency(
+                request.categoryId(), request.currency()))
+                .map(ThresholdDTO::threshold)
+                .orElse(BigDecimal.ZERO);
+
+        ThresholdTransactionQuery query = new ThresholdTransactionQuery(
+                request.categoryId(),
+                request.startDate(),
+                request.endDate(),
+                request.currency(),
+                threshold
+        );
+
+        CategoryDTO category = categoryData.getCategory(request.categoryId());
+
+        List<ThresholdTransactionResponseDTO.DailyThresholdSummary> dailySummaries =
+                transactionData.getTransactionsByDateGrouped(query);
+
+        return new ThresholdTransactionResponseDTO(
+                category.name(),
+                request.categoryId(),
+                request.currency(),
+                threshold,
+                dailySummaries
+        );
     }
 }
