@@ -42,7 +42,7 @@ public class BudgetDataImpl implements BudgetData {
             return;
         }
 
-        Category category = categoryRepository.findBydId(budgetDTO.categoryId(), userId)
+        Category category = categoryRepository.findByIdAndUserId(budgetDTO.categoryId(), userId)
                 .orElseThrow(() -> new ConflictException(ErrorCode.CATEGORY_NOT_FOUND));
 
         logger.info("Save budget for userId='{}', categoryId='{}', amount='{}', currency='{}'",
@@ -81,7 +81,7 @@ public class BudgetDataImpl implements BudgetData {
             return; // No changes, skip update
         }
 
-        Category category = categoryRepository.findBydId(budgetDTO.categoryId(), userId)
+        Category category = categoryRepository.findByIdAndUserId(budgetDTO.categoryId(), userId)
                 .orElseThrow(() -> new ConflictException(ErrorCode.CATEGORY_NOT_FOUND));
         budget.setCategory(category);
         budget.setMoney(newMoneyVO);

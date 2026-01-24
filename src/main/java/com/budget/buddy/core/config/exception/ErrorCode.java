@@ -31,6 +31,7 @@ public enum ErrorCode {
     SAVING_NOT_FOUND("NOT_FOUND_008", "Saving not found"),
     INSTALLMENT_NOT_FOUND("NOT_FOUND_009", "Installment not found"),
     SUBSCRIPTION_NOT_FOUND("NOT_FOUND_010", "Subscription not found"),
+    THRESHOLD_NOT_FOUND("NOT_FOUND_011", "Threshold not found"),
 
     // Conflict
     FAILED_TO_UPDATE_CATEGORY("CONFLICT_001", "Failed to save/update category"),

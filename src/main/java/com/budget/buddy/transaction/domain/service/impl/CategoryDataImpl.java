@@ -56,7 +56,7 @@ public class CategoryDataImpl implements CategoryData {
     public CategoryDTO getCategory(Long categoryId) {
         Long userId = transactionUtils.getCurrentUserId();
 
-        Category category = categoryRepository.findBydId(categoryId, userId)
+        Category category = categoryRepository.findByIdAndUserId(categoryId, userId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.CATEGORY_NOT_FOUND));
 
         logger.info("Retrieved category id={}", categoryId);
@@ -93,7 +93,7 @@ public class CategoryDataImpl implements CategoryData {
 
         Long userId = transactionUtils.getCurrentUserId();
 
-        Category category = categoryRepository.findBydId(categoryId, userId)
+        Category category = categoryRepository.findByIdAndUserId(categoryId, userId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.CATEGORY_NOT_FOUND));
         logger.info("Updating category id={} for", categoryId);
 

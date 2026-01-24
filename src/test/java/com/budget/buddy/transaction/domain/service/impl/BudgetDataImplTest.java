@@ -25,7 +25,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static org.mockito.ArgumentMatchers.*;
+
 import org.mockito.ArgumentCaptor;
 
 @ExtendWith(MockitoExtension.class)
@@ -62,7 +62,7 @@ class BudgetDataImplTest {
 
         Category category = new Category(new CategoryVO("TEST"), 1L);
         category.setId(categoryId);
-        when(categoryRepository.findBydId(categoryId, userId)).thenReturn(Optional.of(category));
+        when(categoryRepository.findByIdAndUserId(categoryId, userId)).thenReturn(Optional.of(category));
 
         // Act
         budgetDataImpl.saveBudget(budgetDTO);
@@ -105,7 +105,7 @@ class BudgetDataImplTest {
         when(transactionUtils.getCurrentUserId()).thenReturn(userId);
         when(budgetRepository.existsByCategoryIdAndMoney_CurrencyAndUserId(categoryId, currency, userId))
                 .thenReturn(false);
-        when(categoryRepository.findBydId(categoryId, userId)).thenReturn(Optional.empty());
+        when(categoryRepository.findByIdAndUserId(categoryId, userId)).thenReturn(Optional.empty());
 
         // Act & Assert
         assertThrows(ConflictException.class, () -> budgetDataImpl.saveBudget(budgetDTO));
@@ -225,7 +225,7 @@ class BudgetDataImplTest {
         budget.setId(budgetId);
         
         when(budgetRepository.findByIdAndUserId(budgetId, USER_ID)).thenReturn(Optional.of(budget));
-        when(categoryRepository.findBydId(categoryId, USER_ID)).thenReturn(Optional.of(category));
+        when(categoryRepository.findByIdAndUserId(categoryId, USER_ID)).thenReturn(Optional.of(category));
 
         BudgetDTO dto = new BudgetDTO(null, categoryId, null, new BigDecimal("200.00"), null, null, "SGD", null);
 

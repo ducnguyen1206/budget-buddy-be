@@ -272,7 +272,7 @@ public class TransactionDataImpl implements TransactionData {
     }
 
     private Category getCategory(Long userId, Long category) {
-        return categoryRepository.findBydId(category, userId)
+        return categoryRepository.findByIdAndUserId(category, userId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.CATEGORY_NOT_FOUND));
     }
 
