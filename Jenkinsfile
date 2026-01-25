@@ -17,16 +17,16 @@ pipeline {
 
     stages {
         stage('Build & Test') {
-            steps {
-                script {
-                    // This runs Maven inside a temporary Docker container
-                    // So we don't need to install Maven on the VPS
-                    docker.image('maven:3.9.6-eclipse-temurin-21').inside {
-                        sh 'mvn clean package -DskipTests=false'
+                    steps {
+                        script {
+                            // ADDED: ("-u root") - This forces the container to run as root
+                            // so it has permission to create the .m2 folder.
+                            docker.image('maven:3.9.6-eclipse-temurin-21').inside("-u root") {
+                                sh 'mvn clean package -DskipTests=false'
+                            }
+                        }
                     }
                 }
-            }
-        }
 
         stage('Build Docker Image') {
             steps {
