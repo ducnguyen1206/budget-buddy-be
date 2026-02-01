@@ -47,7 +47,9 @@ pipeline {
 
                     // 3. Run the new one
                     // --network="host" lets the app talk to Postgres on localhost:5432
-                    sh "docker run -d --name ${IMAGE_NAME} --restart unless-stopped --network=\"host\" ${IMAGE_NAME}"
+//                  sh "docker run -d --name ${IMAGE_NAME} --restart unless-stopped --network=\"host\" ${IMAGE_NAME}"
+                    // We add '--server.port=8081' so it doesn't clash with your Bare Metal app on 8080
+                    sh "docker run -d --name ${IMAGE_NAME} --restart unless-stopped --network=\"host\" ${IMAGE_NAME} --server.port=8081"
                 }
             }
         }
