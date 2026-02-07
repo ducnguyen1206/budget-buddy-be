@@ -1,8 +1,6 @@
 # Docker build context ignore rules
 .git
 .gitignore
-target
-**/target
 .idea
 .vscode
 *.iml
