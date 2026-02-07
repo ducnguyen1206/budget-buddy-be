@@ -51,7 +51,7 @@ public class BudgetDataImpl implements BudgetData {
         MoneyVO moneyVO = new MoneyVO(budgetDTO.amount(), Currency.valueOf(budgetDTO.currency()));
 
         // Logic to save the budget would go here
-        Budget budget = new Budget(userId, category, moneyVO);
+        Budget budget = new Budget(userId, category, moneyVO, budgetDTO.remarks());
         budgetRepository.save(budget);
         logger.info("Budget saved successfully for categoryId='{}'", budgetDTO.categoryId());
     }
@@ -76,7 +76,8 @@ public class BudgetDataImpl implements BudgetData {
         logger.info("Current money: {}, New money: {}, Unchanged: {}", currentMoneyVO, newMoneyVO, moneyUnchanged);
 
         boolean categoryUnchanged = budget.getCategory().getId().equals(budgetDTO.categoryId());
-        if (moneyUnchanged && categoryUnchanged) {
+        boolean remarksUnchanged = java.util.Objects.equals(budget.getRemarks(), budgetDTO.remarks());
+        if (moneyUnchanged && categoryUnchanged && remarksUnchanged) {
             logger.info("No changes detected for budgetId='{}'. Update operation skipped.", budgetId);
             return; // No changes, skip update
         }
@@ -85,6 +86,7 @@ public class BudgetDataImpl implements BudgetData {
                 .orElseThrow(() -> new ConflictException(ErrorCode.CATEGORY_NOT_FOUND));
         budget.setCategory(category);
         budget.setMoney(newMoneyVO);
+        budget.setRemarks(budgetDTO.remarks());
         budgetRepository.save(budget);
         logger.info("Budget updated successfully for budgetId='{}'", budgetId);
     }
@@ -121,30 +123,34 @@ public class BudgetDataImpl implements BudgetData {
 
 
     @Override
-    public List<BudgetDTO> getAllBudgetsForCurrentUser(String currency) {
+    public List<BudgetDTO> getAllBudgetsForCurrentUser(String currency, LocalDate startDate, LocalDate endDate) {
         Long userId = transactionUtils.getCurrentUserId();
         logger.info("Retrieving all budgets for userId='{}'", userId);
 
-        // Calculate cycle window: from 5th of current cycle to 5th of next cycle (inclusive)
-        LocalDate today = LocalDate.now();
-        LocalDate startDate;
-        LocalDate endDate;
-        if (today.getDayOfMonth() >= 5) {
-            startDate = today.withDayOfMonth(5);
-            endDate = today.plusMonths(1).withDayOfMonth(5);
-        } else {
-            startDate = today.minusMonths(1).withDayOfMonth(5);
-            endDate = today.withDayOfMonth(5);
+        // Use provided dates or calculate default cycle window
+        LocalDate effectiveStartDate = startDate;
+        LocalDate effectiveEndDate = endDate;
+        
+        if (effectiveStartDate == null || effectiveEndDate == null) {
+            LocalDate today = LocalDate.now();
+            if (today.getDayOfMonth() >= 5) {
+                effectiveStartDate = today.withDayOfMonth(5);
+                effectiveEndDate = today.plusMonths(1).withDayOfMonth(5);
+            } else {
+                effectiveStartDate = today.minusMonths(1).withDayOfMonth(5);
+                effectiveEndDate = today.withDayOfMonth(5);
+            }
         }
 
         if (currency != null) {
-            logger.info("Retrieving budgets for userId='{}' and currency='{}'", userId, currency);
-            List<BudgetDTO> budgets = budgetRepository.findAllBudgetsForUserAndCurrency(userId, currency, startDate, endDate);
+            logger.info("Retrieving budgets for userId='{}' and currency='{}' between {} and {}", 
+                    userId, currency, effectiveStartDate, effectiveEndDate);
+            List<BudgetDTO> budgets = budgetRepository.findAllBudgetsForUserAndCurrency(userId, currency, effectiveStartDate, effectiveEndDate);
             logger.info("Retrieved {} budgets for userId='{}' and currency='{}'", budgets.size(), userId, currency);
             return budgets;
         }
 
-        List<BudgetDTO> budgets = budgetRepository.findAllBudgetsForUser(userId, startDate, endDate);
+        List<BudgetDTO> budgets = budgetRepository.findAllBudgetsForUser(userId, effectiveStartDate, effectiveEndDate);
         logger.info("Retrieved {} budgets for userId='{}'", budgets.size(), userId);
         return budgets;
     }

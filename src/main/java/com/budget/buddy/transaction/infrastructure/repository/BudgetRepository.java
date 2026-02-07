@@ -21,13 +21,14 @@ public interface BudgetRepository extends JpaRepository<Budget, Long> {
                    COALESCE(MAX(b.money.amount), 0) -
                    COALESCE(SUM(CASE WHEN t.amount < 0 THEN -t.amount ELSE 0 END), 0)   AS remainingAmount,
                    b.money.currency                                                     AS currency,
+                   b.remarks                                                            AS remarks,
                    b.lastModifiedDate                                                   AS updatedAt
             FROM Budget b
                      JOIN Category c ON c.id = b.category.id
                      LEFT JOIN Transaction t ON t.category.id = c.id AND t.sourceAccount.currency = b.money.currency AND t.date >= :startDate AND t.date <= :endDate
                      LEFT JOIN Account a ON a.id = t.sourceAccount.id
             WHERE b.userId = :userId
-            GROUP BY b.id, b.category.id, c.identity.name, b.money.currency
+            GROUP BY b.id, b.category.id, c.identity.name, b.money.currency, b.remarks
             """)
     List<BudgetDTO> findAllBudgetsForUser(Long userId, LocalDate startDate, LocalDate endDate);
 
@@ -41,13 +42,14 @@ public interface BudgetRepository extends JpaRepository<Budget, Long> {
                    COALESCE(MAX(b.money.amount), 0) +
                    COALESCE(SUM(t.amount), 0)                                           AS remainingAmount,
                    b.money.currency                                                     AS currency,
+                   b.remarks                                                            AS remarks,
                    b.lastModifiedDate                                                   AS updatedAt
             FROM Budget b
                      JOIN Category c ON c.id = b.category.id
                      LEFT JOIN Transaction t ON t.category.id = c.id AND t.sourceAccount.currency = b.money.currency AND t.date >= :startDate AND t.date <= :endDate
                      LEFT JOIN Account a ON a.id = t.sourceAccount.id
             WHERE b.userId = :userId AND b.money.currency = :currency
-            GROUP BY b.id, b.category.id, c.identity.name, b.money.currency
+            GROUP BY b.id, b.category.id, c.identity.name, b.money.currency, b.remarks
             """)
     List<BudgetDTO> findAllBudgetsForUserAndCurrency(Long userId, String currency, LocalDate startDate, LocalDate endDate);
 
@@ -63,13 +65,14 @@ public interface BudgetRepository extends JpaRepository<Budget, Long> {
                    COALESCE(MAX(b.money.amount), 0) -
                    COALESCE(SUM(CASE WHEN t.amount < 0 THEN -t.amount ELSE 0 END), 0)   AS remainingAmount,
                    b.money.currency                                                     AS currency,
+                   b.remarks                                                            AS remarks,
                    b.lastModifiedDate                                                   AS updatedAt
             FROM Budget b
                      JOIN Category c ON c.id = b.category.id
                      LEFT JOIN Transaction t ON t.category.id = c.id AND t.sourceAccount.currency = b.money.currency
                      LEFT JOIN Account a ON a.id = t.sourceAccount.id
             WHERE b.id = :id AND b.userId = :userId
-            GROUP BY b.id, b.category.id, c.identity.name, b.money.currency
+            GROUP BY b.id, b.category.id, c.identity.name, b.money.currency, b.remarks
             """)
     Optional<BudgetDTO> findBudgetDTOByIdAndUserId(Long id, Long userId);
 

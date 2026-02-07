@@ -56,14 +56,17 @@ public class BudgetController {
         return ResponseEntity.status(204).build();
     }
 
-    @Operation(summary = "List my budgets", description = "Returns all budgets created by the authenticated user.", responses = {
+    @Operation(summary = "List my budgets", description = "Returns all budgets created by the authenticated user. Optionally filter by currency and date range.", responses = {
             @ApiResponse(responseCode = "200", description = "Budgets retrieved successfully",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             array = @ArraySchema(schema = @Schema(implementation = BudgetDTO.class))))
     })
     @GetMapping
-    public ResponseEntity<List<BudgetDTO>> getBudgets(@RequestParam(required = false) String currency) {
-        return ResponseEntity.status(200).body(budgetService.getAllBudgetsForCurrentUser(currency));
+    public ResponseEntity<List<BudgetDTO>> getBudgets(
+            @RequestParam(required = false) String currency,
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate startDate,
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate endDate) {
+        return ResponseEntity.status(200).body(budgetService.getAllBudgetsForCurrentUser(currency, startDate, endDate));
     }
 
     @Operation(summary = "Get a budget by ID", responses = {

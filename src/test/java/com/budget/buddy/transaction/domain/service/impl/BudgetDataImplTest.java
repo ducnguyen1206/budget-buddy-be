@@ -53,7 +53,7 @@ class BudgetDataImplTest {
         String currency = "SGD";
         BigDecimal amount = new BigDecimal("50.0");
 
-        BudgetDTO budgetDTO = new BudgetDTO(null, categoryId, null, amount, null, null, currency, null);
+        BudgetDTO budgetDTO = new BudgetDTO(null, categoryId, null, amount, null, null, currency, null, null);
 
         when(transactionUtils.getCurrentUserId()).thenReturn(userId);
         when(budgetRepository.existsByCategoryIdAndMoney_CurrencyAndUserId(categoryId, currency, userId))
@@ -79,7 +79,7 @@ class BudgetDataImplTest {
         String currency = "SGD";
         BigDecimal amount = new BigDecimal("50.0");
 
-        BudgetDTO budgetDTO = new BudgetDTO(null, categoryId, null, amount, null, null, currency, null);
+        BudgetDTO budgetDTO = new BudgetDTO(null, categoryId, null, amount, null, null, currency, null, null);
 
         when(transactionUtils.getCurrentUserId()).thenReturn(userId);
         when(budgetRepository.existsByCategoryIdAndMoney_CurrencyAndUserId(categoryId, currency, userId))
@@ -100,7 +100,7 @@ class BudgetDataImplTest {
         String currency = "SGD";
         BigDecimal amount = new BigDecimal("50.0");
 
-        BudgetDTO budgetDTO = new BudgetDTO(null, categoryId, null, amount, null, null, currency, null);
+        BudgetDTO budgetDTO = new BudgetDTO(null, categoryId, null, amount, null, null, currency, null, null);
 
         when(transactionUtils.getCurrentUserId()).thenReturn(userId);
         when(budgetRepository.existsByCategoryIdAndMoney_CurrencyAndUserId(categoryId, currency, userId))
@@ -117,11 +117,11 @@ class BudgetDataImplTest {
         Long userId = 5L;
         when(transactionUtils.getCurrentUserId()).thenReturn(userId);
 
-        List<BudgetDTO> expected = List.of(new BudgetDTO(1L, 2L, "Cat", new BigDecimal("10"), null, null, "SGD", null));
+        List<BudgetDTO> expected = List.of(new BudgetDTO(1L, 2L, "Cat", new BigDecimal("10"), null, null, "SGD", null, null));
         when(budgetRepository.findAllBudgetsForUser(anyLong(), any(LocalDate.class), any(LocalDate.class)))
                 .thenReturn(expected);
 
-        List<BudgetDTO> result = budgetDataImpl.getAllBudgetsForCurrentUser(null);
+        List<BudgetDTO> result = budgetDataImpl.getAllBudgetsForCurrentUser(null, null, null);
         assertSame(expected, result);
 
         ArgumentCaptor<Long> userCaptor = ArgumentCaptor.forClass(Long.class);
@@ -151,11 +151,11 @@ class BudgetDataImplTest {
         String currency = "SGD";
         when(transactionUtils.getCurrentUserId()).thenReturn(userId);
 
-        List<BudgetDTO> expected = List.of(new BudgetDTO(3L, 4L, "Cat2", new BigDecimal("20"), null, null, currency, null));
+        List<BudgetDTO> expected = List.of(new BudgetDTO(3L, 4L, "Cat2", new BigDecimal("20"), null, null, currency, null, null));
         when(budgetRepository.findAllBudgetsForUserAndCurrency(anyLong(), eq(currency), any(LocalDate.class), any(LocalDate.class)))
                 .thenReturn(expected);
 
-        List<BudgetDTO> result = budgetDataImpl.getAllBudgetsForCurrentUser(currency);
+        List<BudgetDTO> result = budgetDataImpl.getAllBudgetsForCurrentUser(currency, null, null);
         assertSame(expected, result);
 
         ArgumentCaptor<Long> userCaptor = ArgumentCaptor.forClass(Long.class);
@@ -187,7 +187,7 @@ class BudgetDataImplTest {
         when(transactionUtils.getCurrentUserId()).thenReturn(USER_ID);
         when(budgetRepository.findByIdAndUserId(budgetId, USER_ID)).thenReturn(Optional.empty());
 
-        BudgetDTO dto = new BudgetDTO(null, 2L, null, new BigDecimal("100"), null, null, "SGD", null);
+        BudgetDTO dto = new BudgetDTO(null, 2L, null, new BigDecimal("100.00"), null, null, "SGD", null, null);
 
         assertThrows(NotFoundException.class, () -> budgetDataImpl.updateBudget(dto, budgetId));
         verify(budgetRepository, never()).save(any());
@@ -201,12 +201,12 @@ class BudgetDataImplTest {
         
         Category category = new Category(new CategoryVO("TEST"), USER_ID);
         category.setId(categoryId);
-        Budget budget = new Budget(USER_ID, category, new MoneyVO(new BigDecimal("100.00"), Currency.SGD));
+        Budget budget = new Budget(USER_ID, category, new MoneyVO(new BigDecimal("100.00"), Currency.SGD), null);
         budget.setId(budgetId);
         
         when(budgetRepository.findByIdAndUserId(budgetId, USER_ID)).thenReturn(Optional.of(budget));
 
-        BudgetDTO dto = new BudgetDTO(null, categoryId, null, new BigDecimal("100.00"), null, null, "SGD", null);
+        BudgetDTO dto = new BudgetDTO(null, categoryId, null, new BigDecimal("100.00"), null, null, "SGD", null, null);
 
         budgetDataImpl.updateBudget(dto, budgetId);
 
@@ -221,13 +221,13 @@ class BudgetDataImplTest {
         
         Category category = new Category(new CategoryVO("TEST"), USER_ID);
         category.setId(categoryId);
-        Budget budget = new Budget(USER_ID, category, new MoneyVO(new BigDecimal("100.00"), Currency.SGD));
+        Budget budget = new Budget(USER_ID, category, new MoneyVO(new BigDecimal("100.00"), Currency.SGD), null);
         budget.setId(budgetId);
         
         when(budgetRepository.findByIdAndUserId(budgetId, USER_ID)).thenReturn(Optional.of(budget));
         when(categoryRepository.findByIdAndUserId(categoryId, USER_ID)).thenReturn(Optional.of(category));
 
-        BudgetDTO dto = new BudgetDTO(null, categoryId, null, new BigDecimal("200.00"), null, null, "SGD", null);
+        BudgetDTO dto = new BudgetDTO(null, categoryId, null, new BigDecimal("200.00"), null, null, "SGD", null, null);
 
         budgetDataImpl.updateBudget(dto, budgetId);
 
@@ -251,7 +251,7 @@ class BudgetDataImplTest {
         when(transactionUtils.getCurrentUserId()).thenReturn(USER_ID);
         
         Category category = new Category(new CategoryVO("TEST"), USER_ID);
-        Budget budget = new Budget(USER_ID, category, new MoneyVO(new BigDecimal("100.00"), Currency.SGD));
+        Budget budget = new Budget(USER_ID, category, new MoneyVO(new BigDecimal("100.00"), Currency.SGD), null);
         budget.setId(budgetId);
         
         when(budgetRepository.findByIdAndUserId(budgetId, USER_ID)).thenReturn(Optional.of(budget));
@@ -278,7 +278,7 @@ class BudgetDataImplTest {
         when(transactionUtils.getCurrentUserId()).thenReturn(USER_ID);
         
         Category category = new Category(new CategoryVO("TEST"), USER_ID);
-        Budget budget = new Budget(USER_ID, category, new MoneyVO(new BigDecimal("100.00"), Currency.SGD));
+        Budget budget = new Budget(USER_ID, category, new MoneyVO(new BigDecimal("100.00"), Currency.SGD), null);
         List<Budget> budgets = List.of(budget);
         
         when(budgetRepository.findAllByUserIdAndCategoryId(USER_ID, categoryId)).thenReturn(budgets);
@@ -302,7 +302,7 @@ class BudgetDataImplTest {
         Long budgetId = 5L;
         when(transactionUtils.getCurrentUserId()).thenReturn(USER_ID);
         
-        BudgetDTO expected = new BudgetDTO(budgetId, 2L, "Cat", new BigDecimal("100"), null, null, "SGD", null);
+        BudgetDTO expected = new BudgetDTO(budgetId, 2L, "Cat", new BigDecimal("100"), null, null, "SGD", null, null);
         when(budgetRepository.findBudgetDTOByIdAndUserId(budgetId, USER_ID)).thenReturn(Optional.of(expected));
 
         BudgetDTO result = budgetDataImpl.getBudgetById(budgetId);

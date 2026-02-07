@@ -27,14 +27,14 @@ class BudgetServiceImplTest {
 
     @Test
     void saveBudget_delegates() {
-        BudgetDTO dto = new BudgetDTO(1L, 10L, "Food", new java.math.BigDecimal("100.00"), null, null, "SGD", null);
+        BudgetDTO dto = new BudgetDTO(1L, 10L, "Food", new java.math.BigDecimal("100.00"), null, null, "SGD", null, null);
         service.saveBudget(dto);
         verify(budgetData).saveBudget(dto);
     }
 
     @Test
     void updateBudget_delegates() {
-        BudgetDTO dto = new BudgetDTO(1L, 10L, "Food", new java.math.BigDecimal("200.00"), null, null, "SGD", null);
+        BudgetDTO dto = new BudgetDTO(1L, 10L, "Food", new java.math.BigDecimal("200.00"), null, null, "SGD", null, null);
         service.updateBudget(dto, 9L);
         verify(budgetData).updateBudget(dto, 9L);
     }
@@ -47,23 +47,23 @@ class BudgetServiceImplTest {
 
     @Test
     void getAllBudgetsForCurrentUser_withCurrency_delegates() {
-        List<BudgetDTO> expected = List.of(new BudgetDTO(1L, 2L, "Cat", new java.math.BigDecimal("10"), null, null, "SGD", null));
-        when(budgetData.getAllBudgetsForCurrentUser("SGD")).thenReturn(expected);
-        assertSame(expected, service.getAllBudgetsForCurrentUser("SGD"));
-        verify(budgetData).getAllBudgetsForCurrentUser("SGD");
+        List<BudgetDTO> expected = List.of(new BudgetDTO(1L, 2L, "Cat", new java.math.BigDecimal("10"), null, null, "SGD", null, null));
+        when(budgetData.getAllBudgetsForCurrentUser("SGD", null, null)).thenReturn(expected);
+        assertSame(expected, service.getAllBudgetsForCurrentUser("SGD", null, null));
+        verify(budgetData).getAllBudgetsForCurrentUser("SGD", null, null);
     }
 
     @Test
     void getAllBudgetsForCurrentUser_withoutCurrency_delegates() {
-        List<BudgetDTO> expected = List.of(new BudgetDTO(1L, 2L, "Cat", new java.math.BigDecimal("10"), null, null, "SGD", null));
-        when(budgetData.getAllBudgetsForCurrentUser(null)).thenReturn(expected);
-        assertSame(expected, service.getAllBudgetsForCurrentUser(null));
-        verify(budgetData).getAllBudgetsForCurrentUser(null);
+        List<BudgetDTO> expected = List.of(new BudgetDTO(1L, 2L, "Cat", new java.math.BigDecimal("10"), null, null, "SGD", null, null));
+        when(budgetData.getAllBudgetsForCurrentUser(null, null, null)).thenReturn(expected);
+        assertSame(expected, service.getAllBudgetsForCurrentUser(null, null, null));
+        verify(budgetData).getAllBudgetsForCurrentUser(null, null, null);
     }
 
     @Test
     void getBudgetById_delegates() {
-        BudgetDTO expected = new BudgetDTO(2L, 3L, "Cat", new java.math.BigDecimal("10"), null, null, "SGD", null);
+        BudgetDTO expected = new BudgetDTO(2L, 3L, "Cat", new java.math.BigDecimal("10"), null, null, "SGD", null, null);
         when(budgetData.getBudgetById(2L)).thenReturn(expected);
         assertSame(expected, service.getBudgetById(2L));
         verify(budgetData).getBudgetById(2L);

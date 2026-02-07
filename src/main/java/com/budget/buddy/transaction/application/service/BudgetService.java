@@ -2,6 +2,7 @@ package com.budget.buddy.transaction.application.service;
 
 import com.budget.buddy.transaction.application.dto.budget.BudgetDTO;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public interface BudgetService {
@@ -11,7 +12,7 @@ public interface BudgetService {
 
     void deleteBudget(Long budgetId);
 
-    List<BudgetDTO> getAllBudgetsForCurrentUser(String currency);
+    List<BudgetDTO> getAllBudgetsForCurrentUser(String currency, LocalDate startDate, LocalDate endDate);
 
     BudgetDTO getBudgetById(Long budgetId);
 }

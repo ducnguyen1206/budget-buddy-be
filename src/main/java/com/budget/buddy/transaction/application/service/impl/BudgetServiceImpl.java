@@ -6,6 +6,7 @@ import com.budget.buddy.transaction.domain.service.BudgetData;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -29,8 +30,8 @@ public class BudgetServiceImpl implements BudgetService {
     }
 
     @Override
-    public List<BudgetDTO> getAllBudgetsForCurrentUser(String currency) {
-        return budgetData.getAllBudgetsForCurrentUser(currency);
+    public List<BudgetDTO> getAllBudgetsForCurrentUser(String currency, LocalDate startDate, LocalDate endDate) {
+        return budgetData.getAllBudgetsForCurrentUser(currency, startDate, endDate);
     }
 
     @Override

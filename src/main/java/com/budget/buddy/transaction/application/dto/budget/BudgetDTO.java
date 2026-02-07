@@ -15,7 +15,7 @@ public record BudgetDTO(
         @Schema(description = "Unique identifier of the category", example = "1", accessMode = Schema.AccessMode.READ_ONLY)
         Long id,
 
-        @NotBlank(message = "Category ID is required")
+        @NotNull(message = "Category ID is required")
         @Schema(description = "ID of the category", example = "1")
         Long categoryId,
 
@@ -36,6 +36,9 @@ public record BudgetDTO(
         @Pattern(regexp = "^(VND|SGD)$", message = "Currency must be either VND or SGD")
         @Schema(description = "Currency of the budget", example = "SGD")
         String currency,
+
+        @Schema(description = "Remarks or notes for the budget", example = "Monthly grocery budget")
+        String remarks,
 
         @Schema(description = "Last updated date and time", example = "2021-01-01T00:00:00", accessMode = Schema.AccessMode.READ_ONLY)
         LocalDateTime updatedAt

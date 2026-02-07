@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - changeSet:
+      id: 008-add-budget-remarks
+      author: ducnguyen
+      changes:
+        - addColumn:
+            tableName: budget
+            columns:
+              - column:
+                  name: remarks
+                  type: varchar(500)
+                  constraints:
+                    nullable: true

@@ -31,4 +31,7 @@ public class Budget extends BaseEntity {
     @AttributeOverride(name = "currency", column = @Column(name = "currency", length = 3, nullable = false))
     @Embedded
     private MoneyVO money;
+
+    @Column(name = "remarks", length = 500)
+    private String remarks;
 }
