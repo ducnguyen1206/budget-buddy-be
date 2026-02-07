@@ -19,7 +19,7 @@ Budget Buddy is a personal finance management system that helps users track tran
 - **User Authentication** - Secure JWT-based authentication with Google OAuth2 support
 
 ## 🛠️ Tech Stack
-
+s
 - **Framework**: Spring Boot 3.5.9
 - **Language**: Java 21
 - **Database**: PostgreSQL 16
