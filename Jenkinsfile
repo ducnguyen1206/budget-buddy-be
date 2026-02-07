@@ -5,6 +5,7 @@ pipeline {
     tools {
         maven 'M3'
         // jdk 'Java21' // Uncomment this line if you named your JDK tool 'Java21'
+        jdk 'jdk-21'
     }
 
     options {
