@@ -23,6 +23,8 @@ pipeline {
 
         stage('Build & Test') {
             steps {
+                echo '🚀 Debugging Java Version...'
+                sh 'mvn -version'
                 echo '🚀 Starting Build and Unit Tests...'
                 // -Xmx512m limits Maven to 512MB RAM so Jenkins doesn't crash
                 // 'clean package' runs unit tests automatically
