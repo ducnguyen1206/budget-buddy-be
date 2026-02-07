@@ -1,73 +1,67 @@
 pipeline {
     agent any
-
     tools {
         maven 'M3'
         jdk 'JDK21'
     }
-
     environment {
-        // Name of the Docker image we will build
         IMAGE_NAME = "budget-buddy:latest"
-        // The container name to run
         CONTAINER_NAME = "budget-backend"
     }
-
-    options {
-        disableConcurrentBuilds()
-    }
+    options { disableConcurrentBuilds() }
 
     stages {
         stage('Checkout') {
+            steps { checkout scm }
+        }
+
+        // ✅ ALWAYS RUN: This verifies your PR code is good
+        stage('Build & Test') {
             steps {
-                checkout scm
+                echo '🚀 Compiling and Testing...'
+                // Remove -DskipTests if you want to run unit tests on PRs (Recommended)
+                sh 'mvn clean package'
             }
         }
 
-        stage('Build JAR') {
-            steps {
-                echo '🚀 Compiling Application...'
-                // Skip tests here if you want faster deploys, or keep them for safety
-                sh 'mvn clean package -DskipTests'
-            }
-        }
-
+        // 🛑 ONLY RUN ON MAIN: Docker Build
         stage('Build Image') {
+            when {
+                branch 'main' // <--- THE MAGIC LINE
+            }
             steps {
-                echo '🐳 Building Docker Image...'
-                // Uses the Dockerfile we created (copying the jar)
+                echo '🐳 Building Docker Image (Main Branch Only)...'
                 sh "docker build -t ${IMAGE_NAME} ."
             }
         }
 
+        // 🛑 ONLY RUN ON MAIN: Deploy
         stage('Deploy') {
-                    steps {
-                        echo '🚀 Deploying to Production...'
-                        withCredentials([file(credentialsId: 'budget-prod-env', variable: 'SECRET_ENV')]) {
-                            script {
-                                try {
-                                    sh "docker stop ${CONTAINER_NAME}"
-                                    sh "docker rm ${CONTAINER_NAME}"
-                                } catch (Exception e) {
-                                    echo 'No existing container to stop.'
-                                }
+            when {
+                branch 'main' // <--- THE MAGIC LINE
+            }
+            steps {
+                echo '🚀 Deploying to Production...'
+                withCredentials([file(credentialsId: 'budget-prod-env', variable: 'SECRET_ENV')]) {
+                    script {
+                        try {
+                            sh "docker stop ${CONTAINER_NAME}"
+                            sh "docker rm ${CONTAINER_NAME}"
+                        } catch (Exception e) { echo 'No container to stop.' }
 
-                                // Updated for HOST NETWORKING
-                                // 1. --network="host" lets us talk to localhost DB
-                                // 2. We OVERRIDE the DB_URL from the file using -e flags
-                                sh """
-                                    docker run -d \
-                                    --name ${CONTAINER_NAME} \
-                                    --restart always \
-                                    --network="host" \
-                                    -e DB_URL=jdbc:postgresql://localhost:5432/budgetbuddy \
-                                    -e REDIS_HOST=localhost \
-                                    --env-file '${SECRET_ENV}' \
-                                    ${IMAGE_NAME}
-                                """
-                            }
-                        }
+                        sh """
+                            docker run -d \
+                            --name ${CONTAINER_NAME} \
+                            --restart always \
+                            --network="host" \
+                            -e DB_URL=jdbc:postgresql://localhost:5432/budgetbuddy_db \
+                            -e REDIS_HOST=localhost \
+                            --env-file '${SECRET_ENV}' \
+                            ${IMAGE_NAME}
+                        """
                     }
                 }
+            }
+        }
     }
 }
