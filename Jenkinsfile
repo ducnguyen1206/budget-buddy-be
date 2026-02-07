@@ -60,7 +60,7 @@ pipeline {
                                     --name ${CONTAINER_NAME} \
                                     --restart always \
                                     --network="host" \
-                                    -e DB_URL=jdbc:postgresql://localhost:5432/budgetbuddy_db \
+                                    -e DB_URL=jdbc:postgresql://localhost:5432/budgetbuddy \
                                     -e REDIS_HOST=localhost \
                                     --env-file '${SECRET_ENV}' \
                                     ${IMAGE_NAME}
