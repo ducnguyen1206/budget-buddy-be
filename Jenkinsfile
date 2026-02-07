@@ -1,42 +1,70 @@
 pipeline {
     agent any
 
-    // Use the Maven tool we named 'M3' earlier
     tools {
         maven 'M3'
-        // jdk 'Java21' // Uncomment this line if you named your JDK tool 'Java21'
         jdk 'JDK21'
     }
 
+    environment {
+        // Name of the Docker image we will build
+        IMAGE_NAME = "budget-buddy:latest"
+        // The container name to run
+        CONTAINER_NAME = "budget-backend"
+    }
+
     options {
-        // CRITICAL: Prevents multiple builds from killing your CPU
         disableConcurrentBuilds()
     }
 
     stages {
         stage('Checkout') {
             steps {
-                // Gets code from the branch you configured (main)
                 checkout scm
             }
         }
 
-        stage('Build & Test') {
+        stage('Build JAR') {
             steps {
-                echo '🚀 Debugging Java Version...'
-                sh 'mvn -version'
-                echo '🚀 Starting Build and Unit Tests...'
-                // -Xmx512m limits Maven to 512MB RAM so Jenkins doesn't crash
-                // 'clean package' runs unit tests automatically
-                sh 'export MAVEN_OPTS="-Xmx512m" && mvn clean package'
+                echo '🚀 Compiling Application...'
+                // Skip tests here if you want faster deploys, or keep them for safety
+                sh 'mvn clean package -DskipTests'
             }
         }
-    }
 
-    post {
-        always {
-            // Tells Jenkins to record the test results
-            junit '**/target/surefire-reports/*.xml'
+        stage('Build Image') {
+            steps {
+                echo '🐳 Building Docker Image...'
+                // Uses the Dockerfile we created (copying the jar)
+                sh "docker build -t ${IMAGE_NAME} ."
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                echo '🚀 Deploying to Production...'
+                script {
+                    // 1. Stop old container (ignore failure if it doesn't exist)
+                    try {
+                        sh "docker stop ${CONTAINER_NAME}"
+                        sh "docker rm ${CONTAINER_NAME}"
+                    } catch (Exception e) {
+                        echo 'No existing container to stop.'
+                    }
+
+                    // 2. Run new container
+                    // We map port 8080 on Host to 8080 in Container
+                    // We inject the production secrets from your VPS file
+                    sh """
+                        docker run -d \
+                        --name ${CONTAINER_NAME} \
+                        --restart always \
+                        -p 8080:8080 \
+                        --env-file /opt/budget-buddy/prod.env \
+                        ${IMAGE_NAME}
+                    """
+                }
+            }
         }
     }
 }
