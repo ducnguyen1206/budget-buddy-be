@@ -43,26 +43,28 @@ pipeline {
         stage('Deploy') {
             steps {
                 echo '🚀 Deploying to Production...'
-                script {
-                    // 1. Stop old container (ignore failure if it doesn't exist)
-                    try {
-                        sh "docker stop ${CONTAINER_NAME}"
-                        sh "docker rm ${CONTAINER_NAME}"
-                    } catch (Exception e) {
-                        echo 'No existing container to stop.'
-                    }
+                withCredentials([file(credentialsId: 'budget-prod-env', variable: 'SECRET_ENV')]) {
+                    script {
+                                        // 1. Stop old container (ignore failure if it doesn't exist)
+                                        try {
+                                            sh "docker stop ${CONTAINER_NAME}"
+                                            sh "docker rm ${CONTAINER_NAME}"
+                                        } catch (Exception e) {
+                                            echo 'No existing container to stop.'
+                                        }
 
-                    // 2. Run new container
-                    // We map port 8080 on Host to 8080 in Container
-                    // We inject the production secrets from your VPS file
-                    sh """
-                        docker run -d \
-                        --name ${CONTAINER_NAME} \
-                        --restart always \
-                        -p 8080:8080 \
-                        --env-file /opt/budget-buddy/prod.env \
-                        ${IMAGE_NAME}
-                    """
+                                        // 2. Run new container
+                                        // We map port 8080 on Host to 8080 in Container
+                                        // We inject the production secrets from your VPS file
+                                        sh """
+                                            docker run -d \
+                                            --name ${CONTAINER_NAME} \
+                                            --restart always \
+                                            -p 8080:8080 \
+                                            --env-file /opt/budget-buddy/prod.env \
+                                            ${IMAGE_NAME}
+                                        """
+                                    }
                 }
             }
         }
