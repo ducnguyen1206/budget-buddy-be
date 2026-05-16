@@ -1,0 +1,100 @@
+# =============================================================================
+# Complete Development Stack — App + PostgreSQL + Redis
+# All services run in Docker for consistency with production
+#
+# Usage:
+#   docker-compose -f docker-compose.dev.yml up -d      # Start all
+#   docker-compose -f docker-compose.dev.yml down        # Stop all
+#   docker-compose -f docker-compose.dev.yml down -v     # Stop + wipe data
+#   docker-compose -f docker-compose.dev.yml logs -f app # Watch app logs
+# =============================================================================
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: budget-buddy-app-dev
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      # Database — internal Docker network
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/budgetbuddy
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: admin
+      # Redis — internal Docker network
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_DATA_REDIS_PASSWORD: ""
+      # Google OAuth — real credentials needed for login to work locally
+      EMAIL_CLIENT_ID: ${EMAIL_CLIENT_ID:-your-client-id}
+      EMAIL_CLIENT_SECRET: ${EMAIL_CLIENT_SECRET:-your-client-secret}
+      EMAIL_REFRESH_TOKEN: ${EMAIL_REFRESH_TOKEN:-your-refresh-token}
+      EMAIL_USERNAME: ${EMAIL_USERNAME:-your-email@gmail.com}
+      EMAIL_PASSWORD: ${EMAIL_PASSWORD:-your-app-password}
+      GOOGLE_URL: https://oauth2.googleapis.com/token
+      GOOGLE_USER_INFO_URL: https://www.googleapis.com/oauth2/v3/userinfo
+      # COOKIES=false — HTTP on localhost, browser won't accept Secure cookies
+      COOKIES: "false"
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./src:/app/src  # Live code reload (requires app restart)
+      - ./pom.xml:/app/pom.xml
+    networks:
+      - budget-buddy-network
+
+  postgres:
+    image: postgres:16-alpine  # Pin tag — never use :latest in compose
+    container_name: budget-buddy-postgres-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: budgetbuddy
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+    ports:
+      # Map to 5433 on host to avoid conflicts with any local Postgres installation
+      - "5433:5432"  # Host:Container mapping
+    expose:
+      - "5432"  # Internal Docker network access for the app container
+    volumes:
+      - pgdata_dev:/var/lib/postgresql/data
+    networks:
+      - budget-buddy-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d budgetbuddy"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine  # Pin tag
+    container_name: budget-buddy-redis-dev
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    expose:
+      - "6379"  # Internal Docker network access for the app container
+    volumes:
+      - redisdata_dev:/data
+    networks:
+      - budget-buddy-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata_dev:    # Named volume — persists data across container restarts
+  redisdata_dev: # Named volume — persists Redis AOF log
+
+networks:
+  budget-buddy-network:
+    driver: bridge

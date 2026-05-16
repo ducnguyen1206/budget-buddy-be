@@ -1,0 +1,62 @@
+# =============================================================================
+# Spring Boot DEVELOPMENT Profile
+# Activated with: ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+# This profile overrides application.yaml for local development.
+# All values are hard-coded — no need to manage a .env file for dev work.
+# =============================================================================
+
+spring:
+  datasource:
+    # Postgres running via docker-compose.dev.yml (port 5433 on host, or postgres:5432 in Docker)
+    url: jdbc:postgresql://localhost:5433/budgetbuddy
+    username: admin
+    password: admin
+  data:
+    redis:
+      # Redis running via docker-compose.dev.yml (localhost:6379 locally, or redis:6379 in Docker)
+      host: localhost
+      port: 6379
+      password: ""
+  jpa:
+    show-sql: true  # Full SQL logging in dev
+    properties:
+      hibernate:
+        format_sql: true  # Pretty-print SQL statements
+
+# Local CORS — allows the Vite dev server
+cors:
+  app: http://localhost:5173
+
+# JWT secret for local dev (safe to commit — dev only)
+jwt-secret: "bXlkZXZzZWNyZXQxMjM0NTY3ODkwbXlkZXZzZWNyZXQxMjM0NTY3ODkwbXlkZXZzZWNyZXQxMjM0NTY3ODkwbXlkZXZzZWNyZXQxMjM0NTY3ODkw"
+jwt:
+  secret: "bXlkZXZzZWNyZXQxMjM0NTY3ODkwbXlkZXZzZWNyZXQxMjM0NTY3ODkwbXlkZXZzZWNyZXQxMjM0NTY3ODkwbXlkZXZzZWNyZXQxMjM0NTY3ODkw"
+  issuer: my-auth-service
+  kid: v1
+  access-ttl: 1h
+  refresh-ttl: 7d
+  clock-skew-seconds: 30
+
+# Disable Secure cookie flag — HTTP only on localhost
+application:
+  security:
+    cookie-secure: false
+
+# Placeholder email config — override if testing email flows locally
+google:
+  client-id: ${EMAIL_CLIENT_ID:local-dev-client-id}
+  client-secret: ${EMAIL_CLIENT_SECRET:local-dev-client-secret}
+  token-uri: ${GOOGLE_URL:https://oauth2.googleapis.com/token}
+  user-info-uri: ${GOOGLE_USER_INFO_URL:https://www.googleapis.com/oauth2/v3/userinfo}
+
+logging:
+  level:
+    root: INFO
+    # Full SQL + parameter binding visibility
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    # App-level debug logging
+    com.budget.buddy: DEBUG
+    # Security filter chain visibility
+    org.springframework.security: DEBUG
+    liquibase: INFO
