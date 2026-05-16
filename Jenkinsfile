@@ -19,7 +19,7 @@ pipeline {
         stage('Build & Test') {
             steps {
                 echo '🚀 Compiling and Testing...'
-                // Remove -DskipTests if you want to run unit tests on PRs (Recommended)
+                // Tests use H2 in-memory DB — no external services required
                 sh 'mvn clean package'
             }
         }
@@ -27,7 +27,13 @@ pipeline {
         // 🛑 ONLY RUN ON MAIN: Docker Build
         stage('Build Image') {
             when {
-                branch 'main' // <--- THE MAGIC LINE
+                // Works in both Multibranch Pipeline (BRANCH_NAME) and regular Pipeline (git)
+                anyOf {
+                    branch 'main'
+                    expression {
+                        sh(returnStdout: true, script: 'git rev-parse --abbrev-ref HEAD').trim() == 'main'
+                    }
+                }
             }
             steps {
                 echo '🐳 Building Docker Image (Main Branch Only)...'
@@ -38,7 +44,12 @@ pipeline {
         // 🛑 ONLY RUN ON MAIN: Deploy
         stage('Deploy') {
             when {
-                branch 'main' // <--- THE MAGIC LINE
+                anyOf {
+                    branch 'main'
+                    expression {
+                        sh(returnStdout: true, script: 'git rev-parse --abbrev-ref HEAD').trim() == 'main'
+                    }
+                }
             }
             steps {
                 echo '🚀 Deploying to Production...'
@@ -52,10 +63,9 @@ pipeline {
                         sh """
                             docker run -d \
                             --name ${CONTAINER_NAME} \
-                            --restart always \
+                            --restart unless-stopped \
                             --network="host" \
-                            -e DB_URL=jdbc:postgresql://localhost:5432/budgetbuddy_db \
-                            -e REDIS_HOST=localhost \
+                            -e SPRING_PROFILES_ACTIVE=prod \
                             --env-file '${SECRET_ENV}' \
                             ${IMAGE_NAME}
                         """
