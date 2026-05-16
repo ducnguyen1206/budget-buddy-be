@@ -27,12 +27,12 @@ pipeline {
         // 🛑 ONLY RUN ON MAIN: Docker Build
         stage('Build Image') {
             when {
-                // Works in both Multibranch Pipeline (BRANCH_NAME) and regular Pipeline (git)
+                // BRANCH_NAME  → set by Multibranch Pipeline jobs
+                // GIT_BRANCH   → set by regular Pipeline jobs (value is "origin/main")
                 anyOf {
                     branch 'main'
-                    expression {
-                        sh(returnStdout: true, script: 'git rev-parse --abbrev-ref HEAD').trim() == 'main'
-                    }
+                    expression { env.GIT_BRANCH == 'main' }
+                    expression { env.GIT_BRANCH == 'origin/main' }
                 }
             }
             steps {
@@ -46,9 +46,8 @@ pipeline {
             when {
                 anyOf {
                     branch 'main'
-                    expression {
-                        sh(returnStdout: true, script: 'git rev-parse --abbrev-ref HEAD').trim() == 'main'
-                    }
+                    expression { env.GIT_BRANCH == 'main' }
+                    expression { env.GIT_BRANCH == 'origin/main' }
                 }
             }
             steps {
