@@ -99,9 +99,23 @@ public class AuthController {
             }
     )
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(@RequestHeader(value = "Authorization", required = false) String authorization) {
-        authenticationService.logout(authorization);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<Void> logout(
+            @RequestHeader(value = "Authorization", required = false) String authorization,
+            @CookieValue(name = "refresh_token", required = false) String refreshToken) {
+        authenticationService.logout(authorization, refreshToken);
+
+        // Expire the HttpOnly refresh_token cookie immediately
+        ResponseCookie clearedCookie = ResponseCookie.from("refresh_token", "")
+                .httpOnly(true)
+                .secure(isCookieSecure)
+                .path("/")
+                .maxAge(0)
+                .sameSite("Lax")
+                .build();
+
+        return ResponseEntity.noContent()
+                .header(HttpHeaders.SET_COOKIE, clearedCookie.toString())
+                .build();
     }
 
     @Operation(

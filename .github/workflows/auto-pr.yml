@@ -1,0 +1,92 @@
+name: Auto Create PR from Develop to Main
+
+on:
+  push:
+    branches:
+      - develop
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  create-pull-request:
+    name: Create Pull Request
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check if PR already exists
+        id: check_pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Check if PR already exists from develop to main
+          PR_EXISTS=$(gh pr list --head develop --base main --json number --jq 'length')
+          
+          if [ "$PR_EXISTS" -gt 0 ]; then
+            echo "pr_exists=true" >> $GITHUB_OUTPUT
+            PR_NUMBER=$(gh pr list --head develop --base main --json number --jq '.[0].number')
+            echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+          else
+            echo "pr_exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Get commit summary
+        id: commits
+        if: steps.check_pr.outputs.pr_exists == 'false'
+        run: |
+          # Get commits that are in develop but not in main
+          COMMITS=$(git log origin/main..origin/develop --pretty=format:"- %s (%an)" --no-merges | head -20)
+          echo "commits<<EOF" >> $GITHUB_OUTPUT
+          echo "$COMMITS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          # Count commits
+          COMMIT_COUNT=$(git rev-list --count origin/main..origin/develop)
+          echo "commit_count=$COMMIT_COUNT" >> $GITHUB_OUTPUT
+
+      - name: Create Pull Request
+        if: steps.check_pr.outputs.pr_exists == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          COMMIT_COUNT="${{ steps.commits.outputs.commit_count }}"
+          
+          # Create PR body with commit summary
+          PR_BODY="## 🚀 Release from Develop to Main
+          
+          This PR merges **$COMMIT_COUNT commit(s)** from \`develop\` into \`main\`.
+          
+          ### Recent Changes
+          ${{ steps.commits.outputs.commits }}
+          
+          ## Pre-merge Checklist
+          - [ ] All tests passing
+          - [ ] Code review completed
+          - [ ] Documentation updated
+          - [ ] Version bumped (if applicable)
+          - [ ] Changelog updated
+          
+          ---
+          *This PR was automatically created by GitHub Actions*"
+          
+          # Create the PR
+          gh pr create \
+            --title "Release: Merge develop into main" \
+            --body "$PR_BODY" \
+            --base main \
+            --head develop
+          
+          echo "✅ Pull request created successfully from develop to main!"
+
+      - name: PR Already Exists
+        if: steps.check_pr.outputs.pr_exists == 'true'
+        run: |
+          PR_NUMBER="${{ steps.check_pr.outputs.pr_number }}"
+          echo "ℹ️ Pull request #$PR_NUMBER already exists from develop to main"
+          echo "View it at: ${{ github.server_url }}/${{ github.repository }}/pull/$PR_NUMBER"

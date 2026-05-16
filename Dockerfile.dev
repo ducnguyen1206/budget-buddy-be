@@ -1,0 +1,43 @@
+# =============================================================================
+# Development Dockerfile for Spring Boot Backend
+# Builds and runs the app with the dev profile for local development
+#
+# Features:
+# - Multi-stage: Maven build stage + lightweight runtime stage
+# - Dev profile active: application-dev.yaml loaded
+# - Port 8080 exposed
+# - Can be restarted without full rebuild
+# =============================================================================
+
+# Stage 1: Build
+FROM eclipse-temurin:21-jdk-alpine AS builder
+
+WORKDIR /app
+
+# Copy Maven files
+COPY pom.xml mvnw ./
+COPY .mvn .mvn
+
+# Copy source code
+COPY src src
+
+# Build JAR with Maven (skip tests for faster dev builds)
+RUN ./mvnw clean package -DskipTests
+
+# Stage 2: Runtime
+FROM eclipse-temurin:21-jre-alpine
+
+WORKDIR /app
+
+# Copy built JAR from builder stage
+COPY --from=builder /app/target/*.jar app.jar
+
+# Expose port
+EXPOSE 8080
+
+# Enable debug logging by default in dev
+ENV SPRING_PROFILES_ACTIVE=dev \
+    JAVA_OPTS="-Xmx512m -Xms256m"
+
+# Run the app
+ENTRYPOINT ["sh", "-c", "java ${JAVA_OPTS} -jar app.jar"]

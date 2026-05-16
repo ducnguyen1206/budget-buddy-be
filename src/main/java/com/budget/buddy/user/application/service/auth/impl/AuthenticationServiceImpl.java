@@ -220,10 +220,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public void logout(String authHeader) {
+    public void logout(String authHeader, String refreshToken) {
         Long userId = ApplicationUtil.getUserIdFromContext();
         User user = userData.findByUserId(userId).orElseThrow(() -> new AuthException(ErrorCode.USER_NOT_FOUND));
-        revokeAccessToken(user.getEmailAddress().getValue(), null);
+        revokeAccessToken(user.getEmailAddress().getValue(), refreshToken);
     }
 
     private void revokeAccessToken(String email, String refreshToken) {
